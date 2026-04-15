@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>UIDAI PMIS - Homescreen</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --navy:#0b3c88;
+  --cyan:#0aa1c0;
+  --light:#f4f7fb;
+  --border:#dbe5f1;
+  --card:#ffffff;
+  --text:#1e2a3a;
+  --muted:#607086;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:Inter,sans-serif;
+  background:var(--light);
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+  color:var(--text);
+}
+img{display:block;max-width:100%}
+
+.header{
+  background:#fff;
+  border-bottom:3px solid var(--navy);
+  padding:10px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.header img{height:40px;object-fit:contain}
+.header strong{
+  font-size:20px;
+  font-weight:800;
+  background:linear-gradient(90deg,var(--navy),var(--cyan));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-align:center;
+  line-height:1.2;
+}
+
+.navbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#f9fbff;
+  border-bottom:1px solid var(--border);
+  position:relative;
+  z-index:20;
+}
+.menu-home-block{
+  width:240px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:10px 15px;
+  border-right:1px solid var(--border);
+}
+.menu-home-block span{
+  cursor:pointer;
+  padding:6px 10px;
+  border-radius:6px;
+  user-select:none;
+  white-space:nowrap;
+}
+.menu-home-block span:hover{background:#eef6fb;}
+
+.profile{
+  padding:0 20px;
+  cursor:pointer;
+  position:relative;
+  font-size:18px;
+  line-height:1;
+}
+.profile-menu{
+  position:absolute;
+  right:0;
+  top:42px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:8px;
+  display:none;
+  min-width:140px;
+  box-shadow:0 4px 10px rgba(0,0,0,.08);
+  overflow:hidden;
+}
+.profile-menu div{padding:10px 12px;cursor:pointer}
+.profile-menu div:hover{background:#eef6fb}
+
+.layout{
+  display:flex;
+  flex:1;
+  min-height:0;
+}
+
+.sidebar{
+  width:240px;
+  background:#fff;
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  transition:0.3s;
+  min-height:0;
+}
+.sidebar.collapsed{width:72px}
+.sidebar.collapsed .text,
+.sidebar.collapsed .submenu-arrow,
+.sidebar.collapsed .submenu-inline{display:none !important}
+.sidebar.collapsed .menu a,
+.sidebar.collapsed .section-head{justify-content:center}
+.sidebar.collapsed .menu a{padding-left:0;padding-right:0}
+
+.menu{
+  padding:15px;
+  overflow:auto;
+}
+.menu a,
+.section-head,
+.submenu div{
+  display:flex;
+  gap:10px;
+  padding:10px;
+  margin-bottom:5px;
+  cursor:pointer;
+  border-radius:6px;
+  align-items:center;
+  user-select:none;
+  line-height:1.25;
+}
+.menu a:hover,
+.section-head:hover,
+.submenu div:hover{background:#eef6fb;}
+.menu a.active,
+.section-head.active{
+  background:linear-gradient(90deg,var(--navy),var(--cyan));
+  color:#fff;
+}
+.menu a.active:hover,
+.section-head.active:hover{
+  background:linear-gradient(90deg,var(--navy),var(--cyan));
+}
+
+.submenu{
+  display:block;
+  padding-left:18px;
+  margin-bottom:8px;
+}
+.submenu-inline{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:1;
+  line-height:1.35;
+}
+
+.section-head{
+  justify-content:space-between;
+}
+.submenu-arrow{
+  font-size:12px;
+  margin-left:auto;
+}
+
+.collapse-btn{
+  padding:15px;
+  text-align:center;
+}
+.collapse-icon{
+  width:35px;
+  height:35px;
+  background:linear-gradient(90deg,var(--navy),var(--cyan));
+  color:#fff;
+  border-radius:50%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  cursor:pointer;
+  margin:0 auto;
+}
+
+.content{
+  flex:1;
+  padding:20px;
+  min-width:0;
+  display:flex;
+}
+.welcome-panel{
+  width:100%;
+  background:linear-gradient(180deg,#ffffff 0%, #f8fbff 100%);
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:0 8px 22px rgba(0,0,0,0.06);
+  padding:28px;
+  align-self:flex-start;
+}
+.welcome-title{
+  font-size:28px;
+  font-weight:800;
+  color:#173e77;
+  line-height:1.25;
+  margin-bottom:12px;
+}
+.welcome-subtitle{
+  font-size:15px;
+  color:var(--muted);
+  line-height:1.8;
+  max-width:980px;
+}
+.info-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+  margin-top:22px;
+}
+.info-card{
+  background:#fff;
+  border:1px solid #e6eef8;
+  border-radius:12px;
+  padding:18px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.04);
+}
+.info-card h3{
+  font-size:16px;
+  color:#173e77;
+  margin-bottom:8px;
+}
+.info-card p{
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.7;
+}
+
+.footer{
+  background:#fff;
+  border-top:3px solid var(--navy);
+  text-align:center;
+  padding:10px;
+  font-size:12px;
+}
+
+@media (max-width: 960px){
+  .header{
+    justify-content:center;
+    text-align:center;
+  }
+
+  .navbar{
+    flex-wrap:wrap;
+  }
+
+  .menu-home-block{
+    width:100%;
+    border-right:none;
+    border-bottom:1px solid var(--border);
+  }
+
+  .layout{
+    flex-direction:column;
+  }
+
+  .sidebar{
+    width:100%;
+    border-right:none;
+    border-bottom:1px solid var(--border);
+  }
+
+  .sidebar.collapsed{
+    width:100%;
+  }
+
+  .sidebar.collapsed .text,
+  .sidebar.collapsed .submenu-arrow,
+  .sidebar.collapsed .submenu-inline{
+    display:inline-flex !important;
+  }
+
+  .sidebar.collapsed .menu a,
+  .sidebar.collapsed .section-head{
+    justify-content:flex-start;
+  }
+
+  .menu{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:8px;
+  }
+
+  .menu a,
+  .section-head,
+  .submenu div{
+    margin-bottom:0;
+  }
+
+  .submenu{
+    padding-left:0;
+    display:block;
+  }
+
+  .content{
+    padding:16px;
+  }
+
+  .welcome-panel{
+    padding:22px;
+  }
+
+  .info-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width: 640px){
+  .header{
+    padding:10px 12px;
+  }
+
+  .header strong{
+    font-size:18px;
+  }
+
+  .menu-home-block{
+    padding:8px 10px;
+    gap:8px;
+  }
+
+  .menu-home-block span{
+    padding:6px 8px;
+  }
+
+  .profile{
+    padding:0 12px;
+  }
+
+  .welcome-panel{
+    padding:18px;
+  }
+
+  .welcome-title{
+    font-size:22px;
+  }
+
+  .welcome-subtitle{
+    font-size:13px;
+    line-height:1.65;
+  }
+
+  .menu{
+    grid-template-columns:1fr;
+  }
+
+  .welcome-title,
+  .welcome-subtitle{
+    max-width:100%;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <img src="logo.avif" alt="UIDAI logo">
+  <div><strong>UIDAI Automation Governance Tool</strong></div>
+  <img src="Aadhaar.png" alt="Aadhaar logo">
+</div>
+
+<div class="navbar">
+  <div class="menu-home-block">
+    <span id="toggleBtn">☰ Menu</span>
+    <span>🏠 Home</span>
+  </div>
+
+  <div class="profile" id="profileBtn">
+    👤
+    <div class="profile-menu" id="profileMenu">
+      <div>Profile</div>
+      <div>Sign Out</div>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+<div class="sidebar" id="sidebar">
+  <div class="menu">
+    <a class="active"><span>📊</span><span class="text">Dashboard</span></a>
+
+    <div class="section-head">
+      <span>📁</span>
+      <span class="text">Project Management</span>
+      <span class="submenu-arrow">▶</span>
+    </div>
+
+    <a><span>🗂️</span><span class="text">Master Data</span></a>
+
+    <div class="section-head">
+      <span>🏢</span>
+      <span class="text">Vendor Management</span>
+      <span class="submenu-arrow">▶</span>
+    </div>
+
+    <div class="section-head">
+      <span>👤</span>
+      <span class="text">User Management</span>
+      <span class="submenu-arrow">▶</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="content">
+  <div class="welcome-panel">
+    <div class="welcome-title">Welcome to UIDAI Automation Governance Tool</div>
+    <div class="welcome-subtitle">
+      Please proceed to the relevant module to perform project onboarding, master data handling, vendor administration, user access management, meeting coordination, and audit review.
+      Use the sidebar to navigate across the workspace and keep your governance tasks organized, traceable, and consistent with the UIDAI theme.
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>Project Management</h3>
+        <p>Create, update, and monitor project records with structured tracking for progress, milestones, and ownership.</p>
+      </div>
+      <div class="info-card">
+        <h3>Vendor & User Management</h3>
+        <p>Maintain vendors and users in a controlled flow so access, mapping, and accountability stay clean.</p>
+      </div>
+      <div class="info-card">
+        <h3>Audit & Monitoring</h3>
+        <p>Review logs and activities to keep operations transparent, searchable, and easy to verify.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">© 2026 UIDAI · PMIS Automation Tool · Internal Use Only</div>
+
+<script>
+const sidebar=document.getElementById("sidebar");
+const collapseBtn=document.getElementById("collapseBtn");
+
+toggleBtn.onclick=()=>{
+  sidebar.classList.toggle("collapsed");
+  collapseBtn.innerText = sidebar.classList.contains("collapsed") ? "⮞" : "⮜";
+};
+collapseBtn.onclick=toggleBtn.onclick;
+
+const profileBtn=document.getElementById("profileBtn");
+const profileMenu=document.getElementById("profileMenu");
+
+profileBtn.onclick=(e)=>{
+  e.stopPropagation();
+  profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
+};
+
+document.addEventListener("click",()=>profileMenu.style.display="none");
+</script>
+
+</body>
+</html>

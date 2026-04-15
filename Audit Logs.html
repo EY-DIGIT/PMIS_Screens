@@ -1,0 +1,354 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>UIDAI PMIS - Audit Logs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --navy:#0b3c88;
+  --cyan:#0aa1c0;
+  --light:#f4f7fb;
+  --border:#dbe5f1;
+  --text:#1e2a3a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:Inter,sans-serif;
+  background:var(--light);
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
+button,input,select,textarea{font:inherit}
+img{display:block;max-width:100%}
+
+.header{
+  background:#fff;
+  border-bottom:3px solid var(--navy);
+  padding:10px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.header img{height:40px}
+.header strong{
+  font-size:20px;
+  font-weight:800;
+  background:linear-gradient(90deg,var(--navy),var(--cyan));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-align:center;
+  line-height:1.2;
+}
+
+.navbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#f9fbff;
+  border-bottom:1px solid var(--border);
+  min-height:58px;
+  position:relative;
+  z-index:20;
+}
+
+.menu-home-block{
+  width:240px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:10px 15px;
+  border-right:1px solid var(--border);
+}
+.menu-home-block span{
+  cursor:pointer;
+  padding:8px 10px;
+  border-radius:6px;
+  user-select:none;
+  white-space:nowrap;
+}
+.menu-home-block span:hover{background:#eef6fb;}
+
+.profile{
+  padding:0 20px;
+  cursor:pointer;
+  position:relative;
+  font-size:18px;
+  line-height:1;
+}
+.profile-menu{
+  position:absolute;
+  right:0;
+  top:42px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:8px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.12);
+  display:none;
+  min-width:150px;
+  overflow:hidden;
+  z-index:30;
+}
+.profile-menu div{padding:10px 12px;cursor:pointer}
+.profile-menu div:hover{background:#eef6fb}
+
+.layout{display:flex;flex:1;min-height:0}
+.sidebar{
+  width:240px;
+  background:#fff;
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  transition:0.3s;
+  min-height:0;
+}
+.sidebar.collapsed{width:70px}
+.sidebar.collapsed .text{display:none}
+.menu{padding:15px;overflow:auto}
+.menu a{
+  display:flex;
+  gap:10px;
+  padding:10px;
+  margin-bottom:5px;
+  cursor:pointer;
+  border-radius:6px;
+  align-items:center;
+  user-select:none;
+}
+.menu a.active{background:linear-gradient(90deg,var(--navy),var(--cyan));color:#fff}
+.collapse-btn{padding:15px;text-align:center}
+.collapse-icon{
+  width:35px;height:35px;
+  background:linear-gradient(90deg,var(--navy),var(--cyan));
+  color:#fff;
+  border-radius:50%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  cursor:pointer;
+  margin:0 auto;
+  user-select:none;
+}
+.content{flex:1;padding:20px;min-width:0;overflow:auto}
+
+.page-title{font-size:22px;font-weight:800;margin-bottom:20px;line-height:1.3}
+
+.card{
+  background:#fff;
+  padding:20px;
+  border-radius:10px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom:20px;
+}
+.sub-title{
+  font-size:14px;
+  font-weight:600;
+  margin-bottom:10px;
+  line-height:1.4;
+}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px}
+input{
+  padding:8px;
+  border:1px solid #ccc;
+  border-radius:5px;
+  width:100%;
+  min-width:0;
+}
+input:focus{
+  outline:none;
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(10,161,192,.12);
+}
+.btn{
+  background:linear-gradient(90deg,var(--navy),var(--cyan));
+  color:#fff;
+  padding:8px 14px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.btn-row{margin-top:15px;display:flex;gap:10px;flex-wrap:wrap}
+.table-wrap{width:100%;overflow:auto;margin-top:15px;border-radius:10px;border:1px solid var(--border)}
+.table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:900px;
+  background:#fff;
+}
+.table th,.table td{
+  border:1px solid #ddd;
+  padding:8px;
+  font-size:12px;
+  vertical-align:top;
+}
+.table th{background:#f1f5f9;font-weight:600;white-space:nowrap}
+.footer{background:#fff;border-top:3px solid var(--navy);text-align:center;padding:10px;font-size:12px}
+@media (max-width: 960px){
+  .header{justify-content:center;text-align:center}
+  .navbar{flex-wrap:wrap}
+  .menu-home-block{
+    width:100%;
+    border-right:none;
+    border-bottom:1px solid var(--border);
+  }
+  .layout{flex-direction:column}
+  .sidebar{
+    width:100%;
+    border-right:none;
+    border-bottom:1px solid var(--border);
+  }
+  .sidebar.collapsed{width:100%}
+  .sidebar.collapsed .text{display:inline !important}
+  .menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+  .menu a{margin-bottom:0}
+  .collapse-btn{padding-top:0}
+  .content{padding:16px}
+  .table{min-width:760px}
+}
+@media (max-width: 720px){
+  .header{padding:10px 12px}
+  .header strong{font-size:18px}
+  .menu-home-block{padding:8px 10px;gap:8px}
+  .profile{padding:0 12px 10px}
+  .page-title{font-size:20px;margin-bottom:16px}
+  .card{padding:16px}
+  .table{min-width:680px}
+  .btn{width:100%}
+  .btn-row{flex-direction:column;align-items:stretch}
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <img src="logo.avif">
+  <div><strong>UIDAI Automation Governance Tool</strong></div>
+  <img src="Aadhaar.png">
+</div>
+
+<div class="navbar">
+  <div class="menu-home-block">
+    <span id="toggleBtn">☰ Menu</span>
+    <span>🏠 Home</span>
+  </div>
+
+  <div class="profile" id="profileBtn">
+    👤
+    <div class="profile-menu" id="profileMenu">
+      <div>Profile</div>
+      <div>Sign Out</div>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+<div class="sidebar" id="sidebar">
+  <div class="menu">
+    <a><span>📊</span><span class="text">Dashboard</span></a>
+    <a><span>📁</span><span class="text">Project Management</span></a>
+    <a><span>🗂️</span><span class="text">Master Data</span></a>
+    <a><span>🏢</span><span class="text">Vendor Management</span></a>
+    <a><span>👤</span><span class="text">User Management</span></a>
+    <a><span>📅</span><span class="text">Meeting Management</span></a>
+    <a class="active"><span>🧾</span><span class="text">Audit Logs</span></a>
+  </div>
+
+  <div class="collapse-btn">
+    <div class="collapse-icon" id="collapseBtn">⮜</div>
+  </div>
+</div>
+
+<div class="content">
+
+<div class="page-title">Audit Logs</div>
+
+<!-- SEARCH -->
+<div class="card">
+  <div class="sub-title">Search Audit Logs</div>
+  <div class="grid">
+    <input placeholder="Search anything (User, Action, Module, ID...)">
+    <input type="date">
+    <input type="date">
+  </div>
+
+  <div class="btn-row">
+    <button class="btn">Search</button>
+    <button class="btn">Export Excel</button>
+    <button class="btn">Export PDF</button>
+  </div>
+</div>
+
+<!-- TABLE -->
+<div class="card">
+<table class="table">
+<thead>
+<tr>
+<th>User</th>
+<th>Role</th>
+<th>Action</th>
+<th>Project ID</th>
+<th>Project Name</th>
+<th>Old</th>
+<th>New</th>
+<th>Time (IST)</th>
+<th>IP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Saikat Aich</td>
+<td>Admin</td>
+<td>Update</td>
+<td>PRJ-1234</td>
+<td>Give me a Break</td>
+<td>Status: Pending</td>
+<td>Status: Approved</td>
+<td>08-Apr-2026 18:20</td>
+<td>192.168.1.1</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+</div>
+</div>
+
+<div class="footer">© 2026 UIDAI · PMIS Automation Tool · Internal Use Only</div>
+
+<script>
+const sidebar=document.getElementById("sidebar");
+const collapseBtn=document.getElementById("collapseBtn");
+const toggleBtn=document.getElementById("toggleBtn");
+const profileBtn=document.getElementById("profileBtn");
+const profileMenu=document.getElementById("profileMenu");
+
+toggleBtn.onclick=()=>{
+  sidebar.classList.toggle("collapsed");
+  collapseBtn.innerText = sidebar.classList.contains("collapsed") ? "⮞" : "⮜";
+};
+collapseBtn.onclick=toggleBtn.onclick;
+
+profileBtn.onclick=(e)=>{
+  e.stopPropagation();
+  profileMenu.style.display = profileMenu.style.display==='block'?'none':'block';
+};
+
+document.addEventListener("click",()=>profileMenu.style.display="none");
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UIDAI PMIS - Management Modules</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0b3c88;
+  --cyan:#0aa1c0;
+  --light:#f4f7fb;
+  --border:#dbe5f1;
+  --red:#d32f2f;
+  --text:#1e2a3a;
+  --muted:#6b7a90;
+  --card:#ffffff;
+  --shadow:0 4px 12px rgba(0,0,0,.08);
+  --shadow-soft:0 2px 8px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:var(--light);
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+button,input,select,textarea{font:inherit}
+img{display:block;max-width:100%}
+
+.header{
+  background:#fff;
+  border-bottom:3px solid var(--navy);
+  padding:10px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.header strong{
+  font-size:20px;
+  font-weight:800;
+  background:linear-gradient(90deg,var(--navy),var(--cyan));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-align:center;
+  line-height:1.2;
+}
+.logo-left,.logo-right{height:40px;object-fit:contain}
+
+.navbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#f9fbff;
+  border-bottom:1px solid var(--border);
+  min-height:64px;
+  position:relative;
+  z-index:20;
+}
+.menu-home-block{
+  width:240px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:10px 15px;
+  border-right:1px solid var(--border);
+}
+.menu-home-block span{
+  cursor:pointer;
+  padding:8px 10px;
+  border-radius:6px;
+  user-select:none;
+  white-space:nowrap;
+}
+.menu-home-block span:hover{background:#eef6fb}
+.profile{
+  padding:0 20px;
+  cursor:pointer;
+  position:relative;
+  font-size:18px;
+  line-height:1;
+}
+.profile-menu{
+  position:absolute;
+  right:0;
+  top:42px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:8px;
+  display:none;
+  min-width:140px;
+  box-shadow:0 4px 10px rgba(0,0,0,.08);
+  overflow:hidden;
+}
+.profile-menu div{padding:10px 12px;cursor:pointer}
+.profile-menu div:hover{background:#eef6fb}
+
+.layout{display:flex;flex:1;min-height:0}
+.sidebar{
+  width:240px;
+  background:#fff;
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  transition:.28s ease;
+  min-height:0;
+}
+.sidebar.collapsed{width:72px}
+.sidebar.collapsed .text,
+.sidebar.collapsed .submenu,
+.sidebar.collapsed .submenu-arrow,
+.sidebar.collapsed .submenu-inline{display:none !important}
+.sidebar.collapsed .menu a,
+.sidebar.collapsed .menu .section-head{justify-content:center}
+.sidebar.collapsed .menu a{padding-left:0;padding-right:0}
+.menu{padding:15px;overflow:auto}
+.menu a,.submenu div,.section-head{
+  display:flex;
+  gap:18px;
+  padding:12px 14px;
+  margin-bottom:6px;
+  cursor:pointer;
+  border-radius:6px;
+  align-items:center;
+  user-select:none;
+}
+.menu a:hover,.submenu div:hover,.section-head:hover{background:#f3f8ff}
+.menu a.active,.section-head.active{
+  background:linear-gradient(90deg,var(--navy),var(--cyan));
+  color:#fff;
+}
+.submenu{
+  display:none;
+  padding-left:20px;
+  margin-bottom:8px;
+}
+.submenu .submenu-inline{display:flex;align-items:center;gap:14px;flex:1;line-height:1.55}
+.onboard-item,.vendor-item,.user-item{position:relative}
+.onboard-dropdown,.vendor-dropdown,.user-dropdown{
+  display:none;
+  position:absolute;
+  left:100%;
+  top:0;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:8px;
+  min-width:180px;
+  padding:6px;
+  box-shadow:0 4px 10px rgba(0,0,0,.08);
+  z-index:15;
+}
+.onboard-dropdown button,.vendor-dropdown button,.user-dropdown button{
+  width:100%;
+  padding:9px 10px;
+  border:none;
+  background:#fff;
+  cursor:pointer;
+  border-radius:6px;
+  margin-bottom:4px;
+  font-weight:600;
+  text-align:left;
+}
+.onboard-dropdown button:hover{background:linear-gradient(90deg,var(--navy),var(--cyan));color:#fff}
+.vendor-dropdown button,.user-dropdown button{
+  background:transparent;
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+  margin-bottom:2px;
+  padding:10px 6px;
+}
+.vendor-dropdown button:hover,.user-dropdown button:hover{
+  background:transparent;
+  color:var(--cyan);
+  text-decoration:underline;
+}
+.vendor-item,.user-item{
+  padding:8px 12px 8px 0;
+  border-radius:0;
+}
+.vendor-item .submenu-inline,.user-item .submenu-inline{font-weight:100}
+.collapse-btn{
+  padding:12px 14px 14px;
+  border-top:1px solid var(--border);
+  background:#f8fbff;
+}
+.collapse-icon{
+  width:100%;
+  min-height:52px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:10px;
+  display:flex;
+  justify-content:flex-start;
+  align-items:center;
+  gap:12px;
+  cursor:pointer;
+  padding:0 14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+  user-select:none;
+}
+.collapse-icon:hover{background:#f3f8ff}
+.collapse-ico{
+  width:24px;
+  text-align:center;
+  font-size:24px;
+  line-height:1;
+  color:var(--navy);
+  flex:0 0 auto;
+}
+.collapse-text{font-size:16px;font-weight:600;white-space:nowrap;color:var(--text)}
+.sidebar.collapsed .collapse-icon{justify-content:center;padding:0 12px}
+.sidebar.collapsed .collapse-text{display:none}
+.content{flex:1;padding:25px;overflow:auto;min-width:0}
+.pm-title{
+  font-size:24px;
+  font-weight:800;
+  margin-bottom:20px;
+  color:#173e77;
+  line-height:1.3;
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-top:8px;
+  margin-bottom:22px;
+  line-height:1.7;
+}
+.card{
+  background:var(--card);
+  padding:25px;
+  border-radius:12px;
+  box-shadow:var(--shadow);
+  margin-bottom:28px;
+  position:relative;
+}
+.card-actions{
+  position:absolute;
+  top:20px;
+  right:20px;
+  display:flex;
+  gap:14px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+.full{grid-column:1 / -1}
+.field label{font-weight:600;display:block;margin-bottom:10px;line-height:1.45}
+.required{color:var(--red)}
+textarea{height:110px;resize:none}
+.char-count{font-size:12px;text-align:right;color:#666;margin-top:4px}
+input,select,textarea{
+  width:100%;
+  padding:10px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:#fff;
+  color:var(--text);
+}
+input:disabled,select:disabled,textarea:disabled{background:#f3f6fb;color:#3e4a5b;cursor:not-allowed}
+.btn{
+  background:linear-gradient(90deg,var(--navy),var(--cyan));
+  color:#fff;
+  padding:10px 18px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  margin-top:15px;
+  font-weight:600;
+  transition:.18s ease;
+}
+.btn:hover{filter:brightness(1.03)}
+.btn.cancel{
+  background:#fff;
+  color:#000;
+  border:1px solid var(--border);
+  margin-left:10px;
+}
+.btn.outline-red{
+  background:#fff;
+  color:var(--red);
+  border:1px solid var(--red);
+}
+.btn.outline-red:hover{background:var(--red);color:#fff}
+.btn.small{padding:8px 14px;margin-top:0}
+.btn:disabled{opacity:.7;cursor:not-allowed}
+
+.ms-wrap{
+  position:relative;
+}
+.ms-toggle{
+  width:100%;
+  min-height:44px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:#fff;
+  padding:8px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  cursor:pointer;
+  text-align:left;
+}
+.ms-toggle:disabled{
+  background:#f3f6fb;
+  cursor:not-allowed;
+  opacity:.9;
+}
+.ms-display{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  align-items:center;
+  min-width:0;
+  flex:1;
+}
+.ms-placeholder{
+  color:var(--muted);
+  font-size:14px;
+}
+.ms-tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.ms-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:#eaf4ff;
+  color:#114a8d;
+  border-radius:999px;
+  padding:4px 9px;
+  font-size:12px;
+  font-weight:700;
+  max-width:100%;
+}
+.ms-caret{
+  color:var(--muted);
+  flex:0 0 auto;
+  font-size:12px;
+}
+.ms-panel{
+  position:absolute;
+  top:calc(100% + 8px);
+  left:0;
+  width:100%;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:12px;
+  box-shadow:0 12px 28px rgba(0,0,0,.12);
+  z-index:30;
+  display:none;
+  overflow:hidden;
+}
+.ms-panel.open{display:block}
+.ms-search{
+  width:100%;
+  border:none;
+  border-bottom:1px solid var(--border);
+  border-radius:0;
+  padding:10px 12px;
+  outline:none;
+}
+.ms-options{
+  max-height:220px;
+  overflow:auto;
+  padding:6px;
+}
+.ms-option{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  user-select:none;
+}
+.ms-option:hover{
+  background:#f4f8ff;
+}
+.ms-option input{
+  width:auto;
+  margin:0;
+}
+.ms-empty{
+  padding:12px;
+  color:var(--muted);
+  font-size:13px;
+}
+.action-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:center;
+  margin-top:15px;
+}
+.action-row .btn{margin-top:0}
+.action-row .btn.cancel{margin-left:0}
+.vendor-item,.user-item{
+  cursor:pointer;
+}
+.vendor-item:hover,.user-item:hover{
+  background:#f3f8ff !important;
+}
+.table-wrap{overflow:auto;border-radius:10px}
+.table{width:100%;border-collapse:collapse;margin-top:15px;min-width:900px}
+.table.compact{min-width:760px}
+.table th{
+  background:#f1f6fd;
+  padding:13px 12px;
+  border:1px solid var(--border);
+  text-align:left;
+  white-space:nowrap;
+}
+.table td{padding:13px 12px;border:1px solid var(--border);vertical-align:top}
+.table tr:hover{background:#f9fcff}
+.link{color:#0b3c88;font-weight:600;cursor:pointer;text-decoration:underline}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding:4px 8px;
+  border-radius:999px;
+  background:#eaf4ff;
+  color:#114a8d;
+  font-size:12px;
+  font-weight:700;
+  white-space:nowrap;
+}
+.badge.green{background:#e8f7ee;color:#1a7f37}
+.badge.red{background:#fdecec;color:#b42318}
+.badge.orange{background:#fff4e5;color:#b25e00}
+.kpi-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;margin-bottom:24px}
+.kpi{
+  background:#fff;
+  border:1px solid #eef2f8;
+  box-shadow:var(--shadow-soft);
+  border-radius:14px;
+  padding:18px;
+}
+.kpi .label{font-size:13px;color:var(--muted);margin-bottom:6px;line-height:1.45}
+.kpi .value{font-size:26px;font-weight:800;color:#173e77;line-height:1.15}
+.kpi .meta{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.45}
+.tree-wrap{display:flex;flex-direction:column;gap:12px}
+.block{border-left:2px dashed var(--border);margin-left:10px;padding-left:15px;margin-top:10px}
+.block-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#f9fcff;
+  padding:13px 15px;
+  border-radius:8px;
+  gap:16px;
+}
+.block-header-left{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  flex-wrap:wrap;
+  cursor:pointer;
+  line-height:1.45;
+}
+.block-header-left strong{color:#173e77}
+.node-id{font-size:12px;color:#66788f;font-weight:600}
+.node-kind{
+  display:inline-flex;
+  align-items:center;
+  padding:3px 8px;
+  border-radius:999px;
+  background:#eaf4ff;
+  color:#114a8d;
+  font-size:12px;
+  font-weight:700;
+}
+.inner{margin-top:10px}
+.node-grid{margin-top:10px}
+.hint{font-size:12px;color:#66788f;margin-top:8px;line-height:1.5}
+.footer{
+  background:#fff;
+  border-top:3px solid var(--navy);
+  text-align:center;
+  padding:10px;
+  font-size:12px;
+}
+
+.filter-shell{
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:#f8fbff;
+  padding:12px;
+  margin-bottom:16px;
+}
+.filter-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.filter-title{
+  font-weight:800;
+  color:#173e77;
+}
+.filter-toggle{
+  border:1px solid var(--border);
+  background:#fff;
+  color:var(--text);
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+.filter-toggle:hover{background:#f3f8ff}
+.filter-body{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  margin-top:12px;
+}
+.filter-body.hidden-body{display:none}
+.small-search-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+}
+.small-search{
+  width:min(100%,320px);
+  padding:8px 10px;
+  min-height:38px;
+}
+.filter-select,
+.filter-input{
+  min-height:38px;
+  padding:8px 10px;
+}
+.filter-input::placeholder{
+  color:var(--muted);
+}
+.filter-actions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+.no-results-row{
+  text-align:center;
+  color:var(--muted);
+}
+@media (max-width: 992px){
+  .filter-body{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width: 640px){
+  .filter-body{grid-template-columns:1fr}
+  .small-search{width:100%}
+}
+
+.hidden{display:none !important}
+
+@media (max-width: 1200px){
+  .grid-4,.kpi-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width: 992px){
+  .content{padding:18px}
+  .card{padding:20px}
+  .grid{grid-template-columns:1fr}
+  .full{grid-column:auto}
+  .card-actions{position:static;justify-content:flex-end;margin-bottom:14px}
+  .table{min-width:820px}
+}
+@media (max-width: 840px){
+  .header{padding:10px 12px}
+  .header strong{font-size:18px}
+  .logo-left,.logo-right{height:32px}
+  .menu-home-block{width:auto;min-width:0;flex:1}
+  .layout{position:relative}
+  .sidebar{
+    position:fixed;
+    left:0;
+    top:128px;
+    bottom:39px;
+    z-index:30;
+    transform:translateX(-100%);
+    width:255px;
+    box-shadow:12px 0 30px rgba(0,0,0,.12);
+  }
+  .sidebar.open{transform:translateX(0)}
+  .sidebar.collapsed{width:255px}
+  .sidebar.collapsed .text,
+  .sidebar.collapsed .submenu,
+  .sidebar.collapsed .submenu-arrow,
+  .sidebar.collapsed .submenu-inline{display:flex !important}
+  .content{padding:16px;width:100%}
+  .kpi-row,.grid-4{grid-template-columns:1fr}
+  .table{min-width:760px}
+  .navbar{position:sticky;top:0;background:#f9fbff}
+  .menu a,.submenu div,.section-head{gap:12px;padding:11px 10px}
+}
+@media (max-width: 640px){
+  .menu-home-block{padding:10px}
+  .menu-home-block span{padding:6px 8px}
+  .profile{padding:0 12px}
+  .pm-title{font-size:22px;margin-bottom:16px}
+  .section-subtitle{font-size:12px;line-height:1.55;margin-bottom:16px}
+  .table{min-width:680px}
+  .btn{width:100%}
+  .btn.cancel{margin-left:0}
+  .card-actions{display:grid;grid-template-columns:1fr;gap:8px}
+  .action-row{flex-direction:column;align-items:stretch}
+  .card{padding:18px}
+  .grid,.grid-4,.kpi-row{gap:14px}
+  .field label{margin-bottom:8px}
+  .block-header{padding:11px 12px}
+  .block-header-left{gap:10px}
+  .vendor-item,.user-item{padding-right:0}
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <img src="logo.avif" class="logo-left" alt="UIDAI logo" />
+  <strong>UIDAI Automation Governance Tool</strong>
+  <img src="Aadhaar.png" class="logo-right" alt="Aadhaar logo" />
+</div>
+
+<div class="navbar">
+  <div class="menu-home-block">
+    <span id="toggleBtn">☰ Menu</span>
+    <span id="homeBtn">🏠 Home</span>
+  </div>
+  <div class="profile" id="profileBtn">👤
+    <div class="profile-menu" id="profileMenu">
+      <div>Profile</div>
+      <div>Sign Out</div>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar" id="sidebar">
+    <div class="menu">
+      <a id="dashboardLink"><span>📊</span><span class="text">Dashboard</span></a>
+
+      <a id="projectHead"><span>📁</span><span class="text">Project Management</span><span class="submenu-arrow" id="projectArrow">▶</span></a>
+      <div class="submenu" id="projectSub">
+        <div class="onboard-item" id="projectItem">
+          <div class="submenu-inline">➕ <span class="text">Add Project</span></div>
+          <div class="onboard-dropdown" id="projectDropdown">
+            <button onclick="loadProjectForm('MSAP')">MSAP</button>
+            <button onclick="loadProjectForm('MSIP')">MSIP</button>
+            <button onclick="loadProjectForm('BSP')">BSP</button>
+          </div>
+        </div>
+        <div onclick="showProjectList()">🔍 <span class="text">Search Project</span></div>
+      </div>
+
+      <a id="masterDataHead"><span>🗂️</span><span class="text">Master Data</span><span class="submenu-arrow" id="masterDataArrow">▶</span></a>
+      <div class="submenu" id="masterDataSub">
+        <div onclick="showMasterVendorData(event)">🏢 <span class="text">Vendor Data</span></div>
+        <div onclick="showMasterUserData(event)">👤 <span class="text">User Data</span></div>
+      </div>
+
+      <a id="vendorHead"><span>🏢</span><span class="text">Vendor Management</span><span class="submenu-arrow" id="vendorArrow">▶</span></a>
+      <div class="submenu" id="vendorSub">
+        <div class="vendor-item" id="vendorItem" role="button" tabindex="0" onclick="loadVendorForm('STANDARD')">
+          <div class="submenu-inline">➕ <span class="text">Add Vendor</span></div>
+        </div>
+        <div onclick="showVendorList()">🔍 <span class="text">Search Vendor</span></div>
+      </div>
+
+      <a id="userHead"><span>👤</span><span class="text">User Management</span><span class="submenu-arrow" id="userArrow">▶</span></a>
+      <div class="submenu" id="userSub">
+        <div class="user-item" id="userItem" role="button" tabindex="0" onclick="loadUserForm('ADMIN')">
+          <div class="submenu-inline">➕ <span class="text">Add User</span></div>
+        </div>
+        <div onclick="showUserList()">🔍 <span class="text">Search User</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="contentArea"></div>
+  </div>
+</div>
+
+<div class="footer">© 2026 UIDAI · PMIS Automation Tool · Internal Use Only</div>
+
+<script>
+const sidebar = document.getElementById('sidebar');
+const toggleBtn = document.getElementById('toggleBtn');
+const profileBtn = document.getElementById('profileBtn');
+const profileMenu = document.getElementById('profileMenu');
+const homeBtn = document.getElementById('homeBtn');
+const contentArea = document.getElementById('contentArea');
+const dashboardLink = document.getElementById('dashboardLink');
+const projectHead = document.getElementById('projectHead');
+const projectSub = document.getElementById('projectSub');
+const projectArrow = document.getElementById('projectArrow');
+const projectItem = document.getElementById('projectItem');
+const projectDropdown = document.getElementById('projectDropdown');
+const vendorHead = document.getElementById('vendorHead');
+const vendorSub = document.getElementById('vendorSub');
+const vendorArrow = document.getElementById('vendorArrow');
+const vendorItem = document.getElementById('vendorItem');
+const vendorDropdown = document.getElementById('vendorDropdown');
+const userHead = document.getElementById('userHead');
+const userSub = document.getElementById('userSub');
+const userArrow = document.getElementById('userArrow');
+const userItem = document.getElementById('userItem');
+const userDropdown = document.getElementById('userDropdown');
+const masterDataHead = document.getElementById('masterDataHead');
+const masterDataSub = document.getElementById('masterDataSub');
+const masterDataArrow = document.getElementById('masterDataArrow');
+
+const demoProjects = [
+  {
+    projectId:'PRJ001', projectName:'Test Project Alpha', baselineId:'', description:'Testing description alpha', status:'NEW', owner:'Admin', startDate:'2026-04-01', endDate:'2026-04-30', isPublic:'Yes', category:'MSAP',
+    milestones:[
+      { id:'M1', name:'Initiation', description:'Set up the project, confirm scope, and secure approvals.', deliveryDate:'2026-04-05', activities:[
+        { id:'A1.1', name:'Requirement Collection', description:'Collect and confirm functional requirements.', deliveryDate:'2026-04-02', tasks:[
+          { id:'T1.1.1', name:'Gather Reference Documents', description:'Collect policy documents, forms, and baseline references.', deliveryDate:'2026-04-01' },
+          { id:'T1.1.2', name:'Stakeholder Confirmation', description:'Finalize internal and external stakeholder list.', deliveryDate:'2026-04-02' }
+        ]},
+        { id:'A1.2', name:'Kickoff Preparation', description:'Prepare agenda, invite participants, and finalize kickoff materials.', deliveryDate:'2026-04-04', tasks:[{ id:'T1.2.1', name:'Agenda Drafting', description:'Draft the kickoff agenda and circulate for review.', deliveryDate:'2026-04-03' }]}
+      ]}
+    ]
+  },
+  { projectId:'PRJ002', projectName:'Test Project Beta', baselineId:'', description:'Testing description beta', status:'INPROGRESS', owner:'Supervisor', startDate:'2026-05-01', endDate:'2026-05-20', isPublic:'No', category:'MSIP', milestones:[{ id:'M1', name:'Planning', description:'Planning and approvals.', deliveryDate:'2026-05-04', activities:[{ id:'A1.1', name:'Scope Finalization', description:'Finalize the project scope.', deliveryDate:'2026-05-03', tasks:[{ id:'T1.1.1', name:'Scope Review', description:'Review all planned deliverables.', deliveryDate:'2026-05-02' }] }] }]} ,
+  { projectId:'PRJ003', projectName:'Test Project Gamma', baselineId:'', description:'Testing description gamma', status:'NEW', owner:'Manager', startDate:'2026-06-01', endDate:'2026-06-25', isPublic:'Yes', category:'BSP', milestones:[{ id:'M1', name:'Onboarding', description:'Initial onboarding phase.', deliveryDate:'2026-06-05', activities:[{ id:'A1.1', name:'Data Preparation', description:'Prepare project data inputs.', deliveryDate:'2026-06-03', tasks:[{ id:'T1.1.1', name:'Data Check', description:'Verify the input data quality.', deliveryDate:'2026-06-02' }] }] }]} 
+];
+
+const demoVendors = [
+  { vendorId:'VND001', vendorName:'Apex Solutions', vendorType:'Technology Vendor', status:'Active', contact:'Ravi Kumar', email:'ravi@apex.com', phone:'9876543210', projectMapping:['Aadhaar','PMIS'], startDate:'2026-04-01', endDate:'2027-03-31', address:'Kolkata, WB', services:'Platform development and support' },
+  { vendorId:'VND002', vendorName:'Prime Services', vendorType:'Service Vendor', status:'Active', contact:'Anita Sen', email:'anita@prime.com', phone:'9123456780', projectMapping:['PMIS'], startDate:'2026-05-01', endDate:'2027-04-30', address:'Bengaluru, KA', services:'Operations and field support' },
+  { vendorId:'VND003', vendorName:'Nova Infra', vendorType:'Standard Vendor', status:'Inactive', contact:'Mohit Das', email:'mohit@nova.com', phone:'9988776655', projectMapping:['UIDAI Core'], startDate:'2025-01-01', endDate:'2025-12-31', address:'Pune, MH', services:'Infrastructure maintenance' }
+];
+
+const demoUsers = [
+  { userId:'USR001', fullName:'Amit Roy', employeeId:'EMP001', email:'amit.roy@uidai.gov.in', role:'Admin', vendorName:'Apex Solutions', division:'Technology', projectMapping:['Aadhaar','PMIS'], status:'Active' },
+  { userId:'USR002', fullName:'Neha Das', employeeId:'EMP002', email:'neha.das@uidai.gov.in', role:'Manager', vendorName:'Prime Services', division:'Operations', projectMapping:['PMIS'], status:'Active' },
+  { userId:'USR003', fullName:'Sourav Paul', employeeId:'EMP003', email:'sourav.paul@uidai.gov.in', role:'Viewer', vendorName:'Nova Infra', division:'Audit', projectMapping:['Master Data'], status:'Inactive' }
+];
+
+const DIVISION_OPTIONS = ['TMD1', 'TMD2'];
+
+function escapeHtml(text){
+  return String(text)
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#039;');
+}
+function formatDateDisplay(isoDate){
+  if(!isoDate) return '';
+  const p = isoDate.split('-');
+  return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : isoDate;
+}
+function normalizeMapping(value){
+  if(Array.isArray(value)) return value.map(v => String(v).trim()).filter(Boolean);
+  if(value === null || value === undefined || value === '') return [];
+  return String(value).split(',').map(v => v.trim()).filter(Boolean);
+}
+function renderMappingText(value){
+  return normalizeMapping(value).join(', ');
+}
+function createMultiSelectControl(name, selected, options, placeholder='Select projects', disabled=false){
+  const values = normalizeMapping(selected);
+  const selectedMarkup = values.length
+    ? `<div class="ms-tags">${values.map(v => `<span class="ms-tag">${escapeHtml(v)}</span>`).join('')}</div>`
+    : `<span class="ms-placeholder">${escapeHtml(placeholder)}</span>`;
+  return `
+  <div class="ms-wrap" data-ms="${escapeHtml(name)}">
+    <button type="button" class="ms-toggle" ${disabled ? 'disabled' : ''}>
+      <div class="ms-display">${selectedMarkup}</div>
+      <span class="ms-caret">▾</span>
+    </button>
+    <div class="ms-panel">
+      <input type="text" class="ms-search" placeholder="Search project..." ${disabled ? 'disabled' : ''}/>
+      <div class="ms-options">
+        ${options.map(opt => {
+          const checked = values.includes(opt) ? 'checked' : '';
+          return `<label class="ms-option"><input type="checkbox" value="${escapeHtml(opt)}" ${checked} ${disabled ? 'disabled' : ''}><span>${escapeHtml(opt)}</span></label>`;
+        }).join('')}
+      </div>
+    </div>
+    <input type="hidden" class="ms-hidden" name="${escapeHtml(name)}" value="${escapeHtml(values.join(', '))}">
+  </div>`;
+}
+function closeAllMultiSelects(){
+  document.querySelectorAll('.ms-panel.open').forEach(panel => panel.classList.remove('open'));
+}
+function initMultiSelect(container=document){
+  container.querySelectorAll('.ms-wrap').forEach(wrap => {
+    const toggle = wrap.querySelector('.ms-toggle');
+    const panel = wrap.querySelector('.ms-panel');
+    const search = wrap.querySelector('.ms-search');
+    const hidden = wrap.querySelector('.ms-hidden');
+    const display = wrap.querySelector('.ms-display');
+    const optionsArea = wrap.querySelector('.ms-options');
+    const updateDisplay = () => {
+      const values = Array.from(optionsArea.querySelectorAll('input[type="checkbox"]:checked')).map(i => i.value);
+      hidden.value = values.join(', ');
+      display.innerHTML = values.length
+        ? `<div class="ms-tags">${values.map(v => `<span class="ms-tag">${escapeHtml(v)}</span>`).join('')}</div>`
+        : `<span class="ms-placeholder">Select projects</span>`;
+    };
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (toggle.disabled) return;
+      const isOpen = panel.classList.contains('open');
+      closeAllMultiSelects();
+      if (!isOpen) panel.classList.add('open');
+    });
+    search.addEventListener('input', () => {
+      const q = search.value.trim().toLowerCase();
+      let anyVisible = false;
+      optionsArea.querySelectorAll('.ms-option').forEach(opt => {
+        const visible = opt.textContent.toLowerCase().includes(q);
+        opt.style.display = visible ? 'flex' : 'none';
+        if(visible) anyVisible = true;
+      });
+      let empty = wrap.querySelector('.ms-empty');
+      if (!anyVisible && !empty) {
+        empty = document.createElement('div');
+        empty.className = 'ms-empty';
+        empty.textContent = 'No matching projects';
+        optionsArea.appendChild(empty);
+      } else if (anyVisible && empty) {
+        empty.remove();
+      }
+    });
+    optionsArea.addEventListener('change', updateDisplay);
+    updateDisplay();
+  });
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.ms-wrap')) closeAllMultiSelects();
+});
+function countChars(el){
+  const remaining = 5000 - el.value.length;
+  const count = el.parentElement.querySelector('.char-count');
+  if(count) count.innerText = remaining + ' characters remaining';
+}
+
+function uniqueSorted(values){
+  return Array.from(new Set((values || []).map(v => String(v).trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+}
+function buildSelectOptions(values){
+  return `<option value="">All</option>` + uniqueSorted(values).map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+}
+function buildTextFilterInput(id, placeholder, handler){
+  return `<input id="${escapeHtml(id)}" class="filter-input" type="text" placeholder="${escapeHtml(placeholder)}" oninput="${handler}()">`;
+}
+function buildDivisionOptions(selected=''){
+  return `<option value="">All</option>
+    ${DIVISION_OPTIONS.map(opt => `<option value="${escapeHtml(opt)}" ${String(selected) === opt ? 'selected' : ''}>${escapeHtml(opt)}</option>`).join('')}`;
+}
+function normalizeText(value){
+  return String(value ?? '').toLowerCase().trim();
+}
+function toggleFilterBody(bodyId, btn){
+  const body = document.getElementById(bodyId);
+  if(!body) return;
+  const hidden = body.classList.toggle('hidden-body');
+  if(btn) btn.textContent = hidden ? 'Show Filters' : 'Hide Filters';
+}
+function filterVendorRows(){
+  const q = normalizeText(document.getElementById('vendorSearchInput')?.value);
+  const filters = {
+    vendorName: normalizeText(document.getElementById('vendorFilterName')?.value),
+    vendorType: normalizeText(document.getElementById('vendorFilterType')?.value),
+    status: normalizeText(document.getElementById('vendorFilterStatus')?.value),
+    contact: normalizeText(document.getElementById('vendorFilterContact')?.value),
+    email: normalizeText(document.getElementById('vendorFilterEmail')?.value),
+    phone: normalizeText(document.getElementById('vendorFilterPhone')?.value),
+    mapping: normalizeText(document.getElementById('vendorFilterMapping')?.value),
+  };
+  const rows = Array.from(document.querySelectorAll('#vendorTableBody tr[data-row="vendor"]'));
+  let visible = 0;
+  rows.forEach(row => {
+    const rowMappings = (row.dataset.mapping || '').split('|').filter(Boolean);
+    const containsMatch = (fieldValue, filterValue) => !filterValue || normalizeText(fieldValue).includes(filterValue);
+    const exactMatch = (fieldValue, filterValue) => !filterValue || normalizeText(fieldValue) === filterValue;
+    const match =
+      (!q || (row.dataset.search || '').includes(q)) &&
+      containsMatch(row.dataset.vendorName, filters.vendorName) &&
+      exactMatch(row.dataset.vendorType, filters.vendorType) &&
+      exactMatch(row.dataset.status, filters.status) &&
+      containsMatch(row.dataset.contact, filters.contact) &&
+      containsMatch(row.dataset.email, filters.email) &&
+      containsMatch(row.dataset.phone, filters.phone) &&
+      containsMatch(row.dataset.mapping, filters.mapping);
+    row.style.display = match ? '' : 'none';
+    if(match) visible++;
+  });
+  const noRow = document.getElementById('vendorNoResults');
+  if(noRow) noRow.style.display = visible ? 'none' : '';
+}
+function filterUserRows(){
+  const q = normalizeText(document.getElementById('userSearchInput')?.value);
+  const filters = {
+    fullName: normalizeText(document.getElementById('userFilterName')?.value),
+    email: normalizeText(document.getElementById('userFilterEmail')?.value),
+    role: normalizeText(document.getElementById('userFilterRole')?.value),
+    vendorName: normalizeText(document.getElementById('userFilterVendor')?.value),
+    division: normalizeText(document.getElementById('userFilterDivision')?.value),
+    mapping: normalizeText(document.getElementById('userFilterMapping')?.value),
+    status: normalizeText(document.getElementById('userFilterStatus')?.value),
+  };
+  const rows = Array.from(document.querySelectorAll('#userTableBody tr[data-row="user"]'));
+  let visible = 0;
+  rows.forEach(row => {
+    const rowMappings = (row.dataset.mapping || '').split('|').filter(Boolean);
+    const containsMatch = (fieldValue, filterValue) => !filterValue || normalizeText(fieldValue).includes(filterValue);
+    const exactMatch = (fieldValue, filterValue) => !filterValue || normalizeText(fieldValue) === filterValue;
+    const match =
+      (!q || (row.dataset.search || '').includes(q)) &&
+      containsMatch(row.dataset.fullName, filters.fullName) &&
+      containsMatch(row.dataset.email, filters.email) &&
+      exactMatch(row.dataset.role, filters.role) &&
+      containsMatch(row.dataset.vendorName, filters.vendorName) &&
+      exactMatch(row.dataset.division, filters.division) &&
+      containsMatch(row.dataset.mapping, filters.mapping) &&
+      exactMatch(row.dataset.status, filters.status);
+    row.style.display = match ? '' : 'none';
+    if(match) visible++;
+  });
+  const noRow = document.getElementById('userNoResults');
+  if(noRow) noRow.style.display = visible ? 'none' : '';
+}
+
+function closeProfile(){ profileMenu.style.display = 'none'; }
+function closePopdowns(){
+  projectDropdown.style.display = 'none';
+}
+function setSubmenuState(el, arrow, open){
+  el.style.display = open ? 'block' : 'none';
+  arrow.innerText = open ? '▼' : '▶';
+}
+function setActiveSidebar(id){
+  ['dashboardLink','projectHead','masterDataHead','vendorHead','userHead'].forEach(x=>document.getElementById(x).classList.remove('active'));
+  if(id) document.getElementById(id).classList.add('active');
+}
+function showHome(){
+  setActiveSidebar('dashboardLink');
+  contentArea.innerHTML = `
+    <div class="pm-title">Welcome</div>
+    <div class="card">
+      <h3>UIDAI Automation Governance Tool</h3>
+      <p class="section-subtitle">Use the sidebar to move among Project Management, Master Data, Vendor Management, and User Management.</p>
+      <div class="kpi-row">
+        <div class="kpi"><div class="label">Projects</div><div class="value">${demoProjects.length}</div><div class="meta">Tracked in the module</div></div>
+        <div class="kpi"><div class="label">Vendors</div><div class="value">${demoVendors.length}</div><div class="meta">Consolidated records</div></div>
+        <div class="kpi"><div class="label">Users</div><div class="value">${demoUsers.length}</div><div class="meta">Access-controlled users</div></div>
+        <div class="kpi"><div class="label">Status</div><div class="value">Live</div><div class="meta">Frontend prototype</div></div>
+      </div>
+    </div>`;
+}
+function loadProjectForm(type){
+  setActiveSidebar('projectHead');
+  contentArea.innerHTML = `
+    <div class="pm-title">Project Management</div>
+    <div class="card">
+      <h3>${type} Project</h3>
+      <p class="section-subtitle">Create a new project with the same structure, spacing, and responsiveness as the rest of the tool.</p>
+      <div class="grid">
+        <div class="field"><label>Project Name <span class="required">*</span></label><input></div>
+        <div class="field"><label>Baseline ID</label><input></div>
+        <div class="field full"><label>Description</label><textarea maxlength="5000" oninput="countChars(this)"></textarea><div class="char-count">5000 characters remaining</div></div>
+        <div class="field"><label>Status <span class="required">*</span></label><input value="NEW" disabled></div>
+        <div class="field"><label>Owner <span class="required">*</span></label><input></div>
+        <div class="field"><label>Start Date <span class="required">*</span></label><input type="date"></div>
+        <div class="field"><label>End Date <span class="required">*</span></label><input type="date"></div>
+        <div class="field"><label>Is Public <span class="required">*</span></label><select><option>Yes</option><option>No</option></select></div>
+        <div class="field"><label>Category <span class="required">*</span></label><input value="${type}" disabled></div>
+      </div>
+      <button class="btn">Create Project</button><button class="btn cancel" onclick="showProjectList()">Cancel</button>
+    </div>`;
+}
+function showProjectList(){
+  setActiveSidebar('projectHead');
+  contentArea.innerHTML = `
+    <div class="pm-title">Project Management</div>
+    <div class="card">
+      <input placeholder="Search project..." style="width:min(100%,360px)"><button class="btn small">Search</button>
+      <div class="table-wrap">
+        <table class="table compact">
+          <tr><th>Project ID</th><th>Name</th><th>Description</th><th>Baseline ID</th><th>Status</th><th>Start Date</th><th>End Date</th><th>Is Public</th><th>Owner</th><th>Category</th></tr>
+          ${demoProjects.map((p,i)=>`<tr><td class="link" onclick="openProjectDetails(${i})">${p.projectId}</td><td>${escapeHtml(p.projectName)}</td><td>${escapeHtml(p.description)}</td><td>${escapeHtml(p.baselineId||'-')}</td><td><span class="badge ${p.status==='NEW'?'orange':'green'}">${p.status}</span></td><td>${formatDateDisplay(p.startDate)}</td><td>${formatDateDisplay(p.endDate)}</td><td>${p.isPublic}</td><td>${escapeHtml(p.owner)}</td><td>${escapeHtml(p.category)}</td></tr>`).join('')}
+        </table>
+      </div>
+      <button class="btn cancel" onclick="showHome()">Cancel</button>
+    </div>`;
+}
+function openProjectDetails(index){
+  setActiveSidebar('projectHead');
+  const project = demoProjects[index];
+  contentArea.innerHTML = `
+    <div class="pm-title">Project Details</div>
+    <div class="card">
+      <div class="card-actions"><button class="btn" id="projectEditBtn" onclick="toggleProjectEdit(this)"><span class="btn-icon">✏️</span> <span class="btn-text">Edit</span></button><button class="btn cancel" onclick="showProjectList()">Back</button></div>
+      <h3>Project Information</h3>
+      <p class="section-subtitle">The Project ID, Baseline ID, and Category remain locked to preserve structure.</p>
+      <div class="grid">
+        <div class="field"><label>Project ID <span class="required">*</span></label><input class="project-control" data-lock="always" value="${escapeHtml(project.projectId)}" disabled></div>
+        <div class="field"><label>Project Name <span class="required">*</span></label><input class="project-control" value="${escapeHtml(project.projectName)}" disabled></div>
+        <div class="field"><label>Baseline ID</label><input class="project-control" data-lock="always" value="${escapeHtml(project.baselineId||'')}" disabled></div>
+        <div class="field"><label>Status <span class="required">*</span></label><input class="project-control" value="${escapeHtml(project.status)}" disabled></div>
+        <div class="field full"><label>Description</label><textarea class="project-control" maxlength="5000" oninput="countChars(this)" disabled>${escapeHtml(project.description)}</textarea><div class="char-count">${5000 - project.description.length} characters remaining</div></div>
+        <div class="field"><label>Owner <span class="required">*</span></label><input class="project-control" value="${escapeHtml(project.owner)}" disabled></div>
+        <div class="field"><label>Start Date <span class="required">*</span></label><input class="project-control" type="date" value="${project.startDate}" disabled></div>
+        <div class="field"><label>End Date <span class="required">*</span></label><input class="project-control" type="date" value="${project.endDate}" disabled></div>
+        <div class="field"><label>Is Public <span class="required">*</span></label><select class="project-control" disabled><option ${project.isPublic==='Yes'?'selected':''}>Yes</option><option ${project.isPublic==='No'?'selected':''}>No</option></select></div>
+        <div class="field"><label>Category <span class="required">*</span></label><input class="project-control" data-lock="always" value="${escapeHtml(project.category)}" disabled></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Milestone Hierarchy</h3><p class="section-subtitle">Click each header to expand or collapse the tree.</p>
+      <div id="projectTree" class="tree-wrap"></div>
+    </div>`;
+  document.getElementById('projectTree').innerHTML = project.milestones.map((m,i)=>renderMilestone(m,i+1)).join('');
+  setProjectEditable(false);
+}
+function renderMilestone(milestone, mNumber){
+  return `<div class="block"><div class="block-header"><div class="block-header-left" onclick="toggleBlock(this)"><span>▼</span><strong>Milestone ${mNumber}</strong><span class="node-id">${milestone.id}</span><span class="node-kind">${escapeHtml(milestone.name)}</span></div><button class="btn outline-red small" onclick="removeNode(event,this)">Remove</button></div><div class="inner"><div class="grid node-grid"><div class="field"><label>Milestone Name <span class="required">*</span></label><input class="project-control" value="${escapeHtml(milestone.name)}" disabled></div><div class="field"><label>Milestone ID <span class="required">*</span></label><input class="project-control" data-lock="always" value="${escapeHtml(milestone.id)}" disabled></div><div class="field full"><label>Milestone Description</label><textarea class="project-control" maxlength="5000" oninput="countChars(this)" disabled>${escapeHtml(milestone.description)}</textarea><div class="char-count">${5000 - milestone.description.length} characters remaining</div></div><div class="field"><label>Milestone Delivery Date <span class="required">*</span></label><input class="project-control" type="date" value="${milestone.deliveryDate}" disabled></div></div>${milestone.activities.map((a,i)=>renderActivity(a,mNumber,i+1)).join('')}</div></div>`;
+}
+function renderActivity(activity,mNumber,aNumber){
+  return `<div class="block"><div class="block-header"><div class="block-header-left" onclick="toggleBlock(this)"><span>▼</span><strong>Activity ${mNumber}.${aNumber}</strong><span class="node-id">${activity.id}</span><span class="node-kind">${escapeHtml(activity.name)}</span></div><button class="btn outline-red small" onclick="removeNode(event,this)">Remove</button></div><div class="inner"><div class="grid node-grid"><div class="field"><label>Activity Name <span class="required">*</span></label><input class="project-control" value="${escapeHtml(activity.name)}" disabled></div><div class="field"><label>Activity ID <span class="required">*</span></label><input class="project-control" data-lock="always" value="${escapeHtml(activity.id)}" disabled></div><div class="field full"><label>Activity Description</label><textarea class="project-control" maxlength="5000" oninput="countChars(this)" disabled>${escapeHtml(activity.description)}</textarea><div class="char-count">${5000 - activity.description.length} characters remaining</div></div><div class="field"><label>Activity Delivery Date <span class="required">*</span></label><input class="project-control" type="date" value="${activity.deliveryDate}" disabled></div></div>${activity.tasks.map((t,i)=>renderTask(t,mNumber,aNumber,i+1)).join('')}</div></div>`;
+}
+function renderTask(task,mNumber,aNumber,tNumber){
+  return `<div class="block"><div class="block-header"><div class="block-header-left" onclick="toggleBlock(this)"><span>▼</span><strong>Task ${mNumber}.${aNumber}.${tNumber}</strong><span class="node-id">${task.id}</span><span class="node-kind">${escapeHtml(task.name)}</span></div><button class="btn outline-red small" onclick="removeNode(event,this)">Remove</button></div><div class="inner"><div class="grid node-grid"><div class="field"><label>Task Name <span class="required">*</span></label><input class="project-control" value="${escapeHtml(task.name)}" disabled></div><div class="field"><label>Task ID <span class="required">*</span></label><input class="project-control" data-lock="always" value="${escapeHtml(task.id)}" disabled></div><div class="field full"><label>Task Description</label><textarea class="project-control" maxlength="5000" oninput="countChars(this)" disabled>${escapeHtml(task.description)}</textarea><div class="char-count">${5000 - task.description.length} characters remaining</div></div><div class="field"><label>Task Delivery Date <span class="required">*</span></label><input class="project-control" type="date" value="${task.deliveryDate}" disabled></div></div></div></div>`;
+}
+function toggleProjectEdit(btn){
+  window.projectEditing = !window.projectEditing;
+  setProjectEditable(window.projectEditing);
+  btn.querySelector('.btn-icon').textContent = window.projectEditing ? '💾' : '✏️';
+  btn.querySelector('.btn-text').textContent = window.projectEditing ? 'Save' : 'Edit';
+}
+function setProjectEditable(enabled){
+  contentArea.querySelectorAll('.project-control').forEach(el=>{
+    if(el.dataset.lock === 'always'){el.disabled = true; return;}
+    el.disabled = !enabled;
+  });
+}
+
+function loadVendorForm(type){
+  const vendorType = ({
+    STANDARD: 'Standard Vendor',
+    SERVICE: 'Service Vendor',
+    TECHNOLOGY: 'Technology Vendor'
+  }[String(type || '').toUpperCase()] || type || 'Standard Vendor');
+  setActiveSidebar('vendorHead');
+  contentArea.innerHTML = `
+    <div class="pm-title">Vendor Management</div>
+    <div class="card">
+      <h3>Add Vendor</h3>
+	  <br>
+      <div class="grid-4">
+        <div class="field"><label>Vendor Name <span class="required">*</span></label><input></div>
+        <div class="field"><label>Vendor Type <span class="required">*</span></label><select><option ${vendorType==='Standard Vendor'?'selected':''}>Standard Vendor</option><option ${vendorType==='Service Vendor'?'selected':''}>Service Vendor</option><option ${vendorType==='Technology Vendor'?'selected':''}>Technology Vendor</option></select></div>
+        <div class="field"><label>Status <span class="required">*</span></label><select><option>Active</option><option>Inactive</option></select></div>
+        <div class="field"><label>Contact Person <span class="required">*</span></label><input></div>
+        <div class="field"><label>Email <span class="required">*</span></label><input type="email"></div>
+        <div class="field"><label>Phone <span class="required">*</span></label><input type="tel"></div>
+        <div class="field"><label>Project Mapping <span class="required">*</span></label>${createMultiSelectControl('vendorProjectMapping', [], ['Aadhaar','PMIS','UIDAI Core','Master Data'])}</div>
+        <div class="field full"><label>Vendor Description</label><textarea maxlength="5000" oninput="countChars(this)"></textarea><div class="char-count">5000 characters remaining</div></div>
+      </div>
+      <div class="action-row">
+        <button class="btn">Add</button>
+        <button class="btn cancel" onclick="showVendorList()">Cancel</button>
+      </div>
+    </div>`;
+  initMultiSelect(contentArea);
+}
+function showVendorList(){
+  setActiveSidebar('vendorHead');
+  const vendorRows = demoVendors.map((v,i)=>{
+    const mappings = normalizeMapping(v.projectMapping);
+    return `<tr data-row="vendor"
+      data-search="${escapeHtml([v.vendorName, v.vendorType, v.status, v.contact, v.email, v.phone, renderMappingText(v.projectMapping)].join(' ').toLowerCase())}"
+      data-vendor-name="${escapeHtml(v.vendorName.toLowerCase())}"
+      data-vendor-type="${escapeHtml(v.vendorType.toLowerCase())}"
+      data-status="${escapeHtml(v.status.toLowerCase())}"
+      data-contact="${escapeHtml(v.contact.toLowerCase())}"
+      data-email="${escapeHtml(v.email.toLowerCase())}"
+      data-phone="${escapeHtml(v.phone.toLowerCase())}"
+      data-mapping="${escapeHtml(mappings.map(x => x.toLowerCase()).join('|'))}">
+      <td class="link" onclick="openVendorDetails(${i})">${escapeHtml(v.vendorId)}</td>
+      <td>${escapeHtml(v.vendorName)}</td>
+      <td>${escapeHtml(v.vendorType)}</td>
+      <td><span class="badge ${v.status==='Active'?'green':'red'}">${escapeHtml(v.status)}</span></td>
+      <td>${escapeHtml(v.contact)}</td>
+      <td>${escapeHtml(v.email)}</td>
+      <td>${escapeHtml(v.phone)}</td>
+      <td>${escapeHtml(renderMappingText(v.projectMapping))}</td>
+    </tr>`;
+  }).join('');
+  contentArea.innerHTML = `
+    <div class="pm-title">Vendor Management</div>
+    <div class="card">
+      <div class="small-search-row">
+        <input id="vendorSearchInput" class="small-search" placeholder="Search vendors..." oninput="filterVendorRows()">
+        <button class="btn small" onclick="filterVendorRows()">Search</button>
+      </div>
+      <div class="filter-shell">
+        <div class="filter-head">
+          <div class="filter-title">Filters</div>
+          <button type="button" class="filter-toggle" onclick="toggleFilterBody('vendorFilterBody', this)">Hide Filters</button>
+        </div>
+        <div class="filter-body" id="vendorFilterBody">
+          <div class="field"><label>Vendor Name</label>${buildTextFilterInput('vendorFilterName', 'Search vendor name', 'filterVendorRows')}</div>
+          <div class="field"><label>Type</label><select id="vendorFilterType" class="filter-select" onchange="filterVendorRows()">${buildSelectOptions(demoVendors.map(v => v.vendorType))}</select></div>
+          <div class="field"><label>Status</label><select id="vendorFilterStatus" class="filter-select" onchange="filterVendorRows()">${buildSelectOptions(demoVendors.map(v => v.status))}</select></div>
+          <div class="field"><label>Contact Person</label>${buildTextFilterInput('vendorFilterContact', 'Search contact person', 'filterVendorRows')}</div>
+          <div class="field"><label>Email</label>${buildTextFilterInput('vendorFilterEmail', 'Search email', 'filterVendorRows')}</div>
+          <div class="field"><label>Phone</label>${buildTextFilterInput('vendorFilterPhone', 'Search phone', 'filterVendorRows')}</div>
+          <div class="field full"><label>Project Mapping</label>${buildTextFilterInput('vendorFilterMapping', 'Search project mapping', 'filterVendorRows')}</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table compact">
+          <thead>
+            <tr><th>Vendor ID</th><th>Vendor Name</th><th>Type</th><th>Status</th><th>Contact Person</th><th>Email</th><th>Phone</th><th>Project Mapping</th></tr>
+          </thead>
+          <tbody id="vendorTableBody">
+            ${vendorRows}
+            <tr id="vendorNoResults" class="no-results-row hidden"><td colspan="8">No matching vendors found.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="btn cancel" onclick="showHome()">Cancel</button>
+    </div>`;
+  filterVendorRows();
+}
+function openVendorDetails(index){
+  setActiveSidebar('vendorHead');
+  const v = demoVendors[index];
+  contentArea.innerHTML = `
+    <div class="pm-title">Vendor Details</div>
+    <div class="card">
+      <div class="card-actions"><button class="btn" id="vendorEditBtn" onclick="toggleVendorEdit(this)"><span class="btn-icon">✏️</span> <span class="btn-text">Edit</span></button><button class="btn cancel" onclick="showVendorList()">Back</button></div>
+      <h3>Vendor Information</h3>
+	  <br>
+      <div class="grid-4">
+        <div class="field"><label>Vendor ID <span class="required">*</span></label><input class="vendor-control" data-lock="always" value="${escapeHtml(v.vendorId)}" disabled></div>
+        <div class="field"><label>Vendor Name <span class="required">*</span></label><input class="vendor-control" value="${escapeHtml(v.vendorName)}" disabled></div>
+        <div class="field"><label>Vendor Type <span class="required">*</span></label><select class="vendor-control" disabled><option ${v.vendorType==='Standard Vendor'?'selected':''}>Standard Vendor</option><option ${v.vendorType==='Service Vendor'?'selected':''}>Service Vendor</option><option ${v.vendorType==='Technology Vendor'?'selected':''}>Technology Vendor</option></select></div>
+        <div class="field"><label>Status <span class="required">*</span></label><select class="vendor-control" disabled><option ${v.status==='Active'?'selected':''}>Active</option><option ${v.status==='Inactive'?'selected':''}>Inactive</option></select></div>
+        <div class="field"><label>Contact Person <span class="required">*</span></label><input class="vendor-control" value="${escapeHtml(v.contact)}" disabled></div>
+        <div class="field"><label>Email <span class="required">*</span></label><input class="vendor-control" type="email" value="${escapeHtml(v.email)}" disabled></div>
+        <div class="field"><label>Phone <span class="required">*</span></label><input class="vendor-control" value="${escapeHtml(v.phone)}" disabled></div>
+        <div class="field"><label>Project Mapping <span class="required">*</span></label>${createMultiSelectControl('vendorProjectMapping', v.projectMapping, ['Aadhaar','PMIS','UIDAI Core','Master Data'], 'Select projects', true)}</div>
+        <div class="field full"><label>Description</label><textarea class="vendor-control" maxlength="5000" oninput="countChars(this)" disabled>${escapeHtml(v.services)}</textarea><div class="char-count">${5000 - v.services.length} characters remaining</div></div>
+      </div>
+    </div>`;
+  initMultiSelect(contentArea);
+  setVendorEditable(false);
+}
+function toggleVendorEdit(btn){
+  window.vendorEditing = !window.vendorEditing;
+  setVendorEditable(window.vendorEditing);
+  btn.querySelector('.btn-icon').textContent = window.vendorEditing ? '' : '';
+  btn.querySelector('.btn-text').textContent = window.vendorEditing ? 'Save' : 'Edit';
+}
+function setVendorEditable(enabled){
+  contentArea.querySelectorAll('.vendor-control').forEach(el=>{
+    if(el.dataset.lock === 'always'){el.disabled = true; return;}
+    el.disabled = !enabled;
+  });
+  contentArea.querySelectorAll('.ms-toggle').forEach(el => {
+    el.disabled = !enabled;
+  });
+  contentArea.querySelectorAll('.ms-search').forEach(el => {
+    el.disabled = !enabled;
+  });
+  contentArea.querySelectorAll('.ms-option input').forEach(el => {
+    el.disabled = !enabled;
+  });
+}
+
+function loadUserForm(type){
+  const roleType = ({
+    ADMIN: 'Admin',
+    MANAGER: 'Manager',
+    VIEWER: 'Viewer'
+  }[String(type || '').toUpperCase()] || type || 'Admin');
+  setActiveSidebar('userHead');
+  contentArea.innerHTML = `
+    <div class="pm-title">User Management</div>
+    <div class="card">
+      <h3>Add User</h3>
+	  <br>
+      <div class="grid-4">
+        <div class="field"><label>Full Name <span class="required">*</span></label><input></div>
+        <div class="field"><label>Employee ID <span class="required">*</span></label><input></div>
+        <div class="field"><label>Email <span class="required">*</span></label><input type="email"></div>
+        <div class="field"><label>Temporary Password <span class="required">*</span></label><input type="password"></div>
+        <div class="field"><label>Role <span class="required">*</span></label><select><option ${roleType==='Admin'?'selected':''}>Admin</option><option ${roleType==='Manager'?'selected':''}>Manager</option><option ${roleType==='Viewer'?'selected':''}>Viewer</option></select></div>
+        <div class="field"><label>Associated Vendor Name <span class="required">*</span></label><select><option value="" selected disabled>Select Vendor</option>${demoVendors.map(v=>`<option>${escapeHtml(v.vendorName)}</option>`).join('')}</select></div>
+        <div class="field"><label>Division <span class="required">*</span></label><select>${DIVISION_OPTIONS.map(opt => `<option>${escapeHtml(opt)}</option>`).join('')}</select></div>
+        <div class="field"><label>Project Mapping <span class="required">*</span></label>${createMultiSelectControl('userProjectMapping', [], ['Aadhaar','PMIS','Master Data','UIDAI Core'])}</div>
+      </div>
+      <div class="action-row">
+        <button class="btn">Add</button>
+        <button class="btn cancel" onclick="showUserList()">Cancel</button>
+      </div>
+    </div>`;
+  initMultiSelect(contentArea);
+}
+function showUserList(){
+  setActiveSidebar('userHead');
+  const userRows = demoUsers.map((u,i)=>{
+    const mappings = normalizeMapping(u.projectMapping);
+    return `<tr data-row="user"
+      data-search="${escapeHtml([u.fullName, u.employeeId, u.email, u.role, u.vendorName, u.division, renderMappingText(u.projectMapping), u.status].join(' ').toLowerCase())}"
+      data-full-name="${escapeHtml(u.fullName.toLowerCase())}"
+      data-email="${escapeHtml(u.email.toLowerCase())}"
+      data-role="${escapeHtml(u.role.toLowerCase())}"
+      data-vendor-name="${escapeHtml(u.vendorName.toLowerCase())}"
+      data-division="${escapeHtml(u.division.toLowerCase())}"
+      data-mapping="${escapeHtml(mappings.map(x => x.toLowerCase()).join('|'))}"
+      data-status="${escapeHtml(u.status.toLowerCase())}">
+      <td class="link" onclick="openUserDetails(${i})">${escapeHtml(u.userId)}</td>
+      <td>${escapeHtml(u.fullName)}</td>
+      <td>${escapeHtml(u.employeeId)}</td>
+      <td>${escapeHtml(u.email)}</td>
+      <td>${escapeHtml(u.role)}</td>
+      <td>${escapeHtml(u.vendorName)}</td>
+      <td>${escapeHtml(u.division)}</td>
+      <td>${escapeHtml(renderMappingText(u.projectMapping))}</td>
+      <td><span class="badge ${u.status==='Active'?'green':'red'}">${escapeHtml(u.status)}</span></td>
+    </tr>`;
+  }).join('');
+  contentArea.innerHTML = `
+    <div class="pm-title">User Management</div>
+    <div class="card">
+      <div class="small-search-row">
+        <input id="userSearchInput" class="small-search" placeholder="Search users..." oninput="filterUserRows()">
+        <button class="btn small" onclick="filterUserRows()">Search</button>
+      </div>
+      <div class="filter-shell">
+        <div class="filter-head">
+          <div class="filter-title">Filters</div>
+          <button type="button" class="filter-toggle" onclick="toggleFilterBody('userFilterBody', this)">Hide Filters</button>
+        </div>
+        <div class="filter-body" id="userFilterBody">
+          <div class="field"><label>Full Name</label>${buildTextFilterInput('userFilterName', 'Search full name', 'filterUserRows')}</div>
+          <div class="field"><label>Email</label>${buildTextFilterInput('userFilterEmail', 'Search email', 'filterUserRows')}</div>
+          <div class="field"><label>Role</label><select id="userFilterRole" class="filter-select" onchange="filterUserRows()">${buildSelectOptions(demoUsers.map(u => u.role))}</select></div>
+          <div class="field"><label>Associated Vendor</label>${buildTextFilterInput('userFilterVendor', 'Search associated vendor', 'filterUserRows')}</div>
+          <div class="field"><label>Division</label><select id="userFilterDivision" class="filter-select" onchange="filterUserRows()">${buildDivisionOptions()}</select></div>
+          <div class="field"><label>Project Mapping</label>${buildTextFilterInput('userFilterMapping', 'Search project mapping', 'filterUserRows')}</div>
+          <div class="field"><label>Status</label><select id="userFilterStatus" class="filter-select" onchange="filterUserRows()">${buildSelectOptions(demoUsers.map(u => u.status))}</select></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table compact">
+          <thead>
+            <tr><th>User ID</th><th>Full Name</th><th>Employee ID</th><th>Email</th><th>Role</th><th>Associated Vendor</th><th>Division</th><th>Project Mapping</th><th>Status</th></tr>
+          </thead>
+          <tbody id="userTableBody">
+            ${userRows}
+            <tr id="userNoResults" class="no-results-row hidden"><td colspan="9">No matching users found.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="btn cancel" onclick="showHome()">Cancel</button>
+    </div>`;
+  filterUserRows();
+}
+function openUserDetails(index){
+  setActiveSidebar('userHead');
+  const u = demoUsers[index];
+  contentArea.innerHTML = `
+    <div class="pm-title">User Details</div>
+    <div class="card">
+      <div class="card-actions"><button class="btn" id="userEditBtn" onclick="toggleUserEdit(this)"><span class="btn-icon"></span> <span class="btn-text">Edit</span></button><button class="btn cancel" onclick="showUserList()">Back</button></div>
+      <h3>User Information</h3>
+	  <br>
+      <div class="grid-4">
+        <div class="field"><label>User ID <span class="required">*</span></label><input class="user-control" data-lock="always" value="${escapeHtml(u.userId)}" disabled></div>
+        <div class="field"><label>Full Name <span class="required">*</span></label><input class="user-control" value="${escapeHtml(u.fullName)}" disabled></div>
+        <div class="field"><label>Employee ID <span class="required">*</span></label><input class="user-control" data-lock="always" value="${escapeHtml(u.employeeId)}" disabled></div>
+        <div class="field"><label>Email <span class="required">*</span></label><input class="user-control" type="email" value="${escapeHtml(u.email)}" disabled></div>
+        <div class="field"><label>Role <span class="required">*</span></label><select class="user-control" disabled><option ${u.role==='Admin'?'selected':''}>Admin</option><option ${u.role==='Manager'?'selected':''}>Manager</option><option ${u.role==='Viewer'?'selected':''}>Viewer</option></select></div>
+        <div class="field"><label>Associated Vendor Name <span class="required">*</span></label><input class="user-control" data-lock="always" value="${escapeHtml(u.vendorName)}" disabled></div>
+        <div class="field"><label>Division <span class="required">*</span></label><select class="user-control" disabled><option ${u.division==='Technology'?'selected':''}>Technology</option><option ${u.division==='Operations'?'selected':''}>Operations</option><option ${u.division==='Audit'?'selected':''}>Audit</option></select></div>
+        <div class="field"><label>Project Mapping <span class="required">*</span></label>${createMultiSelectControl('userProjectMapping', u.projectMapping, ['Aadhaar','PMIS','Master Data','UIDAI Core'], 'Select projects', true)}</div>
+        <div class="field"><label>Status <span class="required">*</span></label><select class="user-control" disabled><option ${u.status==='Active'?'selected':''}>Active</option><option ${u.status==='Inactive'?'selected':''}>Inactive</option></select></div>
+      </div>
+    </div>
+    <div class="card"><h3>Remarks</h3><br><div class="grid"><div class="field full"><textarea class="user-control" maxlength="5000" oninput="countChars(this)" disabled>Access aligned to role-based permissions.</textarea><div class="char-count">4945 characters remaining</div></div></div></div>`;
+  initMultiSelect(contentArea);
+  setUserEditable(false);
+}
+function toggleUserEdit(btn){
+  window.userEditing = !window.userEditing;
+  setUserEditable(window.userEditing);
+  btn.querySelector('.btn-icon').textContent = window.userEditing ? '' : '';
+  btn.querySelector('.btn-text').textContent = window.userEditing ? 'Save' : 'Edit';
+}
+function setUserEditable(enabled){
+  contentArea.querySelectorAll('.user-control').forEach(el=>{
+    if(el.dataset.lock === 'always'){el.disabled = true; return;}
+    el.disabled = !enabled;
+  });
+  contentArea.querySelectorAll('.ms-toggle').forEach(el => {
+    el.disabled = !enabled;
+  });
+  contentArea.querySelectorAll('.ms-search').forEach(el => {
+    el.disabled = !enabled;
+  });
+  contentArea.querySelectorAll('.ms-option input').forEach(el => {
+    el.disabled = !enabled;
+  });
+}
+
+function showMasterData(){
+  setActiveSidebar('masterDataHead');
+  masterDataSub.style.display = 'block';
+  masterDataArrow.innerText = '▼';
+  contentArea.innerHTML = `
+    <div class="pm-title">Master Data</div>
+    <p class="section-subtitle">Consolidated vendor and user counts and status at a glance</p>
+    <div class="kpi-row">
+      <div class="kpi"><div class="label">Total Vendors</div><div class="value">${demoVendors.length}</div><div class="meta">All vendor records</div></div>
+      <div class="kpi"><div class="label">Total Users</div><div class="value">${demoUsers.length}</div><div class="meta">All user records</div></div>
+      <div class="kpi"><div class="label">Active Vendors</div><div class="value">${demoVendors.filter(v=>v.status==='Active').length}</div><div class="meta">Currently enabled</div></div>
+      <div class="kpi"><div class="label">Active Users</div><div class="value">${demoUsers.filter(u=>u.status==='Active').length}</div><div class="meta">Currently enabled</div></div>
+    </div>
+    <div class="card">
+      <p class="section-subtitle" style="margin-bottom:0">Use the dropdown on the left to open Vendor Data or User Data.</p>
+    </div>`;
+}
+function showMasterVendorData(event){
+  if(event) event.stopPropagation();
+  setActiveSidebar('masterDataHead');
+  masterDataSub.style.display = 'block';
+  masterDataArrow.innerText = '▼';
+  contentArea.innerHTML = `
+    <div class="pm-title">Vendor Data</div>
+    <p class="section-subtitle">Vendor master records currently stored in the system.</p>
+    <div class="card">
+      <div class="table-wrap"><table class="table compact"><tr><th>Vendor ID</th><th>Vendor Name</th><th>Type</th><th>Status</th><th>Contact Person</th><th>Email</th><th>Phone</th><th>Project Mapping</th><th>Contract End</th></tr>${demoVendors.map(v=>`<tr><td>${escapeHtml(v.vendorId)}</td><td>${escapeHtml(v.vendorName)}</td><td>${escapeHtml(v.vendorType)}</td><td><span class="badge ${v.status==='Active'?'green':'red'}">${v.status}</span></td><td>${escapeHtml(v.contact)}</td><td>${escapeHtml(v.email)}</td><td>${escapeHtml(v.phone)}</td><td>${escapeHtml(renderMappingText(v.projectMapping))}</td><td>${formatDateDisplay(v.endDate)}</td></tr>`).join('')}</table></div>
+    </div>`;
+}
+function showMasterUserData(event){
+  if(event) event.stopPropagation();
+  setActiveSidebar('masterDataHead');
+  masterDataSub.style.display = 'block';
+  masterDataArrow.innerText = '▼';
+  contentArea.innerHTML = `
+    <div class="pm-title">User Data</div>
+    <p class="section-subtitle">User master records currently stored in the system</p>
+    <div class="card">
+      <div class="table-wrap"><table class="table compact"><tr><th>User ID</th><th>Full Name</th><th>Employee ID</th><th>Email</th><th>Role</th><th>Associated Vendor</th><th>Division</th><th>Project Mapping</th><th>Status</th></tr>${demoUsers.map(u=>`<tr><td>${escapeHtml(u.userId)}</td><td>${escapeHtml(u.fullName)}</td><td>${escapeHtml(u.employeeId)}</td><td>${escapeHtml(u.email)}</td><td>${escapeHtml(u.role)}</td><td>${escapeHtml(u.vendorName)}</td><td>${escapeHtml(u.division)}</td><td>${escapeHtml(renderMappingText(u.projectMapping))}</td><td><span class="badge ${u.status==='Active'?'green':'red'}">${u.status}</span></td></tr>`).join('')}</table></div>
+    </div>`;
+}
+function toggleMasterDataMenu(){
+  const open = masterDataSub.style.display === 'block';
+  setSubmenuState(masterDataSub, masterDataArrow, !open);
+  if(!open) showMasterData();
+}
+function toggleBlock(el){
+
+  const block = el.closest('.block');
+  const inner = block.querySelector(':scope > .inner');
+  const arrow = el.querySelector('span');
+  const open = inner.style.display !== 'none';
+  inner.style.display = open ? 'none' : 'block';
+  arrow.textContent = open ? '▶' : '▼';
+}
+function toggleSimple(el){
+  const block = el.closest('.block');
+  const inner = block.querySelector(':scope > .inner');
+  const arrow = el.querySelector('span');
+  const open = inner.style.display !== 'none';
+  inner.style.display = open ? 'none' : 'block';
+  arrow.textContent = open ? '▶' : '▼';
+}
+function removeNode(e,btn){ e.stopPropagation(); btn.closest('.block').remove(); }
+
+function toggleSidebar(){
+  const mobile = window.matchMedia('(max-width: 840px)').matches;
+  if(mobile){
+    sidebar.classList.toggle('open');
+    if(sidebar.classList.contains('open')) sidebar.classList.remove('collapsed');
+  } else {
+    sidebar.classList.toggle('collapsed');
+  }
+}
+function toggleProjectMenu(){ setActiveSidebar('projectHead'); setSubmenuState(projectSub, projectArrow, projectSub.style.display !== 'block'); }
+function toggleVendorMenu(){ setActiveSidebar('vendorHead'); setSubmenuState(vendorSub, vendorArrow, vendorSub.style.display !== 'block'); }
+function toggleUserMenu(){ setActiveSidebar('userHead'); setSubmenuState(userSub, userArrow, userSub.style.display !== 'block'); }
+
+/* events */
+toggleBtn.onclick = toggleSidebar;
+profileBtn.onclick = (e)=>{ e.stopPropagation(); profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block'; };
+document.addEventListener('click', ()=>{ closeProfile(); closePopdowns(); });
+homeBtn.onclick = ()=>showHome();
+dashboardLink.onclick = ()=>showHome();
+masterDataHead.onclick = (e)=>{ e.stopPropagation(); toggleMasterDataMenu(); };
+projectHead.onclick = ()=>toggleProjectMenu();
+vendorHead.onclick = ()=>toggleVendorMenu();
+userHead.onclick = ()=>toggleUserMenu();
+projectItem.onmouseenter = ()=>projectDropdown.style.display='block';
+projectItem.onmouseleave = ()=>projectDropdown.style.display='none';
+vendorItem.onclick = ()=>loadVendorForm('STANDARD');
+userItem.onclick = ()=>loadUserForm('ADMIN');
+window.addEventListener('resize', ()=>{ if(window.innerWidth > 840) sidebar.classList.remove('open'); });
+
+
+showHome();
+updateCollapseLabel();
+</script>
+</body>
+</html>
