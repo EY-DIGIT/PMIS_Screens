@@ -4,24 +4,37 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>UIDAI PMIS - Management Modules</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 :root{
   --navy:#0b3c88;
+  --navy-deep:#062a63;
   --cyan:#0aa1c0;
+  --cyan-light:#3cb8d4;
+  --green:#1a8a3d;
+  --green-soft:#e7f7ec;
+  --saffron:#d4440e;
   --light:#f4f7fb;
+  --light-cool:#eef3f9;
   --border:#dbe5f1;
+  --border-soft:#e9eef6;
   --red:#d32f2f;
   --text:#1e2a3a;
+  --text-soft:#5a6680;
   --muted:#6b7a90;
   --card:#ffffff;
-  --shadow:0 4px 12px rgba(0,0,0,.08);
-  --shadow-soft:0 2px 8px rgba(0,0,0,.06);
+  --shadow:0 2px 8px rgba(11,60,136,.08);
+  --shadow-soft:0 2px 6px rgba(11,60,136,.05);
+  --uidai-stripe:linear-gradient(90deg, var(--navy) 0%, var(--cyan) 100%);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{
-  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  font-family:'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
   background:var(--light);
   color:var(--text);
   display:flex;
@@ -32,24 +45,154 @@ body{
 button,input,select,textarea{font:inherit}
 img{display:block;max-width:100%}
 
-.header{
+/* ─── Accessibility helpers ─── */
+.sr-only{
+  position:absolute !important;
+  width:1px; height:1px;
+  padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0);
+  white-space:nowrap; border:0;
+}
+.skip-link{
+  position:absolute; top:-40px; left:0;
+  background:var(--navy); color:#fff;
+  padding:8px 16px; z-index:9999;
+  text-decoration:none; font-weight:700;
+  border-radius:0 0 6px 0;
+}
+.skip-link:focus{top:0;}
+*:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 2px var(--navy), 0 0 0 4px var(--cyan);
+  border-radius:3px;
+}
+
+/* ─── UIDAI-style Header ─── */
+.site-header{
+  width:100%;
   background:#fff;
-  border-bottom:3px solid var(--navy);
-  padding:10px 20px;
+  box-shadow:0 2px 8px rgba(11,60,136,.08);
+  position:relative;
+  z-index:50;
+}
+.site-header::after{
+  content:"";
+  display:block;
+  height:4px;
+  background:var(--uidai-stripe);
+}
+.header-accessibility-strip{
+  background:#f5f8fd;
+  border-bottom:1px solid var(--border);
   display:flex;
-  justify-content:space-between;
+  justify-content:flex-end;
+  align-items:center;
+  padding:3px 20px;
+  gap:12px;
+  min-height:28px;
+  font-size:13px;
+  color:var(--text);
+  max-height:40px;
+  overflow:hidden;
+  transition:max-height .28s ease, min-height .28s ease, opacity .22s ease, padding .28s ease, border-bottom-width .28s ease;
+}
+.header-accessibility-strip.collapsed{
+  max-height:0;
+  min-height:0;
+  opacity:0;
+  padding-top:0;
+  padding-bottom:0;
+  border-bottom-width:0;
+  pointer-events:none;
+}
+.a11y-label{
+  font-weight:600;
+  color:#4b5870;
+  font-size:12px;
+  user-select:none;
+}
+.font-resizer{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:1px;
+  background:#fff;
+}
+.font-resizer button{
+  background:transparent;
+  border:none;
+  cursor:pointer;
+  padding:3px 9px;
+  font-weight:700;
+  color:var(--navy);
+  border-radius:4px;
+  font-family:inherit;
+  font-size:13px;
+  line-height:1;
+  transition:background .12s;
+}
+.font-resizer button:hover{background:#eef6fb;}
+.font-resizer button[aria-pressed="true"]{background:var(--navy); color:#fff;}
+.font-resizer .fr-plus{font-size:15px;}
+.font-resizer .fr-reset{font-size:13px;}
+.font-resizer .fr-minus{font-size:11px;}
+
+.header-main{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  gap:14px;
+  padding:8px 20px;
+  background:linear-gradient(90deg,#ffebc7 0%, #ffffff 45%, #ffffff 55%, #d7efd9 100%);
+}
+.header-brand{
+  display:flex;
   align-items:center;
   gap:12px;
+  min-width:0;
 }
-.header strong{
-  font-size:20px;
-  font-weight:800;
-  background:linear-gradient(90deg,var(--navy),var(--cyan));
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
+.header-brand img{
+  height:52px;
+  width:auto;
+  flex:0 0 auto;
+}
+.header-brand-text{
+  display:flex;
+  flex-direction:column;
+  line-height:1.15;
+  min-width:0;
+  gap:2px;
+}
+.header-brand-hi-1,
+.header-brand-hi-2{
+  font-weight:900;
+  font-size:16px;
+  white-space:nowrap;
+  letter-spacing:0.2px;
+}
+.header-brand-hi-1{color:var(--saffron);}
+.header-brand-hi-2{color:var(--green);}
+.header-title{
   text-align:center;
+  font-size:20px;
+  font-weight:700;
   line-height:1.2;
+  background:var(--uidai-stripe);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  padding:0 8px;
+  margin:0;
+  letter-spacing:-0.1px;
+}
+.header-authority{
+  justify-self:end;
+  text-align:left;
+  font-weight:700;
+  font-size:16px;
+  line-height:1.2;
+  color:#1a2a3f;
+  min-width:0;
 }
 .logo-left,.logo-right{height:40px;object-fit:contain}
 
@@ -57,11 +200,11 @@ img{display:block;max-width:100%}
   display:flex;
   justify-content:space-between;
   align-items:center;
-  background:#f9fbff;
+  background:#fafcfe;
   border-bottom:1px solid var(--border);
-  min-height:64px;
+  min-height:42px;
   position:relative;
-  z-index:20;
+  z-index:30;
 }
 .menu-home-block{
   width:240px;
@@ -69,17 +212,21 @@ img{display:block;max-width:100%}
   justify-content:space-between;
   align-items:center;
   gap:10px;
-  padding:10px 15px;
+  padding:6px 14px;
   border-right:1px solid var(--border);
 }
 .menu-home-block span{
   cursor:pointer;
-  padding:8px 10px;
+  padding:5px 10px;
   border-radius:6px;
   user-select:none;
   white-space:nowrap;
+  font-size:14px;
+  font-weight:500;
+  color:var(--navy);
+  transition:background .15s, color .15s;
 }
-.menu-home-block span:hover{background:#eef6fb}
+.menu-home-block span:hover{background:#eaf2fb;color:var(--navy-deep);}
 .profile{
   padding:0 20px;
   cursor:pointer;
@@ -219,29 +366,59 @@ img{display:block;max-width:100%}
 .collapse-text{font-size:16px;font-weight:600;white-space:nowrap;color:var(--text)}
 .sidebar.collapsed .collapse-icon{justify-content:center;padding:0 12px}
 .sidebar.collapsed .collapse-text{display:none}
-.content{flex:1;padding:25px;overflow:auto;min-width:0}
+.content{flex:1;padding:25px;overflow:auto;min-width:0;min-height:0}
 .pm-title{
   font-size:24px;
-  font-weight:800;
-  margin-bottom:20px;
-  color:#173e77;
+  font-weight:700;
+  margin-bottom:8px;
+  color:var(--navy);
   line-height:1.3;
+  position:relative;
+  padding-left:16px;
+  letter-spacing:-0.1px;
+}
+
+.pm-subtitle{
+  color:var(--green);
+  font-weight:700;
+  font-size:14px;
+  margin:-2px 0 8px 16px;
+  line-height:1.4;
+}
+.pm-description{
+  color:var(--text-soft);
+  font-size:14px;
+  margin:0 0 12px 16px;
+  line-height:1.5;
 }
 .section-subtitle{
   font-size:13px;
-  color:var(--muted);
+  color:var(--text-soft);
   margin-top:8px;
   margin-bottom:22px;
+  margin-left:16px;
   line-height:1.7;
 }
 .card{
   background:var(--card);
-  padding:25px;
-  border-radius:12px;
+  padding:22px 25px;
+  border-radius:10px;
+  border:1px solid var(--border-soft);
   box-shadow:var(--shadow);
-  margin-bottom:28px;
+  margin-bottom:22px;
   position:relative;
 }
+/* ─── Signature UIDAI navy→cyan top stripe on every main card ─── */
+/* -1px offsets to align with rounded corners over the border */
+.card::before{
+  content:"";
+  position:absolute;
+  top:-1px; left:-1px; right:-1px;
+  height:4px;
+  background:var(--uidai-stripe);
+  border-radius:10px 10px 0 0;
+}
+.card.no-stripe::before{display:none;}
 .card-actions{
   position:absolute;
   top:20px;
@@ -254,7 +431,13 @@ img{display:block;max-width:100%}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
 .grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
 .full{grid-column:1 / -1}
+.field.span-2{grid-column:span 2}
+.field.span-3{grid-column:span 3}
 .field label{font-weight:600;display:block;margin-bottom:10px;line-height:1.45}
+.card h3 + .grid,
+.card h3 + form,
+.card h3 + .grid-4{margin-top:18px}
+.card > h3{margin-bottom:0}
 .required{color:var(--red)}
 textarea{height:110px;resize:none}
 .char-count{font-size:12px;text-align:right;color:#666;margin-top:4px}
@@ -268,7 +451,7 @@ input,select,textarea{
 }
 input:disabled,select:disabled,textarea:disabled{background:#f3f6fb;color:#3e4a5b;cursor:not-allowed}
 .btn{
-  background:linear-gradient(90deg,var(--navy),var(--cyan));
+  background:var(--uidai-stripe);
   color:#fff;
   padding:10px 18px;
   border:none;
@@ -276,45 +459,71 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f6fb;color:#3e4a5
   cursor:pointer;
   margin-top:15px;
   font-weight:600;
-  transition:.18s ease;
+  letter-spacing:.2px;
+  box-shadow:0 1px 3px rgba(11,60,136,.15);
+  transition:transform .15s ease, opacity .15s ease, box-shadow .15s ease;
 }
-.btn:hover{filter:brightness(1.03)}
+.btn:hover{transform:translateY(-1px); box-shadow:0 4px 10px rgba(11,60,136,.22);}
 .btn.cancel{
   background:#fff;
-  color:#000;
+  color:var(--navy);
   border:1px solid var(--border);
   margin-left:10px;
+  box-shadow:none;
 }
+.btn.cancel:hover{background:#f4f8fd; border-color:#c4d3e8; color:var(--navy);}
 .btn.outline-red{
   background:#fff;
   color:var(--red);
   border:1px solid var(--red);
+  box-shadow:none;
 }
 .btn.outline-red:hover{background:var(--red);color:#fff}
 .btn.small{padding:8px 14px;margin-top:0}
-.btn:disabled{opacity:.7;cursor:not-allowed}
+.btn:disabled{opacity:.6;cursor:not-allowed; transform:none; box-shadow:none;}
 
+/* ─── Multi-select (Project Mapping) ─── */
 .ms-wrap{
   position:relative;
 }
 .ms-toggle{
   width:100%;
-  min-height:44px;
-  border:1px solid var(--border);
-  border-radius:8px;
+  min-height:46px;
+  border:1.5px solid var(--border);
+  border-radius:10px;
   background:#fff;
-  padding:8px 12px;
+  padding:8px 14px;
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:10px;
   cursor:pointer;
   text-align:left;
+  font-size:14px;
+  color:var(--text);
+  transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.ms-toggle:hover:not(:disabled){
+  border-color:var(--cyan);
+  background:#fbfdff;
+}
+.ms-toggle:focus,
+.ms-toggle:focus-visible{
+  outline:none;
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(10,161,192,.18);
+  background:#fff;
+}
+.ms-wrap:has(.ms-panel.open) .ms-toggle{
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(10,161,192,.18);
+  background:#fff;
 }
 .ms-toggle:disabled{
   background:#f3f6fb;
   cursor:not-allowed;
-  opacity:.9;
+  opacity:.92;
+  border-color:var(--border);
 }
 .ms-display{
   display:flex;
@@ -325,8 +534,9 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f6fb;color:#3e4a5
   flex:1;
 }
 .ms-placeholder{
-  color:var(--muted);
+  color:#8aa1b8;
   font-size:14px;
+  font-weight:500;
 }
 .ms-tags{
   display:flex;
@@ -337,18 +547,31 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f6fb;color:#3e4a5
   display:inline-flex;
   align-items:center;
   gap:6px;
-  background:#eaf4ff;
-  color:#114a8d;
+  background:linear-gradient(135deg, var(--navy) 0%, var(--cyan) 100%);
+  color:#fff;
   border-radius:999px;
-  padding:4px 9px;
+  padding:5px 12px;
   font-size:12px;
-  font-weight:700;
+  font-weight:600;
+  letter-spacing:.2px;
   max-width:100%;
+  box-shadow:0 1px 2px rgba(11,60,136,.18);
 }
 .ms-caret{
-  color:var(--muted);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:20px;
+  height:20px;
+  color:var(--navy);
+  font-size:14px;
+  font-weight:700;
   flex:0 0 auto;
-  font-size:12px;
+  transition:transform .2s ease;
+}
+.ms-wrap:has(.ms-panel.open) .ms-caret{
+  transform:rotate(180deg);
+  color:var(--cyan);
 }
 .ms-panel{
   position:absolute;
@@ -356,47 +579,228 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f6fb;color:#3e4a5
   left:0;
   width:100%;
   background:#fff;
-  border:1px solid var(--border);
+  border:1px solid var(--border-soft);
   border-radius:12px;
-  box-shadow:0 12px 28px rgba(0,0,0,.12);
+  box-shadow:0 18px 40px rgba(7,26,52,.18), 0 4px 10px rgba(7,26,52,.08);
   z-index:30;
   display:none;
   overflow:hidden;
 }
-.ms-panel.open{display:block}
+.ms-panel.open{
+  display:block;
+  animation:msPanelIn .18s ease-out;
+}
+@keyframes msPanelIn{
+  from{opacity:0; transform:translateY(-4px) scale(.985)}
+  to{opacity:1; transform:translateY(0) scale(1)}
+}
 .ms-search{
   width:100%;
   border:none;
-  border-bottom:1px solid var(--border);
+  border-bottom:1px solid var(--border-soft);
   border-radius:0;
-  padding:10px 12px;
+  padding:11px 14px;
   outline:none;
+  font-size:14px;
+  background:#f9fbfd;
+  transition:background .15s ease, border-color .15s ease;
+}
+.ms-search:focus{
+  background:#fff;
+  border-bottom-color:var(--cyan);
 }
 .ms-options{
-  max-height:220px;
+  max-height:240px;
   overflow:auto;
-  padding:6px;
+  padding:8px;
 }
-.ms-option{
+.ms-options::-webkit-scrollbar{width:8px}
+.ms-options::-webkit-scrollbar-thumb{background:#cdd9e8;border-radius:4px}
+.ms-options::-webkit-scrollbar-thumb:hover{background:#b6c4d6}
+.ms-panel .ms-option{
   display:flex;
   align-items:center;
-  gap:10px;
-  padding:10px 10px;
+  gap:14px;
+  padding:11px 14px;
   border-radius:8px;
   cursor:pointer;
   user-select:none;
-}
-.ms-option:hover{
-  background:#f4f8ff;
-}
-.ms-option input{
-  width:auto;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
   margin:0;
+  line-height:1.4;
+  transition:background .12s ease, color .12s ease;
+}
+.ms-panel .ms-option > span{
+  flex:1;
+  min-width:0;
+  margin:0;
+  padding:0;
+  font-weight:inherit;
+}
+.ms-panel .ms-option:hover{
+  background:#eaf4ff;
+}
+.ms-panel .ms-option:has(input:checked){
+  background:#f3f8ff;
+  color:var(--navy);
+  font-weight:600;
+}
+.ms-panel .ms-option input[type="checkbox"]{
+  appearance:none;
+  -webkit-appearance:none;
+  width:18px;
+  height:18px;
+  border:1.5px solid #b9c8db;
+  border-radius:5px;
+  background:#fff;
+  cursor:pointer;
+  position:relative;
+  flex:0 0 auto;
+  margin:0;
+  padding:0;
+  transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.ms-panel .ms-option input[type="checkbox"]:hover:not(:disabled){
+  border-color:var(--cyan);
+}
+.ms-panel .ms-option input[type="checkbox"]:checked{
+  background:var(--navy);
+  border-color:var(--navy);
+}
+.ms-panel .ms-option input[type="checkbox"]:checked::after{
+  content:"";
+  position:absolute;
+  left:5px;
+  top:1px;
+  width:5px;
+  height:10px;
+  border:solid #fff;
+  border-width:0 2.5px 2.5px 0;
+  transform:rotate(45deg);
+}
+.ms-panel .ms-option input[type="checkbox"]:disabled{
+  cursor:not-allowed;
+  opacity:.55;
 }
 .ms-empty{
-  padding:12px;
+  padding:14px 12px;
+  text-align:center;
   color:var(--muted);
   font-size:13px;
+  font-style:italic;
+}
+
+/* ─── Status pill toggle (Active / Inactive radio) ─── */
+.status-toggle{
+  display:inline-flex;
+  align-items:center;
+  border:1.5px solid var(--border);
+  border-radius:999px;
+  padding:4px;
+  background:#f5f8fc;
+  gap:4px;
+  width:auto;
+  max-width:100%;
+}
+.status-toggle .status-option{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:8px 18px;
+  border-radius:999px;
+  cursor:pointer;
+  user-select:none;
+  font-size:13px;
+  font-weight:600;
+  color:#6b7a90;
+  margin:0;
+  line-height:1;
+  transition:background .2s ease, color .2s ease, box-shadow .2s ease, transform .15s ease;
+  position:relative;
+}
+.status-toggle .status-option input[type="radio"]{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+  width:1px;
+  height:1px;
+  margin:0;
+  padding:0;
+}
+.status-toggle .status-option .dot{
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:currentColor;
+  flex:0 0 auto;
+  opacity:.55;
+  transition:opacity .2s ease, background .2s ease;
+}
+.status-toggle .status-option:hover{
+  color:var(--text);
+}
+.status-toggle .status-option.active:has(input:checked){
+  background:linear-gradient(135deg, #1e9c5e 0%, #2bb56e 100%);
+  color:#fff;
+  box-shadow:0 2px 6px rgba(30,156,94,.3);
+}
+.status-toggle .status-option.inactive:has(input:checked){
+  background:linear-gradient(135deg, #d92d20 0%, #e84e3f 100%);
+  color:#fff;
+  box-shadow:0 2px 6px rgba(217,45,32,.3);
+}
+.status-toggle .status-option:has(input:checked) .dot{
+  background:#fff;
+  opacity:1;
+}
+.status-toggle.is-disabled{
+  opacity:.95;
+  cursor:not-allowed;
+}
+.status-toggle.is-disabled .status-option{
+  cursor:not-allowed;
+  pointer-events:none;
+}
+.status-toggle.is-disabled .status-option:not(:has(input:checked)){
+  opacity:.35;
+}
+/* Focus ring on the visible label when its hidden radio is focused */
+.status-toggle .status-option:focus-within{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(10,161,192,.25), 0 2px 6px rgba(30,156,94,.3);
+}
+
+/* ─── Small icon-only delete button (used in tables) ─── */
+.icon-btn-sm{
+  width:30px;
+  height:30px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #f3c4c4;
+  border-radius:7px;
+  background:#fff;
+  cursor:pointer;
+  color:var(--red);
+  padding:0;
+  margin:0;
+  flex:0 0 auto;
+  transition:background .15s ease, border-color .15s ease, color .15s ease, transform .12s ease;
+}
+.icon-btn-sm:hover{
+  background:#fdecec;
+  border-color:var(--red);
+  color:#8a1f17;
+  transform:translateY(-1px);
+}
+.icon-btn-sm:active{transform:translateY(0)}
+.icon-btn-sm svg{
+  display:block;
+  width:14px;
+  height:14px;
 }
 .action-row{
   display:flex;
@@ -485,9 +889,33 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f6fb;color:#3e4a5
 .inner{margin-top:10px}
 .node-grid{margin-top:10px}
 .hint{font-size:12px;color:#66788f;margin-top:8px;line-height:1.5}
+/* ─── UIDAI-themed footer ─── */
+.site-footer{
+  background:linear-gradient(90deg, #eaf1fb 0%, #f5f9fe 50%, #eaf1fb 100%);
+  color:var(--navy);
+  text-align:center;
+  padding:10px 16px;
+  font-size:12.5px;
+  font-weight:600;
+  letter-spacing:0.2px;
+  margin-top:auto;
+  position:relative;
+}
+.site-footer::before{
+  content:"";
+  position:absolute;
+  top:0; left:0; right:0;
+  height:3px;
+  background:var(--uidai-stripe);
+}
+.site-footer .sep{
+  color:var(--cyan);
+  margin:0 8px;
+  font-weight:700;
+}
+/* Legacy footer class for back-compat */
 .footer{
   background:#fff;
-  border-top:3px solid var(--navy);
   text-align:center;
   padding:10px;
   font-size:12px;
@@ -571,6 +999,7 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f6fb;color:#3e4a5
 
 @media (max-width: 1200px){
   .grid-4,.kpi-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .field.span-3{grid-column:1 / -1}
 }
 @media (max-width: 992px){
   .content{padding:18px}
@@ -581,8 +1010,11 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f6fb;color:#3e4a5
   .table{min-width:820px}
 }
 @media (max-width: 840px){
-  .header{padding:10px 12px}
-  .header strong{font-size:18px}
+  .header-main{grid-template-columns:1fr; text-align:center; gap:8px; padding:8px 14px;}
+  .header-brand{justify-content:center;}
+  .header-title{padding:2px 0; font-size:18px;}
+  .header-authority{text-align:center; justify-self:auto; font-size:13px;}
+  .header-accessibility-strip{padding:3px 14px;}
   .logo-left,.logo-right{height:32px}
   .menu-home-block{width:auto;min-width:0;flex:1}
   .layout{position:relative}
@@ -605,10 +1037,15 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f6fb;color:#3e4a5
   .content{padding:16px;width:100%}
   .kpi-row,.grid-4{grid-template-columns:1fr}
   .table{min-width:760px}
-  .navbar{position:sticky;top:0;background:#f9fbff}
+  .navbar{position:sticky;top:0;background:#fafcfe}
   .menu a,.submenu div,.section-head{gap:12px;padding:11px 10px}
 }
 @media (max-width: 640px){
+  .header-accessibility-strip{padding:3px 10px; flex-wrap:wrap; justify-content:center; gap:8px;}
+  .header-main{padding:8px 10px;}
+  .header-brand img{height:38px;}
+  .header-title{font-size:16px;}
+  .header-authority{font-size:12px;}
   .menu-home-block{padding:10px}
   .menu-home-block span{padding:6px 8px}
   .profile{padding:0 12px}
@@ -625,15 +1062,978 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f6fb;color:#3e4a5
   .block-header{padding:11px 12px}
   .block-header-left{gap:10px}
   .vendor-item,.user-item{padding-right:0}
+  .font-resizer button{padding:3px 7px; font-size:11px;}
+  .a11y-label{display:none;}
+}
+
+/* ────────────────────────────────────────────────────────────────
+   New UX additions: breadcrumbs, modals, loaders, phone input,
+   action icons, inline validation, refined responsive rules.
+   ──────────────────────────────────────────────────────────────── */
+
+/* Breadcrumbs */
+.breadcrumb{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  color:var(--text-soft);
+  margin-bottom:14px;
+  padding-left:16px;
+  flex-wrap:wrap;
+  line-height:1.5;
+}
+.breadcrumb a{
+  color:var(--navy);
+  text-decoration:none;
+  font-weight:600;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:2px 4px;
+  border-radius:4px;
+  transition:background .15s, color .15s;
+}
+.breadcrumb a:hover{background:#eaf2fb;color:var(--navy-deep)}
+.breadcrumb .sep{
+  color:var(--muted);
+  font-size:11px;
+  user-select:none;
+}
+.breadcrumb .current{
+  color:var(--text);
+  font-weight:600;
+}
+.breadcrumb svg{
+  width:14px;height:14px;flex:0 0 auto;
+}
+
+/* Modal overlay (shared by loader, confirm, success, error) */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(11,42,99,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+  padding:16px;
+  animation:fadeOverlay .18s ease;
+}
+.modal-overlay.show{display:flex}
+@keyframes fadeOverlay{
+  from{opacity:0}
+  to{opacity:1}
+}
+.modal{
+  background:#fff;
+  border-radius:14px;
+  max-width:440px;
+  width:100%;
+  box-shadow:0 20px 50px rgba(0,0,0,.25);
+  overflow:hidden;
+  position:relative;
+  animation:popIn .22s ease;
+}
+.modal::before{
+  content:"";
+  position:absolute;
+  top:0;left:0;right:0;
+  height:4px;
+  background:var(--uidai-stripe);
+}
+.modal.modal-sm{max-width:320px}
+@keyframes popIn{
+  from{opacity:0; transform:translateY(8px) scale(.97)}
+  to{opacity:1; transform:translateY(0) scale(1)}
+}
+.modal-body{
+  padding:30px 24px 24px;
+  text-align:center;
+}
+.modal-icon{
+  width:62px;height:62px;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;justify-content:center;
+  margin:0 auto 14px;
+  font-size:30px;
+  font-weight:700;
+}
+.modal-icon svg{width:32px;height:32px}
+.modal-icon.success{background:#e8f7ee;color:#1a7f37}
+.modal-icon.warn{background:#fff4e5;color:#b25e00}
+.modal-icon.danger{background:#fdecec;color:#b42318}
+.modal-icon.info{background:#eaf4ff;color:#114a8d}
+.modal-title{
+  font-size:18px;
+  font-weight:700;
+  color:var(--navy);
+  margin-bottom:8px;
+  line-height:1.3;
+}
+.modal-message{
+  font-size:14px;
+  color:var(--text-soft);
+  line-height:1.55;
+  margin-bottom:18px;
+  word-break:break-word;
+}
+.modal-actions{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.modal-actions .btn{margin-top:0}
+.modal-actions .btn.cancel{margin-left:0}
+.btn.danger{
+  background:linear-gradient(90deg,#b42318 0%, #d32f2f 100%);
+  color:#fff;
+  box-shadow:0 1px 3px rgba(180,35,24,.18);
+}
+.btn.danger:hover{box-shadow:0 4px 10px rgba(180,35,24,.25)}
+
+/* Spinner */
+.spinner{
+  width:48px;height:48px;
+  border:4px solid #e9eef6;
+  border-top-color:var(--cyan);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin:0 auto 14px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Phone (mobile) input with disabled +91 prefix */
+.phone-input{
+  display:flex;
+  align-items:stretch;
+  border:1px solid var(--border);
+  border-radius:6px;
+  overflow:hidden;
+  background:#fff;
+  width:100%;
+  transition:box-shadow .15s, border-color .15s;
+}
+.phone-input:focus-within{
+  border-color:var(--navy);
+  box-shadow:0 0 0 2px rgba(11,60,136,.12);
+}
+.phone-prefix{
+  background:#f3f6fb;
+  color:#3e4a5b;
+  padding:10px 12px;
+  font-weight:700;
+  border-right:1px solid var(--border);
+  display:inline-flex;
+  align-items:center;
+  user-select:none;
+  cursor:not-allowed;
+  flex:0 0 auto;
+  font-size:14px;
+}
+.phone-input input{
+  border:none !important;
+  flex:1;
+  border-radius:0;
+  min-width:0;
+  background:#fff;
+  padding:10px;
+}
+.phone-input input:focus{outline:none;box-shadow:none}
+.phone-input.is-disabled{background:#f3f6fb;opacity:.95}
+.phone-input.is-disabled input{background:#f3f6fb;color:#3e4a5b;cursor:not-allowed}
+
+/* Inline validation message */
+.field-error{
+  display:none;
+  margin-top:6px;
+  font-size:12px;
+  color:var(--red);
+  line-height:1.4;
+}
+.field.has-error input,
+.field.has-error select,
+.field.has-error textarea,
+.field.has-error .ms-toggle,
+.field.has-error .phone-input{
+  border-color:var(--red) !important;
+  box-shadow:0 0 0 1px rgba(211,47,47,.12);
+}
+.field.has-error .field-error{display:block}
+
+/* Action icons within tables (Edit / Delete) */
+.row-actions{
+  display:inline-flex;
+  gap:6px;
+  align-items:center;
+  flex-wrap:nowrap;
+}
+.icon-btn{
+  width:34px;height:34px;
+  display:inline-flex;
+  align-items:center;justify-content:center;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:#fff;
+  cursor:pointer;
+  color:var(--navy);
+  transition:background .15s, border-color .15s, color .15s, transform .12s;
+  padding:0;
+  flex:0 0 auto;
+}
+.icon-btn:hover{
+  background:#f3f8ff;
+  border-color:var(--cyan);
+  color:var(--navy-deep);
+  transform:translateY(-1px);
+}
+.icon-btn:active{transform:translateY(0)}
+.icon-btn.danger{
+  color:var(--red);
+  border-color:#f3c4c4;
+}
+.icon-btn.danger:hover{
+  background:#fdecec;
+  border-color:var(--red);
+  color:#8a1f17;
+}
+.icon-btn svg{width:16px;height:16px;display:block}
+.btn svg{width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:6px}
+.btn.icon-only svg{margin-right:0}
+
+/* Generic helper for inline icon-text combos in headings */
+.with-ico{display:inline-flex;align-items:center;gap:8px}
+
+/* Make the actions column compact */
+.table th.col-actions,.table td.col-actions{
+  white-space:nowrap;
+  text-align:center;
+  width:1%;
+}
+
+/* Toast / floating notification (optional reuse) */
+.toast{
+  position:fixed;
+  bottom:24px;
+  right:24px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-left:4px solid var(--green);
+  border-radius:10px;
+  padding:14px 18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.15);
+  z-index:999;
+  max-width:340px;
+  font-weight:600;
+  color:var(--text);
+  display:none;
+  animation:popIn .25s ease;
+}
+.toast.show{display:block}
+.toast.error{border-left-color:var(--red)}
+
+/* Refined responsive rules for the new components */
+@media (max-width: 992px){
+  .table{min-width:760px}
+  .row-actions{gap:5px}
+}
+@media (max-width: 640px){
+  .breadcrumb{font-size:12px;padding-left:0}
+  .breadcrumb a{padding:2px 3px}
+  .modal-body{padding:24px 18px 18px}
+  .modal-title{font-size:16px}
+  .modal-message{font-size:13px}
+  .modal-actions{flex-direction:column-reverse}
+  .modal-actions .btn{width:100%}
+  .icon-btn{width:32px;height:32px}
+  .icon-btn svg{width:15px;height:15px}
+  .toast{left:12px;right:12px;bottom:12px;max-width:none}
+  .phone-prefix{padding:10px;font-size:13px}
+}
+@media (max-width: 480px){
+  .pm-title{font-size:20px;padding-left:12px}
+  .breadcrumb{margin-bottom:10px}
+  .filter-actions{flex-direction:column;align-items:stretch}
+  .small-search-row{flex-direction:column;align-items:stretch}
+  .small-search-row .small-search{width:100%}
+  .small-search-row .btn.small{width:100%}
+}
+
+/* ────────────────────────────────────────────────────────────────
+   Assign Role / Permissions Modal — UIDAI themed, fully responsive
+   ──────────────────────────────────────────────────────────────── */
+.role-modal{
+  background:#fff;
+  border-radius:16px;
+  width:min(760px, 100%);
+  max-height:88vh;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 24px 60px rgba(7,26,52,.32);
+  overflow:hidden;
+  position:relative;
+  animation:popIn .25s ease;
+}
+.role-modal::before{
+  content:"";
+  position:absolute;
+  top:0; left:0; right:0;
+  height:5px;
+  background:var(--uidai-stripe);
+  z-index:2;
+}
+.role-modal-header{
+  padding:22px 26px 14px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  background:linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border-bottom:1px solid var(--border-soft);
+  flex:0 0 auto;
+}
+.role-modal-header-text{
+  min-width:0;
+  flex:1;
+}
+.role-modal-title{
+  font-size:19px;
+  font-weight:800;
+  color:var(--navy);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  line-height:1.25;
+  letter-spacing:-0.1px;
+}
+.role-modal-title-icon{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  background:linear-gradient(135deg, var(--navy), var(--cyan));
+  color:#fff;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  box-shadow:0 3px 8px rgba(11,60,136,.25);
+}
+.role-modal-title-icon svg{width:20px;height:20px}
+.role-modal-subtitle{
+  font-size:13px;
+  color:var(--text-soft);
+  margin-top:6px;
+  margin-left:48px;
+  line-height:1.5;
+}
+.role-modal-close{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:#fdecec;
+  border:none;
+  color:#b42318;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  transition:background .18s ease, color .18s ease, transform .25s ease;
+  padding:0;
+}
+.role-modal-close:hover{
+  background:var(--red);
+  color:#fff;
+  transform:rotate(90deg);
+}
+.role-modal-close svg{width:14px;height:14px;display:block}
+
+.role-modal-toolbar{
+  padding:12px 26px;
+  background:#f6f9fd;
+  border-bottom:1px solid var(--border-soft);
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  align-items:center;
+  justify-content:space-between;
+  flex:0 0 auto;
+}
+.role-search-wrap{
+  flex:1;
+  min-width:200px;
+  position:relative;
+}
+.role-search-wrap svg{
+  position:absolute;
+  left:11px; top:50%;
+  transform:translateY(-50%);
+  width:15px; height:15px;
+  color:var(--muted);
+  pointer-events:none;
+}
+.role-search-input{
+  width:100%;
+  padding:9px 12px 9px 34px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-size:13px;
+  background:#fff;
+  color:var(--text);
+  transition:border-color .15s ease, box-shadow .15s ease;
+}
+.role-search-input:focus{
+  outline:none;
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(10,161,192,.18);
+}
+.role-counter{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 14px;
+  border-radius:999px;
+  background:#fff;
+  border:1px solid var(--border);
+  color:var(--text-soft);
+  font-size:12px;
+  font-weight:600;
+  white-space:nowrap;
+  letter-spacing:.2px;
+}
+.role-counter strong{
+  color:var(--navy);
+  font-weight:800;
+  font-size:13px;
+}
+.role-counter.has-selections{
+  background:linear-gradient(135deg, #eaf4ff 0%, #e0eefb 100%);
+  border-color:var(--cyan);
+}
+.role-counter.has-selections strong{
+  color:var(--cyan);
+}
+
+.role-modal-body{
+  padding:14px 22px 16px;
+  overflow-y:auto;
+  flex:1 1 auto;
+  background:#fafcff;
+}
+.role-modal-body::-webkit-scrollbar{width:8px}
+.role-modal-body::-webkit-scrollbar-thumb{background:#cdd9e8;border-radius:4px}
+.role-modal-body::-webkit-scrollbar-thumb:hover{background:#b6c4d6}
+
+.role-section{
+  margin:10px 0;
+  border:1px solid var(--border-soft);
+  border-radius:12px;
+  overflow:hidden;
+  background:#fff;
+  transition:box-shadow .18s ease, border-color .18s ease, transform .12s ease;
+}
+.role-section:hover{
+  box-shadow:0 3px 10px rgba(11,60,136,.07);
+  border-color:#cfdcee;
+}
+.role-section.has-selected{
+  border-color:var(--cyan);
+  box-shadow:0 3px 12px rgba(10,161,192,.14);
+}
+.role-section-head{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:13px 16px;
+  background:linear-gradient(90deg, #f8fbff 0%, #f1f6fd 100%);
+  cursor:pointer;
+  user-select:none;
+  border-bottom:1px solid transparent;
+  transition:background .18s ease, border-color .18s ease;
+}
+.role-section.expanded .role-section-head{
+  border-bottom-color:var(--border-soft);
+  background:linear-gradient(90deg, #eef6ff 0%, #e6f0fb 100%);
+}
+.role-section-head:hover{
+  background:linear-gradient(90deg, #eef6ff 0%, #e6f0fb 100%);
+}
+.role-section-icon{
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  background:linear-gradient(135deg, var(--navy), var(--cyan));
+  color:#fff;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  font-size:18px;
+  box-shadow:0 2px 5px rgba(11,60,136,.2);
+}
+.role-section-info{
+  flex:1;
+  min-width:0;
+}
+.role-section-title{
+  font-weight:700;
+  color:var(--navy);
+  font-size:14.5px;
+  line-height:1.3;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.role-section-meta{
+  font-size:11.5px;
+  color:var(--text-soft);
+  margin-top:3px;
+  letter-spacing:.15px;
+}
+.role-section-pill{
+  display:inline-flex;
+  align-items:center;
+  padding:2px 9px;
+  border-radius:999px;
+  background:#eaf4ff;
+  color:var(--navy);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.2px;
+}
+.role-section.has-selected .role-section-pill{
+  background:linear-gradient(135deg, var(--navy), var(--cyan));
+  color:#fff;
+}
+.role-section-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:0 0 auto;
+}
+.role-select-all{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  font-size:12px;
+  font-weight:600;
+  color:var(--text-soft);
+  cursor:pointer;
+  user-select:none;
+  padding:6px 10px;
+  border-radius:7px;
+  border:1px solid transparent;
+  transition:background .15s ease, color .15s ease, border-color .15s ease;
+  margin:0;
+  white-space:nowrap;
+}
+.role-select-all:hover{
+  background:#fff;
+  color:var(--navy);
+  border-color:var(--border);
+}
+.role-select-all input[type="checkbox"]{
+  appearance:none;
+  -webkit-appearance:none;
+  width:16px;
+  height:16px;
+  border:1.5px solid #b9c8db;
+  border-radius:4px;
+  background:#fff;
+  cursor:pointer;
+  position:relative;
+  margin:0;
+  flex:0 0 auto;
+  transition:border-color .15s ease, background .15s ease;
+}
+.role-select-all input[type="checkbox"]:checked{
+  background:var(--navy);
+  border-color:var(--navy);
+}
+.role-select-all input[type="checkbox"]:indeterminate{
+  background:var(--cyan);
+  border-color:var(--cyan);
+}
+.role-select-all input[type="checkbox"]:checked::after{
+  content:"";
+  position:absolute;
+  left:4px;
+  top:0px;
+  width:5px;
+  height:10px;
+  border:solid #fff;
+  border-width:0 2px 2px 0;
+  transform:rotate(45deg);
+}
+.role-select-all input[type="checkbox"]:indeterminate::after{
+  content:"";
+  position:absolute;
+  left:3px;
+  top:6px;
+  width:8px;
+  height:2px;
+  background:#fff;
+  border-radius:1px;
+}
+.role-section-arrow{
+  width:24px;
+  height:24px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--navy);
+  font-size:11px;
+  font-weight:700;
+  transition:transform .22s ease;
+  border-radius:5px;
+  background:rgba(255,255,255,.6);
+}
+.role-section.expanded .role-section-arrow{
+  transform:rotate(180deg);
+}
+.role-section-body{
+  display:none;
+  padding:14px 16px;
+  background:#fff;
+}
+.role-section.expanded .role-section-body{
+  display:block;
+  animation:roleExpand .22s ease;
+}
+@keyframes roleExpand{
+  from{opacity:0;transform:translateY(-4px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.role-permissions-grid{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:9px;
+}
+.role-permission{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:11px 13px;
+  border:1.5px solid var(--border-soft);
+  border-radius:9px;
+  cursor:pointer;
+  user-select:none;
+  font-size:13px;
+  font-weight:500;
+  color:var(--text);
+  transition:background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .12s ease, color .15s ease;
+  background:#fff;
+  margin:0;
+  line-height:1.35;
+}
+.role-permission:hover{
+  background:#f3f8ff;
+  border-color:var(--cyan);
+  transform:translateY(-1px);
+  box-shadow:0 3px 8px rgba(10,161,192,.12);
+}
+.role-permission:has(input:checked){
+  background:linear-gradient(135deg, #eaf4ff 0%, #dceaf9 100%);
+  border-color:var(--navy);
+  color:var(--navy);
+  font-weight:600;
+}
+.role-permission input[type="checkbox"]{
+  appearance:none;
+  -webkit-appearance:none;
+  width:18px;
+  height:18px;
+  border:1.5px solid #b9c8db;
+  border-radius:5px;
+  background:#fff;
+  cursor:pointer;
+  position:relative;
+  flex:0 0 auto;
+  margin:0;
+  transition:border-color .15s ease, background .15s ease;
+}
+.role-permission input[type="checkbox"]:hover{
+  border-color:var(--cyan);
+}
+.role-permission input[type="checkbox"]:checked{
+  background:linear-gradient(135deg, var(--navy), var(--cyan));
+  border-color:var(--navy);
+}
+.role-permission input[type="checkbox"]:checked::after{
+  content:"";
+  position:absolute;
+  left:5px;
+  top:1px;
+  width:5px;
+  height:10px;
+  border:solid #fff;
+  border-width:0 2.5px 2.5px 0;
+  transform:rotate(45deg);
+}
+.role-permission .perm-label{
+  flex:1;
+  min-width:0;
+}
+.role-permission.is-disabled,
+.role-permission input:disabled,
+.role-section.is-disabled .role-section-head,
+.role-section.is-disabled .role-select-all{
+  cursor:not-allowed;
+}
+.role-section.is-disabled .role-permission:hover{
+  transform:none;
+  box-shadow:none;
+  background:#fff;
+  border-color:var(--border-soft);
+}
+.role-section.is-disabled .role-permission:has(input:checked):hover{
+  background:linear-gradient(135deg, #eaf4ff 0%, #dceaf9 100%);
+  border-color:var(--navy);
+}
+
+.role-empty-state{
+  padding:30px 20px;
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;
+  font-style:italic;
+}
+
+.role-modal-footer{
+  padding:14px 24px;
+  background:linear-gradient(180deg, #f8fbff 0%, #eef4fc 100%);
+  border-top:1px solid var(--border-soft);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  flex-wrap:wrap;
+  flex:0 0 auto;
+}
+.role-modal-footer .footer-info{
+  font-size:12.5px;
+  color:var(--text-soft);
+  font-weight:500;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+.role-modal-footer .footer-info strong{
+  color:var(--navy);
+  font-weight:800;
+}
+.role-modal-footer .footer-actions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.role-modal-footer .btn{margin-top:0}
+.role-modal-footer .btn.cancel{margin-left:0}
+
+/* The 'Assign Role' button shown on the Add User / User Details forms */
+.role-assign-card{
+  display:flex;
+  align-items:stretch;
+  gap:14px;
+  padding:14px 16px;
+  background:linear-gradient(135deg, #f8fbff 0%, #f1f6fd 100%);
+  border:1.5px solid var(--border-soft);
+  border-radius:10px;
+  flex-wrap:wrap;
+  min-height:62px;
+}
+.role-assign-card.has-selections{
+  border-color:var(--cyan);
+  background:linear-gradient(135deg, #eef6ff 0%, #e6eff9 100%);
+  box-shadow:inset 0 0 0 1px rgba(10,161,192,.18);
+}
+.role-assign-tags{
+  flex:1 1 320px;
+  min-width:0;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  align-items:center;
+}
+.role-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:5px 11px;
+  border-radius:999px;
+  background:linear-gradient(135deg, var(--navy), var(--cyan));
+  color:#fff;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.15px;
+  box-shadow:0 1px 2px rgba(11,60,136,.18);
+  white-space:nowrap;
+}
+.role-tag-empty{
+  font-size:13px;
+  color:var(--muted);
+  font-style:italic;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.role-tag-more{
+  display:inline-flex;
+  align-items:center;
+  padding:5px 10px;
+  border-radius:999px;
+  background:#fff;
+  color:var(--navy);
+  border:1px solid var(--cyan);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.15px;
+}
+.assign-role-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:10px 18px;
+  background:linear-gradient(135deg, var(--navy), var(--cyan));
+  border:none;
+  color:#fff;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  font-size:13px;
+  letter-spacing:.2px;
+  transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+  box-shadow:0 2px 6px rgba(11,60,136,.2);
+  white-space:nowrap;
+  flex:0 0 auto;
+  align-self:center;
+}
+.assign-role-btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 5px 12px rgba(11,60,136,.28);
+}
+.assign-role-btn:active{transform:translateY(0)}
+.assign-role-btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+  transform:none;
+  box-shadow:none;
+}
+.assign-role-btn svg{width:14px;height:14px;flex:0 0 auto}
+.assign-role-btn.outline{
+  background:#fff;
+  color:var(--navy);
+  border:1.5px solid var(--cyan);
+  box-shadow:none;
+}
+.assign-role-btn.outline:hover{
+  background:linear-gradient(135deg, #eef6ff 0%, #e0eefb 100%);
+  border-color:var(--navy);
+  color:var(--navy-deep);
+  box-shadow:0 3px 8px rgba(11,60,136,.12);
+}
+
+/* In-table permissions count badge */
+.perm-count-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:3px 10px;
+  border-radius:999px;
+  background:#eaf4ff;
+  color:var(--navy);
+  font-size:12px;
+  font-weight:700;
+  white-space:nowrap;
+  border:1px solid #d4e3f5;
+}
+.perm-count-badge.zero{
+  background:#fdecec;
+  color:#b42318;
+  border-color:#f3c4c4;
+}
+.perm-count-badge svg{width:11px;height:11px;flex:0 0 auto}
+
+/* Responsive rules for the role modal */
+@media (max-width: 768px){
+  .role-permissions-grid{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px){
+  .role-modal{
+    max-height:94vh;
+    border-radius:14px;
+  }
+  .role-modal-header{
+    padding:18px 18px 12px;
+  }
+  .role-modal-title{font-size:17px}
+  .role-modal-title-icon{width:32px;height:32px}
+  .role-modal-title-icon svg{width:17px;height:17px}
+  .role-modal-subtitle{margin-left:44px;font-size:12.5px}
+  .role-modal-toolbar{padding:10px 18px;gap:8px}
+  .role-counter{padding:6px 11px;font-size:11px}
+  .role-modal-body{padding:10px 14px 12px}
+  .role-section-head{padding:11px 12px;gap:10px}
+  .role-section-icon{width:34px;height:34px;font-size:16px;border-radius:8px}
+  .role-section-title{font-size:13.5px;gap:8px}
+  .role-section-actions{gap:6px}
+  .role-select-all{padding:5px 8px;font-size:11.5px}
+  .role-select-all .label-text{display:none}
+  .role-section-body{padding:10px 12px}
+  .role-permissions-grid{grid-template-columns:1fr;gap:7px}
+  .role-permission{padding:10px 11px;font-size:12.5px}
+  .role-modal-footer{padding:12px 18px;flex-direction:column;align-items:stretch;gap:10px}
+  .role-modal-footer .footer-info{text-align:center}
+  .role-modal-footer .footer-actions{flex-direction:column-reverse;gap:8px;width:100%}
+  .role-modal-footer .footer-actions .btn{width:100%}
+  .role-assign-card{padding:12px;gap:10px}
+  .assign-role-btn{width:100%;padding:11px 14px}
+  .role-assign-tags{flex-basis:100%}
+}
+@media (max-width: 380px){
+  .role-modal-header{padding:16px 14px 10px}
+  .role-modal-title{font-size:16px;gap:8px}
+  .role-modal-subtitle{margin-left:0;margin-top:8px}
+  .role-modal-toolbar{padding:9px 14px}
+  .role-modal-body{padding:8px 10px 10px}
+  .role-section-head{padding:10px 11px}
+  .role-section-icon{width:30px;height:30px;font-size:14px}
 }
 </style>
 </head>
 <body>
-<div class="header">
-  <img src="logo.avif" class="logo-left" alt="UIDAI logo" />
-  <strong>UIDAI Automation Governance Tool</strong>
-  <img src="Aadhaar.png" class="logo-right" alt="Aadhaar logo" />
-</div>
+<a href="#mainContent" class="skip-link">Skip to main content</a>
+
+<header class="site-header" role="banner">
+  <div class="header-accessibility-strip">
+    <span class="a11y-label" aria-hidden="true">Text Size:</span>
+    <div class="font-resizer" role="group" aria-label="Adjust text size">
+      <button type="button" class="fr-plus" id="frIncrease" aria-label="Increase text size" title="Increase text size">+A</button>
+      <button type="button" class="fr-reset" id="frReset" aria-label="Reset text size to default" title="Reset text size">A</button>
+      <button type="button" class="fr-minus" id="frDecrease" aria-label="Decrease text size" title="Decrease text size">-A</button>
+    </div>
+  </div>
+  <div class="header-main">
+    <div class="header-brand">
+      <img src="Aadhaar.png" alt="Aadhaar logo">
+      <div class="header-brand-text">
+        <span class="header-brand-hi-1" lang="hi">मेरा आधार</span>
+        <span class="header-brand-hi-2" lang="hi">मेरी पहचान</span>
+      </div>
+    </div>
+    <h1 class="header-title">UIDAI Automation Governance Tool</h1>
+    <div class="header-authority">
+      Unique Identification<br>Authority of India
+    </div>
+  </div>
+</header>
 
 <div class="navbar">
   <div class="menu-home-block">
@@ -690,12 +2090,79 @@ input:disabled,select:disabled,textarea:disabled{background:#f3f6fb;color:#3e4a5
     </div>
   </div>
 
-  <div class="content">
+  <main class="content" id="mainContent" role="main" tabindex="-1">
     <div id="contentArea"></div>
+  </main>
+</div>
+
+<footer class="site-footer" role="contentinfo">
+  © 2026 UIDAI <span class="sep">·</span> PMIS Automation Tool <span class="sep">·</span> Internal Use Only
+</footer>
+
+<!-- Global loader overlay -->
+<div class="modal-overlay" id="appLoader" role="alertdialog" aria-modal="true" aria-live="polite" aria-label="Processing">
+  <div class="modal modal-sm">
+    <div class="modal-body">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="modal-message loader-msg">Processing...</div>
+    </div>
   </div>
 </div>
 
-<div class="footer">© 2026 UIDAI · PMIS Automation Tool · Internal Use Only</div>
+<!-- Global modal (confirm / success / error) -->
+<div class="modal-overlay" id="appModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-body" id="appModalBody"></div>
+  </div>
+</div>
+
+<!-- Global toast for lightweight notifications -->
+<div class="toast" id="appToast" role="status" aria-live="polite"></div>
+
+<!-- Assign Role / Permissions Modal -->
+<div class="modal-overlay" id="assignRoleModal" role="dialog" aria-modal="true" aria-labelledby="assignRoleTitle">
+  <div class="role-modal" role="document">
+    <div class="role-modal-header">
+      <div class="role-modal-header-text">
+        <div id="assignRoleTitle" class="role-modal-title">
+          <span class="role-modal-title-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>
+          </span>
+          <span>Assign Role &amp; Permissions</span>
+        </div>
+        <div class="role-modal-subtitle">Select the operations this user is allowed to perform across modules. Granular control over access keeps the system secure.</div>
+      </div>
+      <button type="button" class="role-modal-close" id="roleModalCloseBtn" onclick="closeAssignRoleModal()" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="role-modal-toolbar">
+      <div class="role-search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="rolePermSearch" class="role-search-input" placeholder="Search permissions or modules..." oninput="filterRolePermissions()" aria-label="Search permissions">
+      </div>
+      <div class="role-counter" id="rolePermCounter">
+        <span>Selected:</span>
+        <strong id="rolePermCount">0</strong>
+        <span>/</span>
+        <strong id="rolePermTotal">0</strong>
+      </div>
+    </div>
+    <div class="role-modal-body" id="rolePermBody" tabindex="0">
+      <!-- Permission sections rendered dynamically -->
+    </div>
+    <div class="role-modal-footer">
+      <div class="footer-info" id="rolePermFooter">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <span id="rolePermFooterText">No permissions selected.</span>
+      </div>
+      <div class="footer-actions">
+        <button type="button" class="btn cancel" onclick="closeAssignRoleModal()">Cancel</button>
+        <button type="button" class="btn" id="rolePermSaveBtn" onclick="saveAssignedRole()">Save Permissions</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 const sidebar = document.getElementById('sidebar');
@@ -742,18 +2209,101 @@ const demoProjects = [
 ];
 
 const demoVendors = [
-  { vendorId:'VND001', vendorName:'Apex Solutions', vendorType:'Technology Vendor', status:'Active', contact:'Ravi Kumar', email:'ravi@apex.com', phone:'9876543210', projectMapping:['Aadhaar','PMIS'], startDate:'2026-04-01', endDate:'2027-03-31', address:'Kolkata, WB', services:'Platform development and support' },
-  { vendorId:'VND002', vendorName:'Prime Services', vendorType:'Service Vendor', status:'Active', contact:'Anita Sen', email:'anita@prime.com', phone:'9123456780', projectMapping:['PMIS'], startDate:'2026-05-01', endDate:'2027-04-30', address:'Bengaluru, KA', services:'Operations and field support' },
-  { vendorId:'VND003', vendorName:'Nova Infra', vendorType:'Standard Vendor', status:'Inactive', contact:'Mohit Das', email:'mohit@nova.com', phone:'9988776655', projectMapping:['UIDAI Core'], startDate:'2025-01-01', endDate:'2025-12-31', address:'Pune, MH', services:'Infrastructure maintenance' }
+  { vendorId:'VND001', vendorName:'Apex Solutions', vendorType:'Technology Vendor', status:'Active', contact:'Ravi Kumar', email:'ravi@apex.com', phone:'9876543210', projectMapping:['Aadhaar','PMIS'], startDate:'2026-04-01', endDate:'2027-03-31', address:'Kolkata, WB', services:'Platform development and support', deleted:false },
+  { vendorId:'VND002', vendorName:'Prime Services', vendorType:'Service Vendor', status:'Active', contact:'Anita Sen', email:'anita@prime.com', phone:'9123456780', projectMapping:['PMIS'], startDate:'2026-05-01', endDate:'2027-04-30', address:'Bengaluru, KA', services:'Operations and field support', deleted:false },
+  { vendorId:'VND003', vendorName:'Nova Infra', vendorType:'Standard Vendor', status:'Inactive', contact:'Mohit Das', email:'mohit@nova.com', phone:'9988776655', projectMapping:['UIDAI Core'], startDate:'2025-01-01', endDate:'2025-12-31', address:'Pune, MH', services:'Infrastructure maintenance', deleted:false }
 ];
 
 const demoUsers = [
-  { userId:'USR001', fullName:'Amit Roy', employeeId:'EMP001', email:'amit.roy@uidai.gov.in', role:'Admin', vendorName:'Apex Solutions', division:'Technology', projectMapping:['Aadhaar','PMIS'], status:'Active' },
-  { userId:'USR002', fullName:'Neha Das', employeeId:'EMP002', email:'neha.das@uidai.gov.in', role:'Manager', vendorName:'Prime Services', division:'Operations', projectMapping:['PMIS'], status:'Active' },
-  { userId:'USR003', fullName:'Sourav Paul', employeeId:'EMP003', email:'sourav.paul@uidai.gov.in', role:'Viewer', vendorName:'Nova Infra', division:'Audit', projectMapping:['Master Data'], status:'Inactive' }
+  { userId:'USR001', fullName:'Amit Roy', employeeId:'EMP001', email:'amit.roy@uidai.gov.in', mobile:'9876543210', vendorName:'Apex Solutions', division:'Technology', projectMapping:['Aadhaar','PMIS'], status:'Active', permissions:['project_add','project_update','project_delete','vendor_add','vendor_update','vendor_delete','user_add','user_update','user_delete','masterdata_view_vendor','masterdata_view_user','reports_view','reports_download'], deleted:false },
+  { userId:'USR002', fullName:'Neha Das', employeeId:'EMP002', email:'neha.das@uidai.gov.in', mobile:'9123456789', vendorName:'Prime Services', division:'Operations', projectMapping:['PMIS'], status:'Active', permissions:['project_add','project_update','vendor_update','user_update','masterdata_view_vendor','masterdata_view_user','reports_view'], deleted:false },
+  { userId:'USR003', fullName:'Sourav Paul', employeeId:'EMP003', email:'sourav.paul@uidai.gov.in', mobile:'9988776655', vendorName:'Nova Infra', division:'Audit', projectMapping:['Master Data'], status:'Inactive', permissions:['masterdata_view_vendor','masterdata_view_user','reports_view'], deleted:false }
 ];
 
+// Live (non-soft-deleted) accessors. Soft-deleted entries are preserved
+// in the underlying arrays so backend mappings remain intact, but the
+// frontend filters them out per UX requirement.
+function liveVendors(){ return demoVendors.filter(v => !v.deleted); }
+function liveUsers(){ return demoUsers.filter(u => !u.deleted); }
+
 const DIVISION_OPTIONS = ['TMD1', 'TMD2'];
+
+/* ─── Permission catalogue (used by the Assign Role modal) ───
+   Grouped by module so the popup can render category sections,
+   each with an Add/Update/Delete style permission set. */
+const PERMISSION_CATEGORIES = [
+  {
+    id: 'project',
+    label: 'Project Management',
+    description: 'Create, modify, and remove project records',
+    icon: '📁',
+    permissions: [
+      { id: 'project_add',    label: 'Add Project' },
+      { id: 'project_update', label: 'Update Project' },
+      { id: 'project_delete', label: 'Delete Project' }
+    ]
+  },
+  {
+    id: 'vendor',
+    label: 'Vendor Management',
+    description: 'Onboard and maintain vendor master data',
+    icon: '🏢',
+    permissions: [
+      { id: 'vendor_add',    label: 'Add Vendor' },
+      { id: 'vendor_update', label: 'Update Vendor' },
+      { id: 'vendor_delete', label: 'Delete Vendor' }
+    ]
+  },
+  {
+    id: 'user',
+    label: 'User Management',
+    description: 'Manage user accounts and access control',
+    icon: '👤',
+    permissions: [
+      { id: 'user_add',    label: 'Add User' },
+      { id: 'user_update', label: 'Update User' },
+      { id: 'user_delete', label: 'Delete User' }
+    ]
+  },
+  {
+    id: 'masterdata',
+    label: 'Master Data',
+    description: 'Read consolidated vendor and user records',
+    icon: '🗂️',
+    permissions: [
+      { id: 'masterdata_view_vendor', label: 'View Vendor Data' },
+      { id: 'masterdata_view_user',   label: 'View User Data' }
+    ]
+  },
+  {
+    id: 'reports',
+    label: 'Reports',
+    description: 'Generate, export and download reports',
+    icon: '📊',
+    permissions: [
+      { id: 'reports_view',     label: 'View Reports' },
+      { id: 'reports_download', label: 'Download Reports' }
+    ]
+  }
+];
+
+// Flat lookup so we can map permission ID → human-readable label
+const PERMISSION_LOOKUP = (() => {
+  const map = {};
+  PERMISSION_CATEGORIES.forEach(cat => {
+    cat.permissions.forEach(p => {
+      map[p.id] = { label: p.label, category: cat.label, categoryId: cat.id, icon: cat.icon };
+    });
+  });
+  return map;
+})();
+const TOTAL_PERMISSIONS = PERMISSION_CATEGORIES.reduce((sum, c) => sum + c.permissions.length, 0);
+
+function normalizePermissions(value){
+  if(Array.isArray(value)) return value.map(v => String(v).trim()).filter(Boolean);
+  if(value === null || value === undefined || value === '') return [];
+  return String(value).split(',').map(v => v.trim()).filter(Boolean);
+}
 
 function escapeHtml(text){
   return String(text)
@@ -763,6 +2313,573 @@ function escapeHtml(text){
     .replaceAll('"','&quot;')
     .replaceAll("'",'&#039;');
 }
+
+/* ─── Inline SVG icons (modern UX) ─── */
+const ICONS = {
+  home:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/></svg>',
+  chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
+  edit:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  trash:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>',
+  back:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>',
+  plus:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>',
+  save:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>',
+  check:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 18l9-11"/></svg>',
+  warn:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+  info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>',
+  cross:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'
+};
+function ico(name, extra=''){
+  const svg = ICONS[name] || '';
+  return `<span class="with-ico" ${extra ? `style="${extra}"` : ''}>${svg}</span>`;
+}
+
+/* ─── Breadcrumb builder ─── */
+function buildBreadcrumb(trail){
+  // trail: [{label, onclick}], the last entry rendered as 'current'
+  if(!Array.isArray(trail) || trail.length === 0) return '';
+  const items = trail.map((node, idx) => {
+    const isLast = idx === trail.length - 1;
+    if(isLast){
+      return `<span class="current">${escapeHtml(node.label)}</span>`;
+    }
+    const onclick = node.onclick ? `onclick="${node.onclick}"` : '';
+    const homeIcon = idx === 0 && /home|dashboard/i.test(node.label) ? ICONS.home : '';
+    return `<a tabindex="0" ${onclick}>${homeIcon}${escapeHtml(node.label)}</a>`;
+  });
+  const sep = `<span class="sep" aria-hidden="true">${ICONS.chevron}</span>`;
+  return `<nav class="breadcrumb" aria-label="Breadcrumb">${items.join(sep)}</nav>`;
+}
+
+/* ─── Modal / Loader / Toast helpers ─── */
+function showLoader(msg){
+  const overlay = document.getElementById('appLoader');
+  const m = overlay.querySelector('.loader-msg');
+  if(m) m.textContent = msg || 'Processing...';
+  overlay.classList.add('show');
+}
+function hideLoader(){
+  const overlay = document.getElementById('appLoader');
+  if(overlay) overlay.classList.remove('show');
+}
+function closeAppModal(){
+  const overlay = document.getElementById('appModal');
+  if(overlay) overlay.classList.remove('show');
+}
+function _renderAppModal(html){
+  const overlay = document.getElementById('appModal');
+  document.getElementById('appModalBody').innerHTML = html;
+  overlay.classList.add('show');
+}
+window.__modalCallbacks = window.__modalCallbacks || {};
+function _registerCallback(fn){
+  if(typeof fn !== 'function') return '';
+  const id = 'cb_' + Math.random().toString(36).slice(2);
+  window.__modalCallbacks[id] = fn;
+  return id;
+}
+function _runCallback(id){
+  const fn = window.__modalCallbacks[id];
+  closeAppModal();
+  delete window.__modalCallbacks[id];
+  if(typeof fn === 'function') fn();
+}
+function showSuccessModal(opts){
+  const o = Object.assign({title:'Success', message:'Operation completed successfully.', okLabel:'OK', onOk:null}, opts || {});
+  const cbId = _registerCallback(o.onOk);
+  _renderAppModal(`
+    <div class="modal-icon success" aria-hidden="true">${ICONS.check}</div>
+    <div class="modal-title">${escapeHtml(o.title)}</div>
+    <div class="modal-message">${escapeHtml(o.message)}</div>
+    <div class="modal-actions">
+      <button type="button" class="btn" onclick="_runCallback('${cbId}')">${escapeHtml(o.okLabel)}</button>
+    </div>
+  `);
+}
+function showErrorModal(opts){
+  const o = Object.assign({title:'Please review the form', message:'', okLabel:'OK', onOk:null}, opts || {});
+  const cbId = _registerCallback(o.onOk);
+  _renderAppModal(`
+    <div class="modal-icon danger" aria-hidden="true">${ICONS.warn}</div>
+    <div class="modal-title">${escapeHtml(o.title)}</div>
+    <div class="modal-message">${escapeHtml(o.message)}</div>
+    <div class="modal-actions">
+      <button type="button" class="btn" onclick="_runCallback('${cbId}')">${escapeHtml(o.okLabel)}</button>
+    </div>
+  `);
+}
+function showConfirmModal(opts){
+  const o = Object.assign({
+    title:'Are you sure?',
+    message:'This action cannot be undone.',
+    confirmLabel:'Confirm',
+    cancelLabel:'Cancel',
+    danger:false,
+    onConfirm:null
+  }, opts || {});
+  const cbId = _registerCallback(o.onConfirm);
+  _renderAppModal(`
+    <div class="modal-icon ${o.danger ? 'danger' : 'warn'}" aria-hidden="true">${ICONS.warn}</div>
+    <div class="modal-title">${escapeHtml(o.title)}</div>
+    <div class="modal-message">${escapeHtml(o.message)}</div>
+    <div class="modal-actions">
+      <button type="button" class="btn cancel" onclick="closeAppModal()">${escapeHtml(o.cancelLabel)}</button>
+      <button type="button" class="btn ${o.danger ? 'danger' : ''}" onclick="_runCallback('${cbId}')">${escapeHtml(o.confirmLabel)}</button>
+    </div>
+  `);
+}
+function showToast(message, type){
+  const t = document.getElementById('appToast');
+  if(!t) return;
+  t.textContent = message;
+  t.classList.toggle('error', type === 'error');
+  t.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ─── Validation helpers ─── */
+function isValidEmail(value){
+  // Simple, robust pattern: text@text.text (no spaces)
+  return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(String(value || '').trim());
+}
+function isValidIndianMobile(value){
+  // 10 digits, starts with 6-9
+  return /^[6-9]\d{9}$/.test(String(value || '').trim());
+}
+function setFieldError(input, message){
+  if(!input) return;
+  const field = input.closest('.field');
+  if(!field) return;
+  field.classList.add('has-error');
+  let err = field.querySelector('.field-error');
+  if(!err){
+    err = document.createElement('div');
+    err.className = 'field-error';
+    field.appendChild(err);
+  }
+  err.textContent = message || 'This field is required';
+}
+function clearFieldError(input){
+  if(!input) return;
+  const field = input.closest('.field');
+  if(!field) return;
+  field.classList.remove('has-error');
+}
+function clearAllFieldErrors(scope){
+  (scope || document).querySelectorAll('.field.has-error').forEach(f => f.classList.remove('has-error'));
+}
+// Mobile inputs: numeric only, max 10 digits
+function attachMobileSanitizer(scope){
+  (scope || document).querySelectorAll('.mobile-input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const cleaned = inp.value.replace(/\D/g, '').slice(0, 10);
+      if(inp.value !== cleaned) inp.value = cleaned;
+      clearFieldError(inp);
+    });
+    inp.addEventListener('keypress', (e) => {
+      // Block non-digits at the keypress level for extra safety
+      if(e.key.length === 1 && !/[0-9]/.test(e.key)) e.preventDefault();
+    });
+  });
+}
+// Phone input fragment for forms (with disabled +91 prefix)
+function phoneInputHtml(value, name){
+  return `<div class="phone-input">
+    <span class="phone-prefix" aria-hidden="true">+91</span>
+    <input type="tel" inputmode="numeric" pattern="[6-9]\\d{9}" maxlength="10" autocomplete="tel-national"
+      class="mobile-input" name="${escapeHtml(name || 'mobile')}" placeholder="10-digit mobile number"
+      value="${escapeHtml(value || '')}">
+  </div>`;
+}
+
+/* ─── Assign Role / Permissions modal ───
+   The modal manages a single in-memory editor instance at a time.
+   It renders the PERMISSION_CATEGORIES catalogue, drives a Set of
+   selected permission IDs, and on Save invokes a caller-supplied
+   callback with the new array. */
+const RolePermsState = {
+  selected: new Set(),
+  initial: new Set(),
+  readOnly: false,
+  onSave: null,
+  hostInputId: null
+};
+
+function renderAssignRoleCard(permissions, options){
+  // options: { hostInputId, editable, name (for hidden input) }
+  const opts = Object.assign({ hostInputId: 'userPermissionsInput', editable: true, name: 'userPermissions' }, options || {});
+  const perms = normalizePermissions(permissions);
+  const tagsHtml = renderRoleTagsHtml(perms);
+  const btnLabel = opts.editable ? (perms.length ? 'Edit Role' : 'Assign Role') : 'View Role';
+  const btnDisabledAttr = opts.editable ? '' : ''; // always clickable; modal handles read-only
+  return `
+    <div class="role-assign-card${perms.length ? ' has-selections' : ''}" id="${escapeHtml(opts.hostInputId)}_card">
+      <div class="role-assign-tags" id="${escapeHtml(opts.hostInputId)}_tags">${tagsHtml}</div>
+      <button type="button" class="assign-role-btn${perms.length ? '' : ' outline'}"
+              id="${escapeHtml(opts.hostInputId)}_btn"
+              ${btnDisabledAttr}
+              onclick="openAssignRoleModalFor('${escapeHtml(opts.hostInputId)}', ${opts.editable ? 'true' : 'false'})"
+              aria-label="${btnLabel}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>
+        <span>${btnLabel}</span>
+      </button>
+      <input type="hidden" id="${escapeHtml(opts.hostInputId)}" name="${escapeHtml(opts.name)}" value="${escapeHtml(perms.join(','))}">
+    </div>`;
+}
+
+function renderRoleTagsHtml(perms){
+  const list = normalizePermissions(perms);
+  if(!list.length){
+    return `<span class="role-tag-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      No permissions assigned yet
+    </span>`;
+  }
+  // Show first 6 tags inline; rest as a "+ N more" pill
+  const MAX_INLINE = 6;
+  const visible = list.slice(0, MAX_INLINE);
+  const extra = list.length - visible.length;
+  const tags = visible.map(id => {
+    const meta = PERMISSION_LOOKUP[id];
+    const lbl = meta ? meta.label : id;
+    return `<span class="role-tag" title="${escapeHtml(meta ? meta.category + ' • ' + meta.label : lbl)}">${escapeHtml(lbl)}</span>`;
+  }).join('');
+  const more = extra > 0 ? `<span class="role-tag-more">+${extra} more</span>` : '';
+  return tags + more;
+}
+
+function refreshRoleAssignCard(hostInputId){
+  const hidden = document.getElementById(hostInputId);
+  if(!hidden) return;
+  const card  = document.getElementById(hostInputId + '_card');
+  const tags  = document.getElementById(hostInputId + '_tags');
+  const btn   = document.getElementById(hostInputId + '_btn');
+  const perms = normalizePermissions(hidden.value);
+  if(tags) tags.innerHTML = renderRoleTagsHtml(perms);
+  if(card) card.classList.toggle('has-selections', perms.length > 0);
+  if(btn){
+    btn.classList.toggle('outline', perms.length === 0);
+    const labelSpan = btn.querySelector('span');
+    const editable = !btn.disabled;
+    if(labelSpan) labelSpan.textContent = editable ? (perms.length ? 'Edit Role' : 'Assign Role') : 'View Role';
+  }
+}
+
+function openAssignRoleModalFor(hostInputId, editable){
+  const hidden = document.getElementById(hostInputId);
+  if(!hidden){ console.warn('Role host input not found:', hostInputId); return; }
+  const current = normalizePermissions(hidden.value);
+  openAssignRoleModal({
+    selected: current,
+    readOnly: !editable,
+    hostInputId: hostInputId,
+    onSave: (newPerms) => {
+      hidden.value = newPerms.join(',');
+      refreshRoleAssignCard(hostInputId);
+      // Clear field error if any
+      const field = hidden.closest('.field');
+      if(field && newPerms.length) field.classList.remove('has-error');
+    }
+  });
+}
+
+function openAssignRoleModal(opts){
+  const o = Object.assign({ selected: [], readOnly: false, onSave: null, hostInputId: null }, opts || {});
+  const initial = normalizePermissions(o.selected);
+  RolePermsState.selected   = new Set(initial);
+  RolePermsState.initial    = new Set(initial);
+  RolePermsState.readOnly   = !!o.readOnly;
+  RolePermsState.onSave     = typeof o.onSave === 'function' ? o.onSave : null;
+  RolePermsState.hostInputId= o.hostInputId || null;
+
+  // Render sections
+  const body = document.getElementById('rolePermBody');
+  if(body) body.innerHTML = renderAllRoleSections();
+
+  // Setup state of save button (hidden when read-only)
+  const saveBtn = document.getElementById('rolePermSaveBtn');
+  if(saveBtn) saveBtn.style.display = RolePermsState.readOnly ? 'none' : '';
+  // Title tweak for read-only mode
+  const subtitle = document.querySelector('#assignRoleModal .role-modal-subtitle');
+  if(subtitle){
+    subtitle.textContent = RolePermsState.readOnly
+      ? 'Read-only view of the operations this user is currently allowed to perform.'
+      : 'Select the operations this user is allowed to perform across modules. Granular control over access keeps the system secure.';
+  }
+
+  // Reset search input
+  const search = document.getElementById('rolePermSearch');
+  if(search){ search.value = ''; }
+
+  // Bind change handlers (delegated)
+  bindRolePermEvents();
+
+  // Update counter & footer
+  updateRolePermCounter();
+
+  // Show modal
+  const overlay = document.getElementById('assignRoleModal');
+  if(overlay){
+    overlay.classList.add('show');
+    // focus the search for keyboard convenience (not when read-only)
+    setTimeout(() => {
+      if(!RolePermsState.readOnly && search) search.focus();
+      else if(RolePermsState.readOnly){
+        const closeBtn = document.getElementById('roleModalCloseBtn');
+        if(closeBtn) closeBtn.focus();
+      }
+    }, 50);
+  }
+
+  // Lock background scroll
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAssignRoleModal(){
+  const overlay = document.getElementById('assignRoleModal');
+  if(overlay) overlay.classList.remove('show');
+  document.body.style.overflow = '';
+  RolePermsState.onSave = null;
+  RolePermsState.hostInputId = null;
+}
+
+function renderAllRoleSections(){
+  const sel = RolePermsState.selected;
+  // By default expand sections that have any selected permissions; collapse others
+  // (so the user immediately sees what's selected when opening)
+  return PERMISSION_CATEGORIES.map(cat => {
+    const totalInCat = cat.permissions.length;
+    const selectedInCat = cat.permissions.filter(p => sel.has(p.id)).length;
+    const isExpanded = selectedInCat > 0; // auto-expand if any selected
+    const allSelected = selectedInCat === totalInCat;
+    const someSelected = selectedInCat > 0 && !allSelected;
+    return `
+      <div class="role-section ${isExpanded ? 'expanded' : ''} ${selectedInCat > 0 ? 'has-selected' : ''} ${RolePermsState.readOnly ? 'is-disabled' : ''}" data-category="${escapeHtml(cat.id)}">
+        <div class="role-section-head" data-role-toggle="section">
+          <div class="role-section-icon" aria-hidden="true">${cat.icon}</div>
+          <div class="role-section-info">
+            <div class="role-section-title">
+              <span>${escapeHtml(cat.label)}</span>
+              <span class="role-section-pill" data-role-pill>${selectedInCat}/${totalInCat}</span>
+            </div>
+            <div class="role-section-meta">${escapeHtml(cat.description)}</div>
+          </div>
+          <div class="role-section-actions">
+            <label class="role-select-all" data-role-select-all="${escapeHtml(cat.id)}" onclick="event.stopPropagation()">
+              <input type="checkbox"
+                ${allSelected ? 'checked' : ''}
+                ${someSelected ? 'data-indeterminate="true"' : ''}
+                ${RolePermsState.readOnly ? 'disabled' : ''}
+                aria-label="Select all in ${escapeHtml(cat.label)}">
+              <span class="label-text">Select all</span>
+            </label>
+            <span class="role-section-arrow" aria-hidden="true">▾</span>
+          </div>
+        </div>
+        <div class="role-section-body">
+          <div class="role-permissions-grid">
+            ${cat.permissions.map(p => `
+              <label class="role-permission" data-perm-label="${escapeHtml(p.label.toLowerCase())}" data-cat-label="${escapeHtml(cat.label.toLowerCase())}">
+                <input type="checkbox" value="${escapeHtml(p.id)}"
+                  ${sel.has(p.id) ? 'checked' : ''}
+                  ${RolePermsState.readOnly ? 'disabled' : ''}
+                  data-role-perm
+                  data-cat-id="${escapeHtml(cat.id)}">
+                <span class="perm-label">${escapeHtml(p.label)}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function bindRolePermEvents(){
+  const body = document.getElementById('rolePermBody');
+  if(!body) return;
+
+  // Apply indeterminate state on checkboxes that need it (HTML attribute alone won't do it)
+  body.querySelectorAll('input[type="checkbox"][data-indeterminate="true"]').forEach(cb => { cb.indeterminate = true; });
+
+  // Click handler — delegate from body so re-renders or filtering don't break things
+  if(body._roleHandlerBound) return;
+  body._roleHandlerBound = true;
+
+  body.addEventListener('click', (e) => {
+    if(RolePermsState.readOnly) return;
+
+    // Toggle section expand/collapse on header click (but ignore clicks inside select-all label or arrow)
+    const head = e.target.closest('[data-role-toggle="section"]');
+    if(head && !e.target.closest('[data-role-select-all]') && !e.target.closest('input[type="checkbox"]')){
+      const section = head.parentElement;
+      if(section) section.classList.toggle('expanded');
+    }
+  });
+
+  body.addEventListener('change', (e) => {
+    if(RolePermsState.readOnly){ e.preventDefault(); return; }
+    const target = e.target;
+    if(!target || target.type !== 'checkbox') return;
+
+    // "Select all" checkbox
+    const selAllLabel = target.closest('[data-role-select-all]');
+    if(selAllLabel){
+      const catId = selAllLabel.getAttribute('data-role-select-all');
+      const cat = PERMISSION_CATEGORIES.find(c => c.id === catId);
+      if(!cat) return;
+      const shouldSelect = target.checked;
+      cat.permissions.forEach(p => {
+        if(shouldSelect) RolePermsState.selected.add(p.id);
+        else RolePermsState.selected.delete(p.id);
+      });
+      // Reflect on individual checkboxes
+      const section = body.querySelector(`.role-section[data-category="${catId}"]`);
+      if(section){
+        section.querySelectorAll('input[data-role-perm]').forEach(cb => { cb.checked = shouldSelect; });
+        // Auto-expand on select all
+        if(shouldSelect) section.classList.add('expanded');
+      }
+      updateSectionVisuals(catId);
+      updateRolePermCounter();
+      return;
+    }
+
+    // Individual permission checkbox
+    if(target.hasAttribute('data-role-perm')){
+      const id = target.value;
+      const catId = target.getAttribute('data-cat-id');
+      if(target.checked) RolePermsState.selected.add(id);
+      else RolePermsState.selected.delete(id);
+      updateSectionVisuals(catId);
+      updateRolePermCounter();
+    }
+  });
+}
+
+function updateSectionVisuals(catId){
+  const cat = PERMISSION_CATEGORIES.find(c => c.id === catId);
+  if(!cat) return;
+  const body = document.getElementById('rolePermBody');
+  if(!body) return;
+  const section = body.querySelector(`.role-section[data-category="${catId}"]`);
+  if(!section) return;
+  const totalInCat = cat.permissions.length;
+  const selectedInCat = cat.permissions.filter(p => RolePermsState.selected.has(p.id)).length;
+  const pill = section.querySelector('[data-role-pill]');
+  if(pill) pill.textContent = `${selectedInCat}/${totalInCat}`;
+  section.classList.toggle('has-selected', selectedInCat > 0);
+
+  const selAll = section.querySelector('[data-role-select-all] input');
+  if(selAll){
+    selAll.indeterminate = selectedInCat > 0 && selectedInCat < totalInCat;
+    selAll.checked = selectedInCat === totalInCat;
+  }
+}
+
+function updateRolePermCounter(){
+  const cnt = RolePermsState.selected.size;
+  const countEl = document.getElementById('rolePermCount');
+  const totalEl = document.getElementById('rolePermTotal');
+  const counter = document.getElementById('rolePermCounter');
+  const footer  = document.getElementById('rolePermFooterText');
+  const saveBtn = document.getElementById('rolePermSaveBtn');
+  if(countEl) countEl.textContent = String(cnt);
+  if(totalEl) totalEl.textContent = String(TOTAL_PERMISSIONS);
+  if(counter) counter.classList.toggle('has-selections', cnt > 0);
+  if(footer){
+    if(cnt === 0) footer.textContent = 'No permissions selected.';
+    else if(cnt === TOTAL_PERMISSIONS) footer.innerHTML = 'All <strong>'+TOTAL_PERMISSIONS+'</strong> permissions selected.';
+    else footer.innerHTML = '<strong>'+cnt+'</strong> permission'+(cnt===1?'':'s')+' selected across modules.';
+  }
+  if(saveBtn) saveBtn.disabled = false; // we allow saving with 0; validation happens at form-submit time
+}
+
+function filterRolePermissions(){
+  const search = document.getElementById('rolePermSearch');
+  const body = document.getElementById('rolePermBody');
+  if(!search || !body) return;
+  const q = (search.value || '').trim().toLowerCase();
+  let anyVisible = false;
+
+  body.querySelectorAll('.role-section').forEach(section => {
+    let sectionAnyVisible = false;
+    const catLabel = (section.querySelector('.role-section-title span')?.textContent || '').toLowerCase();
+    section.querySelectorAll('.role-permission').forEach(opt => {
+      const permLabel = (opt.getAttribute('data-perm-label') || '').toLowerCase();
+      const matches = !q || permLabel.includes(q) || catLabel.includes(q);
+      opt.style.display = matches ? '' : 'none';
+      if(matches) sectionAnyVisible = true;
+    });
+    section.style.display = sectionAnyVisible ? '' : 'none';
+    if(sectionAnyVisible){
+      anyVisible = true;
+      // Auto-expand sections during search so matches are visible
+      if(q) section.classList.add('expanded');
+    }
+  });
+
+  // Empty state
+  let empty = body.querySelector('.role-empty-state');
+  if(!anyVisible){
+    if(!empty){
+      empty = document.createElement('div');
+      empty.className = 'role-empty-state';
+      empty.textContent = 'No matching permissions';
+      body.appendChild(empty);
+    }
+  } else if(empty){
+    empty.remove();
+  }
+}
+
+function saveAssignedRole(){
+  if(RolePermsState.readOnly){ closeAssignRoleModal(); return; }
+  const newPerms = Array.from(RolePermsState.selected);
+  // Preserve a stable order using the catalogue order
+  const ordered = [];
+  PERMISSION_CATEGORIES.forEach(cat => {
+    cat.permissions.forEach(p => { if(RolePermsState.selected.has(p.id)) ordered.push(p.id); });
+  });
+  const cb = RolePermsState.onSave;
+  closeAssignRoleModal();
+  if(typeof cb === 'function') cb(ordered);
+  showToast(ordered.length ? `${ordered.length} permission${ordered.length===1?'':'s'} assigned` : 'Permissions cleared');
+}
+
+// ESC closes the role modal
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape'){
+    const overlay = document.getElementById('assignRoleModal');
+    if(overlay && overlay.classList.contains('show')) closeAssignRoleModal();
+  }
+});
+
+// Click on the dim backdrop closes the role modal
+document.addEventListener('click', (e) => {
+  const overlay = document.getElementById('assignRoleModal');
+  if(!overlay || !overlay.classList.contains('show')) return;
+  if(e.target === overlay) closeAssignRoleModal();
+});
+
+/* Attractive Active/Inactive radio toggle (used on edit pages only) */
+function buildStatusToggle(name, currentValue){
+  const isActive = currentValue === 'Active';
+  const isInactive = currentValue === 'Inactive';
+  const safeName = escapeHtml(name);
+  return `<div class="status-toggle is-disabled" role="radiogroup" aria-label="Status">
+    <label class="status-option active">
+      <input type="radio" name="${safeName}" value="Active"${isActive ? ' checked' : ''} disabled>
+      <span class="dot" aria-hidden="true"></span>
+      <span class="label-text">Active</span>
+    </label>
+    <label class="status-option inactive">
+      <input type="radio" name="${safeName}" value="Inactive"${isInactive ? ' checked' : ''} disabled>
+      <span class="dot" aria-hidden="true"></span>
+      <span class="label-text">Inactive</span>
+    </label>
+  </div>`;
+}
+
 function formatDateDisplay(isoDate){
   if(!isoDate) return '';
   const p = isoDate.split('-');
@@ -914,10 +3031,10 @@ function filterUserRows(){
   const filters = {
     fullName: normalizeText(document.getElementById('userFilterName')?.value),
     email: normalizeText(document.getElementById('userFilterEmail')?.value),
-    role: normalizeText(document.getElementById('userFilterRole')?.value),
     vendorName: normalizeText(document.getElementById('userFilterVendor')?.value),
     division: normalizeText(document.getElementById('userFilterDivision')?.value),
     mapping: normalizeText(document.getElementById('userFilterMapping')?.value),
+    perms: normalizeText(document.getElementById('userFilterPerms')?.value),
     status: normalizeText(document.getElementById('userFilterStatus')?.value),
   };
   const rows = Array.from(document.querySelectorAll('#userTableBody tr[data-row="user"]'));
@@ -926,14 +3043,18 @@ function filterUserRows(){
     const rowMappings = (row.dataset.mapping || '').split('|').filter(Boolean);
     const containsMatch = (fieldValue, filterValue) => !filterValue || normalizeText(fieldValue).includes(filterValue);
     const exactMatch = (fieldValue, filterValue) => !filterValue || normalizeText(fieldValue) === filterValue;
+    const permCount = parseInt(row.dataset.permCount || '0', 10);
+    let permsMatch = true;
+    if(filters.perms === 'any') permsMatch = permCount > 0;
+    else if(filters.perms === 'none') permsMatch = permCount === 0;
     const match =
       (!q || (row.dataset.search || '').includes(q)) &&
       containsMatch(row.dataset.fullName, filters.fullName) &&
       containsMatch(row.dataset.email, filters.email) &&
-      exactMatch(row.dataset.role, filters.role) &&
       containsMatch(row.dataset.vendorName, filters.vendorName) &&
       exactMatch(row.dataset.division, filters.division) &&
       containsMatch(row.dataset.mapping, filters.mapping) &&
+      permsMatch &&
       exactMatch(row.dataset.status, filters.status);
     row.style.display = match ? '' : 'none';
     if(match) visible++;
@@ -963,8 +3084,8 @@ function showHome(){
       <p class="section-subtitle">Use the sidebar to move among Project Management, Master Data, Vendor Management, and User Management.</p>
       <div class="kpi-row">
         <div class="kpi"><div class="label">Projects</div><div class="value">${demoProjects.length}</div><div class="meta">Tracked in the module</div></div>
-        <div class="kpi"><div class="label">Vendors</div><div class="value">${demoVendors.length}</div><div class="meta">Consolidated records</div></div>
-        <div class="kpi"><div class="label">Users</div><div class="value">${demoUsers.length}</div><div class="meta">Access-controlled users</div></div>
+        <div class="kpi"><div class="label">Vendors</div><div class="value">${liveVendors().length}</div><div class="meta">Consolidated records</div></div>
+        <div class="kpi"><div class="label">Users</div><div class="value">${liveUsers().length}</div><div class="meta">Access-controlled users</div></div>
         <div class="kpi"><div class="label">Status</div><div class="value">Live</div><div class="meta">Frontend prototype</div></div>
       </div>
     </div>`;
@@ -1011,7 +3132,7 @@ function openProjectDetails(index){
   contentArea.innerHTML = `
     <div class="pm-title">Project Details</div>
     <div class="card">
-      <div class="card-actions"><button class="btn" id="projectEditBtn" onclick="toggleProjectEdit(this)"><span class="btn-icon">✏️</span> <span class="btn-text">Edit</span></button><button class="btn cancel" onclick="showProjectList()">Back</button></div>
+      <div class="card-actions"><button class="btn" id="projectEditBtn" onclick="toggleProjectEdit(this)">Edit</button><button class="btn cancel" onclick="showProjectList()">Back</button></div>
       <h3>Project Information</h3>
       <p class="section-subtitle">The Project ID, Baseline ID, and Category remain locked to preserve structure.</p>
       <div class="grid">
@@ -1046,8 +3167,7 @@ function renderTask(task,mNumber,aNumber,tNumber){
 function toggleProjectEdit(btn){
   window.projectEditing = !window.projectEditing;
   setProjectEditable(window.projectEditing);
-  btn.querySelector('.btn-icon').textContent = window.projectEditing ? '💾' : '✏️';
-  btn.querySelector('.btn-text').textContent = window.projectEditing ? 'Save' : 'Edit';
+  btn.textContent = window.projectEditing ? 'Save' : 'Edit';
 }
 function setProjectEditable(enabled){
   contentArea.querySelectorAll('.project-control').forEach(el=>{
@@ -1065,30 +3185,180 @@ function loadVendorForm(type){
   setActiveSidebar('vendorHead');
   contentArea.innerHTML = `
     <div class="pm-title">Vendor Management</div>
+    <p class="section-subtitle">Create a new vendor record. Fields marked with <span class="required">*</span> are mandatory.</p>
     <div class="card">
       <h3>Add Vendor</h3>
-	  <br>
+      <form id="vendorAddForm" novalidate onsubmit="return false;">
       <div class="grid-4">
-        <div class="field"><label>Vendor Name <span class="required">*</span></label><input></div>
-        <div class="field"><label>Vendor Type <span class="required">*</span></label><select><option ${vendorType==='Standard Vendor'?'selected':''}>Standard Vendor</option><option ${vendorType==='Service Vendor'?'selected':''}>Service Vendor</option><option ${vendorType==='Technology Vendor'?'selected':''}>Technology Vendor</option></select></div>
-        <div class="field"><label>Status <span class="required">*</span></label><select><option>Active</option><option>Inactive</option></select></div>
-        <div class="field"><label>Contact Person <span class="required">*</span></label><input></div>
-        <div class="field"><label>Email <span class="required">*</span></label><input type="email"></div>
-        <div class="field"><label>Phone <span class="required">*</span></label><input type="tel"></div>
-        <div class="field"><label>Project Mapping <span class="required">*</span></label>${createMultiSelectControl('vendorProjectMapping', [], ['Aadhaar','PMIS','UIDAI Core','Master Data'])}</div>
-        <div class="field full"><label>Vendor Description</label><textarea maxlength="5000" oninput="countChars(this)"></textarea><div class="char-count">5000 characters remaining</div></div>
+        <div class="field">
+          <label for="vf_vendorName">Vendor Name <span class="required">*</span></label>
+          <input id="vf_vendorName" name="vendorName" type="text" placeholder="e.g. Apex Solutions" maxlength="120" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="vf_vendorType">Vendor Type <span class="required">*</span></label>
+          <select id="vf_vendorType" name="vendorType">
+            <option value="" disabled ${vendorType ? '' : 'selected'}>Select vendor type</option>
+            <option value="Standard Vendor" ${vendorType==='Standard Vendor'?'selected':''}>Standard Vendor</option>
+            <option value="Service Vendor" ${vendorType==='Service Vendor'?'selected':''}>Service Vendor</option>
+            <option value="Technology Vendor" ${vendorType==='Technology Vendor'?'selected':''}>Technology Vendor</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="vf_contact">Contact Person <span class="required">*</span></label>
+          <input id="vf_contact" name="contact" type="text" placeholder="e.g. Ravi Kumar" maxlength="100" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="vf_email">Email <span class="required">*</span></label>
+          <input id="vf_email" name="email" type="email" placeholder="e.g. name@example.com" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="vf_phone">Mobile Number <span class="required">*</span></label>
+          ${phoneInputHtml('', 'phone')}
+        </div>
+        <div class="field span-3">
+          <label>Project Mapping <span class="required">*</span></label>
+          ${createMultiSelectControl('vendorProjectMapping', [], ['Aadhaar','PMIS','UIDAI Core','Master Data'], 'Select one or more projects')}
+        </div>
+        <div class="field full">
+          <label for="vf_description">Vendor Description</label>
+          <textarea id="vf_description" name="description" maxlength="5000" oninput="countChars(this)" placeholder="Brief description of the services provided by this vendor"></textarea>
+          <div class="char-count">5000 characters remaining</div>
+        </div>
       </div>
       <div class="action-row">
-        <button class="btn">Add</button>
-        <button class="btn cancel" onclick="showVendorList()">Cancel</button>
+        <button type="button" class="btn" id="vendorAddBtn" onclick="submitVendorForm()">Add</button>
+        <button type="button" class="btn cancel" onclick="showHome()">Cancel</button>
       </div>
+      </form>
     </div>`;
   initMultiSelect(contentArea);
+  attachMobileSanitizer(contentArea);
+  // Live-clear errors as the user edits
+  contentArea.querySelectorAll('#vendorAddForm input, #vendorAddForm select, #vendorAddForm textarea').forEach(el => {
+    el.addEventListener('input', () => clearFieldError(el));
+    el.addEventListener('change', () => clearFieldError(el));
+  });
+  contentArea.querySelectorAll('#vendorAddForm .ms-wrap').forEach(wrap => {
+    wrap.addEventListener('change', () => {
+      const hidden = wrap.querySelector('.ms-hidden');
+      const toggleBtn = wrap.querySelector('.ms-toggle');
+      const field = wrap.closest('.field');
+      if(hidden && hidden.value && field){
+        field.classList.remove('has-error');
+      }
+    });
+  });
+}
+
+function submitVendorForm(){
+  clearAllFieldErrors(contentArea);
+  const form = document.getElementById('vendorAddForm');
+  if(!form) return;
+  const fields = {
+    vendorName: form.querySelector('#vf_vendorName'),
+    vendorType: form.querySelector('#vf_vendorType'),
+    contact:    form.querySelector('#vf_contact'),
+    email:      form.querySelector('#vf_email'),
+    phone:      form.querySelector('.mobile-input'),
+    mappingHidden: form.querySelector('input[name="vendorProjectMapping"]'),
+    mappingToggle: form.querySelector('.ms-toggle')
+  };
+  const errors = [];
+  // Required text/select fields
+  if(!fields.vendorName.value.trim()){
+    setFieldError(fields.vendorName, 'Vendor Name is required');
+    errors.push('Vendor Name is required');
+  }
+  if(!fields.vendorType.value){
+    setFieldError(fields.vendorType, 'Please select a vendor type');
+    errors.push('Vendor Type is required');
+  }
+  if(!fields.contact.value.trim()){
+    setFieldError(fields.contact, 'Contact Person is required');
+    errors.push('Contact Person is required');
+  }
+  // Email validation
+  const emailVal = fields.email.value.trim();
+  if(!emailVal){
+    setFieldError(fields.email, 'Email is required');
+    errors.push('Email is required');
+  } else if(!isValidEmail(emailVal)){
+    setFieldError(fields.email, 'Please enter a valid email address (e.g. name@example.com)');
+    errors.push('Email is not valid');
+  }
+  // Mobile validation
+  const phoneVal = fields.phone.value.trim();
+  if(!phoneVal){
+    setFieldError(fields.phone, 'Mobile Number is required');
+    errors.push('Mobile Number is required');
+  } else if(!isValidIndianMobile(phoneVal)){
+    setFieldError(fields.phone, 'Enter a valid 10-digit mobile number starting with 6-9');
+    errors.push('Mobile Number is not valid');
+  }
+  // Project Mapping required (at least one)
+  const mappingValue = (fields.mappingHidden && fields.mappingHidden.value) ? fields.mappingHidden.value.trim() : '';
+  if(!mappingValue){
+    if(fields.mappingToggle){
+      const field = fields.mappingToggle.closest('.field');
+      if(field){
+        field.classList.add('has-error');
+        let err = field.querySelector('.field-error');
+        if(!err){
+          err = document.createElement('div');
+          err.className = 'field-error';
+          field.appendChild(err);
+        }
+        err.textContent = 'At least one Project Mapping is required';
+      }
+    }
+    errors.push('At least one Project Mapping is required');
+  }
+  if(errors.length){
+    showErrorModal({
+      title:'Please fix the highlighted fields',
+      message: errors.length === 1 ? errors[0] : errors.join(' • ')
+    });
+    // Focus first invalid field
+    const firstErr = contentArea.querySelector('.field.has-error input, .field.has-error select, .field.has-error textarea, .field.has-error .ms-toggle');
+    if(firstErr && typeof firstErr.focus === 'function') firstErr.focus();
+    return;
+  }
+  // Simulate API call: loader → save → success popup → navigate
+  showLoader('Adding vendor...');
+  setTimeout(() => {
+    const newId = 'VND' + String(demoVendors.length + 1).padStart(3, '0');
+    const newVendor = {
+      vendorId: newId,
+      vendorName: fields.vendorName.value.trim(),
+      vendorType: fields.vendorType.value,
+      status: 'Active',
+      contact: fields.contact.value.trim(),
+      email: emailVal,
+      phone: phoneVal,
+      projectMapping: mappingValue.split(',').map(s => s.trim()).filter(Boolean),
+      startDate: '',
+      endDate: '',
+      address: '',
+      services: (form.querySelector('#vf_description')?.value || '').trim(),
+      deleted: false
+    };
+    demoVendors.push(newVendor);
+    hideLoader();
+    showSuccessModal({
+      title: 'Vendor added successfully',
+      message: `Vendor "${newVendor.vendorName}" has been added with ID ${newVendor.vendorId}.`,
+      okLabel: 'OK',
+      onOk: () => showVendorList()
+    });
+  }, 900);
 }
 function showVendorList(){
   setActiveSidebar('vendorHead');
-  const vendorRows = demoVendors.map((v,i)=>{
+  const list = liveVendors();
+  const vendorRows = list.map((v)=>{
     const mappings = normalizeMapping(v.projectMapping);
+    // Find the vendor's index in the underlying demoVendors array (so soft-delete works)
+    const realIndex = demoVendors.indexOf(v);
     return `<tr data-row="vendor"
       data-search="${escapeHtml([v.vendorName, v.vendorType, v.status, v.contact, v.email, v.phone, renderMappingText(v.projectMapping)].join(' ').toLowerCase())}"
       data-vendor-name="${escapeHtml(v.vendorName.toLowerCase())}"
@@ -1098,7 +3368,7 @@ function showVendorList(){
       data-email="${escapeHtml(v.email.toLowerCase())}"
       data-phone="${escapeHtml(v.phone.toLowerCase())}"
       data-mapping="${escapeHtml(mappings.map(x => x.toLowerCase()).join('|'))}">
-      <td class="link" onclick="openVendorDetails(${i})">${escapeHtml(v.vendorId)}</td>
+      <td class="link" onclick="openVendorDetails(${realIndex})">${escapeHtml(v.vendorId)}</td>
       <td>${escapeHtml(v.vendorName)}</td>
       <td>${escapeHtml(v.vendorType)}</td>
       <td><span class="badge ${v.status==='Active'?'green':'red'}">${escapeHtml(v.status)}</span></td>
@@ -1106,13 +3376,17 @@ function showVendorList(){
       <td>${escapeHtml(v.email)}</td>
       <td>${escapeHtml(v.phone)}</td>
       <td>${escapeHtml(renderMappingText(v.projectMapping))}</td>
+      <td class="col-actions">
+        <button type="button" class="icon-btn-sm" title="Delete ${escapeHtml(v.vendorName)}" aria-label="Delete ${escapeHtml(v.vendorName)}" onclick="event.stopPropagation();confirmDeleteVendor(${realIndex})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path></svg></button>
+      </td>
     </tr>`;
   }).join('');
   contentArea.innerHTML = `
     <div class="pm-title">Vendor Management</div>
+    <p class="section-subtitle">Search, view, edit, or delete existing vendors. Deleted vendors are retained in the backend but hidden from the list.</p>
     <div class="card">
       <div class="small-search-row">
-        <input id="vendorSearchInput" class="small-search" placeholder="Search vendors..." oninput="filterVendorRows()">
+        <input id="vendorSearchInput" class="small-search" placeholder="Search vendors by name, type, contact, email..." oninput="filterVendorRows()">
         <button class="btn small" onclick="filterVendorRows()">Search</button>
       </div>
       <div class="filter-shell">
@@ -1122,8 +3396,8 @@ function showVendorList(){
         </div>
         <div class="filter-body" id="vendorFilterBody">
           <div class="field"><label>Vendor Name</label>${buildTextFilterInput('vendorFilterName', 'Search vendor name', 'filterVendorRows')}</div>
-          <div class="field"><label>Type</label><select id="vendorFilterType" class="filter-select" onchange="filterVendorRows()">${buildSelectOptions(demoVendors.map(v => v.vendorType))}</select></div>
-          <div class="field"><label>Status</label><select id="vendorFilterStatus" class="filter-select" onchange="filterVendorRows()">${buildSelectOptions(demoVendors.map(v => v.status))}</select></div>
+          <div class="field"><label>Type</label><select id="vendorFilterType" class="filter-select" onchange="filterVendorRows()">${buildSelectOptions(list.map(v => v.vendorType))}</select></div>
+          <div class="field"><label>Status</label><select id="vendorFilterStatus" class="filter-select" onchange="filterVendorRows()">${buildSelectOptions(list.map(v => v.status))}</select></div>
           <div class="field"><label>Contact Person</label>${buildTextFilterInput('vendorFilterContact', 'Search contact person', 'filterVendorRows')}</div>
           <div class="field"><label>Email</label>${buildTextFilterInput('vendorFilterEmail', 'Search email', 'filterVendorRows')}</div>
           <div class="field"><label>Phone</label>${buildTextFilterInput('vendorFilterPhone', 'Search phone', 'filterVendorRows')}</div>
@@ -1133,52 +3407,108 @@ function showVendorList(){
       <div class="table-wrap">
         <table class="table compact">
           <thead>
-            <tr><th>Vendor ID</th><th>Vendor Name</th><th>Type</th><th>Status</th><th>Contact Person</th><th>Email</th><th>Phone</th><th>Project Mapping</th></tr>
+            <tr><th>Vendor ID</th><th>Vendor Name</th><th>Type</th><th>Status</th><th>Contact Person</th><th>Email</th><th>Phone</th><th>Project Mapping</th><th class="col-actions">Actions</th></tr>
           </thead>
           <tbody id="vendorTableBody">
-            ${vendorRows}
-            <tr id="vendorNoResults" class="no-results-row hidden"><td colspan="8">No matching vendors found.</td></tr>
+            ${vendorRows || `<tr id="vendorEmpty"><td colspan="9" class="no-results-row">No vendors found.</td></tr>`}
+            <tr id="vendorNoResults" class="no-results-row hidden"><td colspan="9">No matching vendors found.</td></tr>
           </tbody>
         </table>
       </div>
-      <button class="btn cancel" onclick="showHome()">Cancel</button>
     </div>`;
   filterVendorRows();
+}
+
+/* Soft-delete vendor: confirm → loader → mark deleted → success → refresh list */
+function confirmDeleteVendor(index){
+  const v = demoVendors[index];
+  if(!v) return;
+  showConfirmModal({
+    title: 'Delete Vendor?',
+    message: `Are you sure you want to delete vendor "${v.vendorName}" (${v.vendorId})? The vendor will be soft-deleted, marked as Inactive, and hidden from the frontend. Associated project mappings will be preserved in the backend.`,
+    confirmLabel: 'Delete',
+    cancelLabel: 'Cancel',
+    danger: true,
+    onConfirm: () => {
+      showLoader('Deleting vendor...');
+      setTimeout(() => {
+        // Soft delete: keep the record, mark as deleted + Inactive
+        v.deleted = true;
+        v.status = 'Inactive';
+        hideLoader();
+        showSuccessModal({
+          title: 'Vendor deleted',
+          message: `Vendor "${v.vendorName}" has been deleted successfully.`,
+          okLabel: 'OK',
+          onOk: () => showVendorList()
+        });
+      }, 800);
+    }
+  });
 }
 function openVendorDetails(index){
   setActiveSidebar('vendorHead');
   const v = demoVendors[index];
+  if(!v){ showVendorList(); return; }
+  window.currentVendorIndex = index;
   contentArea.innerHTML = `
     <div class="pm-title">Vendor Details</div>
     <div class="card">
-      <div class="card-actions"><button class="btn" id="vendorEditBtn" onclick="toggleVendorEdit(this)"><span class="btn-icon">✏️</span> <span class="btn-text">Edit</span></button><button class="btn cancel" onclick="showVendorList()">Back</button></div>
+      <div class="card-actions">
+        <button class="btn" id="vendorEditBtn" onclick="toggleVendorEdit(this)">Edit</button>
+        <button class="btn cancel" onclick="showVendorList()">Back</button>
+      </div>
       <h3>Vendor Information</h3>
-	  <br>
       <div class="grid-4">
         <div class="field"><label>Vendor ID <span class="required">*</span></label><input class="vendor-control" data-lock="always" value="${escapeHtml(v.vendorId)}" disabled></div>
         <div class="field"><label>Vendor Name <span class="required">*</span></label><input class="vendor-control" value="${escapeHtml(v.vendorName)}" disabled></div>
         <div class="field"><label>Vendor Type <span class="required">*</span></label><select class="vendor-control" disabled><option ${v.vendorType==='Standard Vendor'?'selected':''}>Standard Vendor</option><option ${v.vendorType==='Service Vendor'?'selected':''}>Service Vendor</option><option ${v.vendorType==='Technology Vendor'?'selected':''}>Technology Vendor</option></select></div>
-        <div class="field"><label>Status <span class="required">*</span></label><select class="vendor-control" disabled><option ${v.status==='Active'?'selected':''}>Active</option><option ${v.status==='Inactive'?'selected':''}>Inactive</option></select></div>
+        <div class="field"><label>Status <span class="required">*</span></label>${buildStatusToggle('vendorEditStatus', v.status)}</div>
         <div class="field"><label>Contact Person <span class="required">*</span></label><input class="vendor-control" value="${escapeHtml(v.contact)}" disabled></div>
         <div class="field"><label>Email <span class="required">*</span></label><input class="vendor-control" type="email" value="${escapeHtml(v.email)}" disabled></div>
-        <div class="field"><label>Phone <span class="required">*</span></label><input class="vendor-control" value="${escapeHtml(v.phone)}" disabled></div>
+        <div class="field"><label>Mobile Number <span class="required">*</span></label>
+          <div class="phone-input is-disabled">
+            <span class="phone-prefix" aria-hidden="true">+91</span>
+            <input class="vendor-control mobile-input" type="tel" inputmode="numeric" maxlength="10" value="${escapeHtml(v.phone)}" disabled>
+          </div>
+        </div>
         <div class="field"><label>Project Mapping <span class="required">*</span></label>${createMultiSelectControl('vendorProjectMapping', v.projectMapping, ['Aadhaar','PMIS','UIDAI Core','Master Data'], 'Select projects', true)}</div>
-        <div class="field full"><label>Description</label><textarea class="vendor-control" maxlength="5000" oninput="countChars(this)" disabled>${escapeHtml(v.services)}</textarea><div class="char-count">${5000 - v.services.length} characters remaining</div></div>
+        <div class="field full"><label>Description</label><textarea class="vendor-control" maxlength="5000" oninput="countChars(this)" disabled>${escapeHtml(v.services)}</textarea><div class="char-count">${5000 - (v.services||'').length} characters remaining</div></div>
       </div>
     </div>`;
   initMultiSelect(contentArea);
   setVendorEditable(false);
 }
 function toggleVendorEdit(btn){
-  window.vendorEditing = !window.vendorEditing;
-  setVendorEditable(window.vendorEditing);
-  btn.querySelector('.btn-icon').textContent = window.vendorEditing ? '' : '';
-  btn.querySelector('.btn-text').textContent = window.vendorEditing ? 'Save' : 'Edit';
+  // If switching from editing → save, run a brief save simulation
+  if(window.vendorEditing){
+    showLoader('Saving changes...');
+    setTimeout(() => {
+      // Persist the status radio selection back to the vendor record
+      const idx = window.currentVendorIndex;
+      const sel = contentArea.querySelector('input[name="vendorEditStatus"]:checked');
+      if(idx != null && demoVendors[idx] && sel){
+        demoVendors[idx].status = sel.value;
+      }
+      window.vendorEditing = false;
+      setVendorEditable(false);
+      btn.textContent = 'Edit';
+      hideLoader();
+      showToast('Vendor changes saved');
+    }, 600);
+    return;
+  }
+  window.vendorEditing = true;
+  setVendorEditable(true);
+  btn.textContent = 'Save';
 }
 function setVendorEditable(enabled){
   contentArea.querySelectorAll('.vendor-control').forEach(el=>{
     if(el.dataset.lock === 'always'){el.disabled = true; return;}
     el.disabled = !enabled;
+  });
+  contentArea.querySelectorAll('.phone-input').forEach(pi => {
+    pi.classList.toggle('is-disabled', !enabled);
   });
   contentArea.querySelectorAll('.ms-toggle').forEach(el => {
     el.disabled = !enabled;
@@ -1189,66 +3519,263 @@ function setVendorEditable(enabled){
   contentArea.querySelectorAll('.ms-option input').forEach(el => {
     el.disabled = !enabled;
   });
+  contentArea.querySelectorAll('.status-toggle').forEach(st => {
+    st.classList.toggle('is-disabled', !enabled);
+    st.querySelectorAll('input[type="radio"]').forEach(r => {
+      r.disabled = !enabled;
+    });
+  });
 }
 
 function loadUserForm(type){
-  const roleType = ({
-    ADMIN: 'Admin',
-    MANAGER: 'Manager',
-    VIEWER: 'Viewer'
-  }[String(type || '').toUpperCase()] || type || 'Admin');
+  // 'type' kept for back-compat with sidebar wiring; no longer drives a role select
   setActiveSidebar('userHead');
   contentArea.innerHTML = `
     <div class="pm-title">User Management</div>
+    <p class="section-subtitle">Create a new user account. Fields marked with <span class="required">*</span> are mandatory.</p>
     <div class="card">
       <h3>Add User</h3>
-	  <br>
+      <form id="userAddForm" novalidate onsubmit="return false;">
       <div class="grid-4">
-        <div class="field"><label>Full Name <span class="required">*</span></label><input></div>
-        <div class="field"><label>Employee ID <span class="required">*</span></label><input></div>
-        <div class="field"><label>Email <span class="required">*</span></label><input type="email"></div>
-        <div class="field"><label>Temporary Password <span class="required">*</span></label><input type="password"></div>
-        <div class="field"><label>Role <span class="required">*</span></label><select><option ${roleType==='Admin'?'selected':''}>Admin</option><option ${roleType==='Manager'?'selected':''}>Manager</option><option ${roleType==='Viewer'?'selected':''}>Viewer</option></select></div>
-        <div class="field"><label>Associated Vendor Name <span class="required">*</span></label><select><option value="" selected disabled>Select Vendor</option>${demoVendors.map(v=>`<option>${escapeHtml(v.vendorName)}</option>`).join('')}</select></div>
-        <div class="field"><label>Division <span class="required">*</span></label><select>${DIVISION_OPTIONS.map(opt => `<option>${escapeHtml(opt)}</option>`).join('')}</select></div>
-        <div class="field"><label>Project Mapping <span class="required">*</span></label>${createMultiSelectControl('userProjectMapping', [], ['Aadhaar','PMIS','Master Data','UIDAI Core'])}</div>
+        <div class="field">
+          <label for="uf_fullName">Full Name <span class="required">*</span></label>
+          <input id="uf_fullName" name="fullName" type="text" placeholder="e.g. Amit Roy" maxlength="120" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="uf_employeeId">Employee ID <span class="required">*</span></label>
+          <input id="uf_employeeId" name="employeeId" type="text" placeholder="e.g. EMP001" maxlength="40" autocomplete="off">
+        </div>
+        <div class="field span-2">
+          <label for="uf_email">Email <span class="required">*</span></label>
+          <input id="uf_email" name="email" type="email" placeholder="e.g. name@uidai.gov.in" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="uf_mobile">Mobile Number <span class="required">*</span></label>
+          ${phoneInputHtml('', 'mobile')}
+        </div>
+        <div class="field">
+          <label for="uf_password">Temporary Password <span class="required">*</span></label>
+          <input id="uf_password" name="password" type="password" placeholder="Set a temporary password" minlength="6" maxlength="40" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label for="uf_vendor">Associated Vendor Name <span class="required">*</span></label>
+          <select id="uf_vendor" name="vendorName">
+            <option value="" selected disabled>Select vendor</option>
+            ${liveVendors().map(v=>`<option value="${escapeHtml(v.vendorName)}">${escapeHtml(v.vendorName)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label for="uf_division">Division <span class="required">*</span></label>
+          <select id="uf_division" name="division">
+            <option value="" selected disabled>Select division</option>
+            ${DIVISION_OPTIONS.map(opt => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field full">
+          <label>Project Mapping <span class="required">*</span></label>
+          ${createMultiSelectControl('userProjectMapping', [], ['Aadhaar','PMIS','Master Data','UIDAI Core'], 'Select one or more projects')}
+        </div>
+        <div class="field full">
+          <label>Role &amp; Permissions <span class="required">*</span></label>
+          ${renderAssignRoleCard([], { hostInputId: 'uf_permissions', editable: true, name: 'permissions' })}
+        </div>
       </div>
       <div class="action-row">
-        <button class="btn">Add</button>
-        <button class="btn cancel" onclick="showUserList()">Cancel</button>
+        <button type="button" class="btn" id="userAddBtn" onclick="submitUserForm()">Add</button>
+        <button type="button" class="btn cancel" onclick="showHome()">Cancel</button>
       </div>
+      </form>
     </div>`;
   initMultiSelect(contentArea);
+  attachMobileSanitizer(contentArea);
+  contentArea.querySelectorAll('#userAddForm input, #userAddForm select, #userAddForm textarea').forEach(el => {
+    el.addEventListener('input', () => clearFieldError(el));
+    el.addEventListener('change', () => clearFieldError(el));
+  });
+  contentArea.querySelectorAll('#userAddForm .ms-wrap').forEach(wrap => {
+    wrap.addEventListener('change', () => {
+      const hidden = wrap.querySelector('.ms-hidden');
+      const field = wrap.closest('.field');
+      if(hidden && hidden.value && field){
+        field.classList.remove('has-error');
+      }
+    });
+  });
+}
+
+function submitUserForm(){
+  clearAllFieldErrors(contentArea);
+  const form = document.getElementById('userAddForm');
+  if(!form) return;
+  const fields = {
+    fullName:   form.querySelector('#uf_fullName'),
+    employeeId: form.querySelector('#uf_employeeId'),
+    email:      form.querySelector('#uf_email'),
+    mobile:     form.querySelector('.mobile-input'),
+    password:   form.querySelector('#uf_password'),
+    vendor:     form.querySelector('#uf_vendor'),
+    division:   form.querySelector('#uf_division'),
+    mappingHidden: form.querySelector('input[name="userProjectMapping"]'),
+    mappingToggle: form.querySelector('.ms-toggle'),
+    permissionsHidden: form.querySelector('#uf_permissions')
+  };
+  const errors = [];
+  if(!fields.fullName.value.trim()){
+    setFieldError(fields.fullName, 'Full Name is required');
+    errors.push('Full Name is required');
+  }
+  if(!fields.employeeId.value.trim()){
+    setFieldError(fields.employeeId, 'Employee ID is required');
+    errors.push('Employee ID is required');
+  }
+  const emailVal = fields.email.value.trim();
+  if(!emailVal){
+    setFieldError(fields.email, 'Email is required');
+    errors.push('Email is required');
+  } else if(!isValidEmail(emailVal)){
+    setFieldError(fields.email, 'Please enter a valid email address (e.g. name@uidai.gov.in)');
+    errors.push('Email is not valid');
+  }
+  const mobileVal = fields.mobile.value.trim();
+  if(!mobileVal){
+    setFieldError(fields.mobile, 'Mobile Number is required');
+    errors.push('Mobile Number is required');
+  } else if(!isValidIndianMobile(mobileVal)){
+    setFieldError(fields.mobile, 'Enter a valid 10-digit mobile number starting with 6-9');
+    errors.push('Mobile Number is not valid');
+  }
+  if(!fields.password.value){
+    setFieldError(fields.password, 'Temporary Password is required');
+    errors.push('Temporary Password is required');
+  } else if(fields.password.value.length < 6){
+    setFieldError(fields.password, 'Password must be at least 6 characters');
+    errors.push('Password is too short');
+  }
+  if(!fields.vendor.value){
+    setFieldError(fields.vendor, 'Please select a vendor');
+    errors.push('Associated Vendor is required');
+  }
+  if(!fields.division.value){
+    setFieldError(fields.division, 'Please select a division');
+    errors.push('Division is required');
+  }
+  const mappingValue = (fields.mappingHidden && fields.mappingHidden.value) ? fields.mappingHidden.value.trim() : '';
+  if(!mappingValue){
+    if(fields.mappingToggle){
+      const field = fields.mappingToggle.closest('.field');
+      if(field){
+        field.classList.add('has-error');
+        let err = field.querySelector('.field-error');
+        if(!err){
+          err = document.createElement('div');
+          err.className = 'field-error';
+          field.appendChild(err);
+        }
+        err.textContent = 'At least one Project Mapping is required';
+      }
+    }
+    errors.push('At least one Project Mapping is required');
+  }
+  // Permissions validation: at least one permission must be assigned
+  const permsValue = (fields.permissionsHidden && fields.permissionsHidden.value) ? fields.permissionsHidden.value.trim() : '';
+  const permsArr = normalizePermissions(permsValue);
+  if(!permsArr.length){
+    if(fields.permissionsHidden){
+      const field = fields.permissionsHidden.closest('.field');
+      if(field){
+        field.classList.add('has-error');
+        let err = field.querySelector('.field-error');
+        if(!err){
+          err = document.createElement('div');
+          err.className = 'field-error';
+          field.appendChild(err);
+        }
+        err.textContent = 'Please assign at least one permission via the Assign Role button';
+      }
+    }
+    errors.push('Role / Permissions are required');
+  }
+  if(errors.length){
+    showErrorModal({
+      title:'Please fix the highlighted fields',
+      message: errors.length === 1 ? errors[0] : errors.join(' • ')
+    });
+    const firstErr = contentArea.querySelector('.field.has-error input, .field.has-error select, .field.has-error textarea, .field.has-error .ms-toggle, .field.has-error .assign-role-btn');
+    if(firstErr && typeof firstErr.focus === 'function') firstErr.focus();
+    return;
+  }
+  showLoader('Adding user...');
+  setTimeout(() => {
+    const newId = 'USR' + String(demoUsers.length + 1).padStart(3, '0');
+    const newUser = {
+      userId: newId,
+      fullName: fields.fullName.value.trim(),
+      employeeId: fields.employeeId.value.trim(),
+      email: emailVal,
+      mobile: mobileVal,
+      vendorName: fields.vendor.value,
+      division: fields.division.value,
+      projectMapping: mappingValue.split(',').map(s => s.trim()).filter(Boolean),
+      permissions: permsArr,
+      status: 'Active',
+      deleted: false
+    };
+    demoUsers.push(newUser);
+    hideLoader();
+    showSuccessModal({
+      title: 'User added successfully',
+      message: `User "${newUser.fullName}" has been added with ID ${newUser.userId}.`,
+      okLabel: 'OK',
+      onOk: () => showUserList()
+    });
+  }, 900);
 }
 function showUserList(){
   setActiveSidebar('userHead');
-  const userRows = demoUsers.map((u,i)=>{
+  const list = liveUsers();
+  const userRows = list.map((u)=>{
     const mappings = normalizeMapping(u.projectMapping);
+    const realIndex = demoUsers.indexOf(u);
+    const perms = normalizePermissions(u.permissions);
+    const permsLabel = perms.map(id => (PERMISSION_LOOKUP[id] && PERMISSION_LOOKUP[id].label) || id).join(' ').toLowerCase();
+    const permsBadge = perms.length
+      ? `<span class="perm-count-badge" title="${escapeHtml(perms.length + ' permission' + (perms.length===1?'':'s') + ' assigned')}">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+           ${perms.length} ${perms.length===1?'permission':'permissions'}
+         </span>`
+      : `<span class="perm-count-badge zero" title="No permissions assigned">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+           None
+         </span>`;
     return `<tr data-row="user"
-      data-search="${escapeHtml([u.fullName, u.employeeId, u.email, u.role, u.vendorName, u.division, renderMappingText(u.projectMapping), u.status].join(' ').toLowerCase())}"
+      data-search="${escapeHtml([u.fullName, u.employeeId, u.email, u.vendorName, u.division, renderMappingText(u.projectMapping), u.status, permsLabel].join(' ').toLowerCase())}"
       data-full-name="${escapeHtml(u.fullName.toLowerCase())}"
       data-email="${escapeHtml(u.email.toLowerCase())}"
-      data-role="${escapeHtml(u.role.toLowerCase())}"
       data-vendor-name="${escapeHtml(u.vendorName.toLowerCase())}"
       data-division="${escapeHtml(u.division.toLowerCase())}"
       data-mapping="${escapeHtml(mappings.map(x => x.toLowerCase()).join('|'))}"
+      data-perm-count="${perms.length}"
       data-status="${escapeHtml(u.status.toLowerCase())}">
-      <td class="link" onclick="openUserDetails(${i})">${escapeHtml(u.userId)}</td>
+      <td class="link" onclick="openUserDetails(${realIndex})">${escapeHtml(u.userId)}</td>
       <td>${escapeHtml(u.fullName)}</td>
       <td>${escapeHtml(u.employeeId)}</td>
       <td>${escapeHtml(u.email)}</td>
-      <td>${escapeHtml(u.role)}</td>
       <td>${escapeHtml(u.vendorName)}</td>
       <td>${escapeHtml(u.division)}</td>
       <td>${escapeHtml(renderMappingText(u.projectMapping))}</td>
+      <td>${permsBadge}</td>
       <td><span class="badge ${u.status==='Active'?'green':'red'}">${escapeHtml(u.status)}</span></td>
+      <td class="col-actions">
+        <button type="button" class="icon-btn-sm" title="Delete ${escapeHtml(u.fullName)}" aria-label="Delete ${escapeHtml(u.fullName)}" onclick="event.stopPropagation();confirmDeleteUser(${realIndex})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path></svg></button>
+      </td>
     </tr>`;
   }).join('');
   contentArea.innerHTML = `
     <div class="pm-title">User Management</div>
+    <p class="section-subtitle">Search, view, edit, or delete existing users. Deleted users are retained in the backend but hidden from the list.</p>
     <div class="card">
       <div class="small-search-row">
-        <input id="userSearchInput" class="small-search" placeholder="Search users..." oninput="filterUserRows()">
+        <input id="userSearchInput" class="small-search" placeholder="Search users by name, email, vendor, permission..." oninput="filterUserRows()">
         <button class="btn small" onclick="filterUserRows()">Search</button>
       </div>
       <div class="filter-shell">
@@ -1259,63 +3786,120 @@ function showUserList(){
         <div class="filter-body" id="userFilterBody">
           <div class="field"><label>Full Name</label>${buildTextFilterInput('userFilterName', 'Search full name', 'filterUserRows')}</div>
           <div class="field"><label>Email</label>${buildTextFilterInput('userFilterEmail', 'Search email', 'filterUserRows')}</div>
-          <div class="field"><label>Role</label><select id="userFilterRole" class="filter-select" onchange="filterUserRows()">${buildSelectOptions(demoUsers.map(u => u.role))}</select></div>
           <div class="field"><label>Associated Vendor</label>${buildTextFilterInput('userFilterVendor', 'Search associated vendor', 'filterUserRows')}</div>
           <div class="field"><label>Division</label><select id="userFilterDivision" class="filter-select" onchange="filterUserRows()">${buildDivisionOptions()}</select></div>
           <div class="field"><label>Project Mapping</label>${buildTextFilterInput('userFilterMapping', 'Search project mapping', 'filterUserRows')}</div>
-          <div class="field"><label>Status</label><select id="userFilterStatus" class="filter-select" onchange="filterUserRows()">${buildSelectOptions(demoUsers.map(u => u.status))}</select></div>
+          <div class="field"><label>Permissions</label><select id="userFilterPerms" class="filter-select" onchange="filterUserRows()"><option value="">All</option><option value="any">Has permissions</option><option value="none">No permissions</option></select></div>
+          <div class="field"><label>Status</label><select id="userFilterStatus" class="filter-select" onchange="filterUserRows()">${buildSelectOptions(list.map(u => u.status))}</select></div>
         </div>
       </div>
       <div class="table-wrap">
         <table class="table compact">
           <thead>
-            <tr><th>User ID</th><th>Full Name</th><th>Employee ID</th><th>Email</th><th>Role</th><th>Associated Vendor</th><th>Division</th><th>Project Mapping</th><th>Status</th></tr>
+            <tr><th>User ID</th><th>Full Name</th><th>Employee ID</th><th>Email</th><th>Associated Vendor</th><th>Division</th><th>Project Mapping</th><th>Permissions</th><th>Status</th><th class="col-actions">Actions</th></tr>
           </thead>
           <tbody id="userTableBody">
-            ${userRows}
-            <tr id="userNoResults" class="no-results-row hidden"><td colspan="9">No matching users found.</td></tr>
+            ${userRows || `<tr id="userEmpty"><td colspan="10" class="no-results-row">No users found.</td></tr>`}
+            <tr id="userNoResults" class="no-results-row hidden"><td colspan="10">No matching users found.</td></tr>
           </tbody>
         </table>
       </div>
-      <button class="btn cancel" onclick="showHome()">Cancel</button>
     </div>`;
   filterUserRows();
+}
+
+/* Soft-delete user: confirm → loader → mark deleted → success → refresh list */
+function confirmDeleteUser(index){
+  const u = demoUsers[index];
+  if(!u) return;
+  showConfirmModal({
+    title: 'Delete User?',
+    message: `Are you sure you want to delete user "${u.fullName}" (${u.userId})? The user will be soft-deleted, marked as Inactive, and hidden from the frontend. Associated project mappings will be preserved in the backend.`,
+    confirmLabel: 'Delete',
+    cancelLabel: 'Cancel',
+    danger: true,
+    onConfirm: () => {
+      showLoader('Deleting user...');
+      setTimeout(() => {
+        u.deleted = true;
+        u.status = 'Inactive';
+        hideLoader();
+        showSuccessModal({
+          title: 'User deleted',
+          message: `User "${u.fullName}" has been deleted successfully.`,
+          okLabel: 'OK',
+          onOk: () => showUserList()
+        });
+      }, 800);
+    }
+  });
 }
 function openUserDetails(index){
   setActiveSidebar('userHead');
   const u = demoUsers[index];
+  if(!u){ showUserList(); return; }
+  window.currentUserIndex = index;
   contentArea.innerHTML = `
     <div class="pm-title">User Details</div>
     <div class="card">
-      <div class="card-actions"><button class="btn" id="userEditBtn" onclick="toggleUserEdit(this)"><span class="btn-icon"></span> <span class="btn-text">Edit</span></button><button class="btn cancel" onclick="showUserList()">Back</button></div>
+      <div class="card-actions">
+        <button class="btn" id="userEditBtn" onclick="toggleUserEdit(this)">Edit</button>
+        <button class="btn cancel" onclick="showUserList()">Back</button>
+      </div>
       <h3>User Information</h3>
-	  <br>
       <div class="grid-4">
         <div class="field"><label>User ID <span class="required">*</span></label><input class="user-control" data-lock="always" value="${escapeHtml(u.userId)}" disabled></div>
         <div class="field"><label>Full Name <span class="required">*</span></label><input class="user-control" value="${escapeHtml(u.fullName)}" disabled></div>
         <div class="field"><label>Employee ID <span class="required">*</span></label><input class="user-control" data-lock="always" value="${escapeHtml(u.employeeId)}" disabled></div>
         <div class="field"><label>Email <span class="required">*</span></label><input class="user-control" type="email" value="${escapeHtml(u.email)}" disabled></div>
-        <div class="field"><label>Role <span class="required">*</span></label><select class="user-control" disabled><option ${u.role==='Admin'?'selected':''}>Admin</option><option ${u.role==='Manager'?'selected':''}>Manager</option><option ${u.role==='Viewer'?'selected':''}>Viewer</option></select></div>
+        <div class="field"><label>Mobile Number <span class="required">*</span></label>
+          <div class="phone-input is-disabled">
+            <span class="phone-prefix" aria-hidden="true">+91</span>
+            <input class="user-control mobile-input" type="tel" inputmode="numeric" maxlength="10" value="${escapeHtml(u.mobile || '')}" disabled>
+          </div>
+        </div>
         <div class="field"><label>Associated Vendor Name <span class="required">*</span></label><input class="user-control" data-lock="always" value="${escapeHtml(u.vendorName)}" disabled></div>
-        <div class="field"><label>Division <span class="required">*</span></label><select class="user-control" disabled><option ${u.division==='Technology'?'selected':''}>Technology</option><option ${u.division==='Operations'?'selected':''}>Operations</option><option ${u.division==='Audit'?'selected':''}>Audit</option></select></div>
-        <div class="field"><label>Project Mapping <span class="required">*</span></label>${createMultiSelectControl('userProjectMapping', u.projectMapping, ['Aadhaar','PMIS','Master Data','UIDAI Core'], 'Select projects', true)}</div>
-        <div class="field"><label>Status <span class="required">*</span></label><select class="user-control" disabled><option ${u.status==='Active'?'selected':''}>Active</option><option ${u.status==='Inactive'?'selected':''}>Inactive</option></select></div>
+        <div class="field"><label>Division <span class="required">*</span></label><select class="user-control" disabled><option ${u.division==='Technology'?'selected':''}>Technology</option><option ${u.division==='Operations'?'selected':''}>Operations</option><option ${u.division==='Audit'?'selected':''}>Audit</option><option ${u.division==='TMD1'?'selected':''}>TMD1</option><option ${u.division==='TMD2'?'selected':''}>TMD2</option></select></div>
+        <div class="field"><label>Status <span class="required">*</span></label>${buildStatusToggle('userEditStatus', u.status)}</div>
+        <div class="field full"><label>Project Mapping <span class="required">*</span></label>${createMultiSelectControl('userProjectMapping', u.projectMapping, ['Aadhaar','PMIS','Master Data','UIDAI Core'], 'Select projects', true)}</div>
+        <div class="field full"><label>Role &amp; Permissions <span class="required">*</span></label>${renderAssignRoleCard(u.permissions, { hostInputId: 'ud_permissions', editable: false, name: 'permissions' })}</div>
       </div>
     </div>
-    <div class="card"><h3>Remarks</h3><br><div class="grid"><div class="field full"><textarea class="user-control" maxlength="5000" oninput="countChars(this)" disabled>Access aligned to role-based permissions.</textarea><div class="char-count">4945 characters remaining</div></div></div></div>`;
+    <div class="card"><h3>Remarks</h3><div class="grid"><div class="field full"><textarea class="user-control" maxlength="5000" oninput="countChars(this)" disabled>Access aligned to role-based permissions.</textarea><div class="char-count">4945 characters remaining</div></div></div></div>`;
   initMultiSelect(contentArea);
   setUserEditable(false);
 }
 function toggleUserEdit(btn){
-  window.userEditing = !window.userEditing;
-  setUserEditable(window.userEditing);
-  btn.querySelector('.btn-icon').textContent = window.userEditing ? '' : '';
-  btn.querySelector('.btn-text').textContent = window.userEditing ? 'Save' : 'Edit';
+  if(window.userEditing){
+    showLoader('Saving changes...');
+    setTimeout(() => {
+      // Persist the status radio selection and permissions back to the user record
+      const idx = window.currentUserIndex;
+      const sel = contentArea.querySelector('input[name="userEditStatus"]:checked');
+      const permsHidden = contentArea.querySelector('#ud_permissions');
+      if(idx != null && demoUsers[idx]){
+        if(sel) demoUsers[idx].status = sel.value;
+        if(permsHidden) demoUsers[idx].permissions = normalizePermissions(permsHidden.value);
+      }
+      window.userEditing = false;
+      setUserEditable(false);
+      btn.textContent = 'Edit';
+      hideLoader();
+      showToast('User changes saved');
+    }, 600);
+    return;
+  }
+  window.userEditing = true;
+  setUserEditable(true);
+  btn.textContent = 'Save';
 }
 function setUserEditable(enabled){
   contentArea.querySelectorAll('.user-control').forEach(el=>{
     if(el.dataset.lock === 'always'){el.disabled = true; return;}
     el.disabled = !enabled;
+  });
+  contentArea.querySelectorAll('.phone-input').forEach(pi => {
+    pi.classList.toggle('is-disabled', !enabled);
   });
   contentArea.querySelectorAll('.ms-toggle').forEach(el => {
     el.disabled = !enabled;
@@ -1326,6 +3910,24 @@ function setUserEditable(enabled){
   contentArea.querySelectorAll('.ms-option input').forEach(el => {
     el.disabled = !enabled;
   });
+  contentArea.querySelectorAll('.status-toggle').forEach(st => {
+    st.classList.toggle('is-disabled', !enabled);
+    st.querySelectorAll('input[type="radio"]').forEach(r => {
+      r.disabled = !enabled;
+    });
+  });
+  // Switch the assign-role button between "View Role" (read-only) and "Edit Role / Assign Role" (editable)
+  const permsHidden = contentArea.querySelector('#ud_permissions');
+  const permsBtn    = contentArea.querySelector('#ud_permissions_btn');
+  if(permsBtn){
+    // Update onclick so it opens the modal in the right mode
+    permsBtn.setAttribute('onclick', `openAssignRoleModalFor('ud_permissions', ${enabled ? 'true' : 'false'})`);
+    const labelSpan = permsBtn.querySelector('span');
+    if(labelSpan){
+      const has = permsHidden && normalizePermissions(permsHidden.value).length > 0;
+      labelSpan.textContent = enabled ? (has ? 'Edit Role' : 'Assign Role') : 'View Role';
+    }
+  }
 }
 
 function showMasterData(){
@@ -1336,10 +3938,10 @@ function showMasterData(){
     <div class="pm-title">Master Data</div>
     <p class="section-subtitle">Consolidated vendor and user counts and status at a glance</p>
     <div class="kpi-row">
-      <div class="kpi"><div class="label">Total Vendors</div><div class="value">${demoVendors.length}</div><div class="meta">All vendor records</div></div>
-      <div class="kpi"><div class="label">Total Users</div><div class="value">${demoUsers.length}</div><div class="meta">All user records</div></div>
-      <div class="kpi"><div class="label">Active Vendors</div><div class="value">${demoVendors.filter(v=>v.status==='Active').length}</div><div class="meta">Currently enabled</div></div>
-      <div class="kpi"><div class="label">Active Users</div><div class="value">${demoUsers.filter(u=>u.status==='Active').length}</div><div class="meta">Currently enabled</div></div>
+      <div class="kpi"><div class="label">Total Vendors</div><div class="value">${liveVendors().length}</div><div class="meta">All vendor records</div></div>
+      <div class="kpi"><div class="label">Total Users</div><div class="value">${liveUsers().length}</div><div class="meta">All user records</div></div>
+      <div class="kpi"><div class="label">Active Vendors</div><div class="value">${liveVendors().filter(v=>v.status==='Active').length}</div><div class="meta">Currently enabled</div></div>
+      <div class="kpi"><div class="label">Active Users</div><div class="value">${liveUsers().filter(u=>u.status==='Active').length}</div><div class="meta">Currently enabled</div></div>
     </div>
     <div class="card">
       <p class="section-subtitle" style="margin-bottom:0">Use the dropdown on the left to open Vendor Data or User Data.</p>
@@ -1350,11 +3952,12 @@ function showMasterVendorData(event){
   setActiveSidebar('masterDataHead');
   masterDataSub.style.display = 'block';
   masterDataArrow.innerText = '▼';
+  const list = liveVendors();
   contentArea.innerHTML = `
     <div class="pm-title">Vendor Data</div>
     <p class="section-subtitle">Vendor master records currently stored in the system.</p>
     <div class="card">
-      <div class="table-wrap"><table class="table compact"><tr><th>Vendor ID</th><th>Vendor Name</th><th>Type</th><th>Status</th><th>Contact Person</th><th>Email</th><th>Phone</th><th>Project Mapping</th><th>Contract End</th></tr>${demoVendors.map(v=>`<tr><td>${escapeHtml(v.vendorId)}</td><td>${escapeHtml(v.vendorName)}</td><td>${escapeHtml(v.vendorType)}</td><td><span class="badge ${v.status==='Active'?'green':'red'}">${v.status}</span></td><td>${escapeHtml(v.contact)}</td><td>${escapeHtml(v.email)}</td><td>${escapeHtml(v.phone)}</td><td>${escapeHtml(renderMappingText(v.projectMapping))}</td><td>${formatDateDisplay(v.endDate)}</td></tr>`).join('')}</table></div>
+      <div class="table-wrap"><table class="table compact"><thead><tr><th>Vendor ID</th><th>Vendor Name</th><th>Type</th><th>Status</th><th>Contact Person</th><th>Email</th><th>Phone</th><th>Project Mapping</th><th>Contract End</th></tr></thead><tbody>${list.map(v=>`<tr><td>${escapeHtml(v.vendorId)}</td><td>${escapeHtml(v.vendorName)}</td><td>${escapeHtml(v.vendorType)}</td><td><span class="badge ${v.status==='Active'?'green':'red'}">${v.status}</span></td><td>${escapeHtml(v.contact)}</td><td>${escapeHtml(v.email)}</td><td>${escapeHtml(v.phone)}</td><td>${escapeHtml(renderMappingText(v.projectMapping))}</td><td>${formatDateDisplay(v.endDate)}</td></tr>`).join('') || `<tr><td colspan="9" class="no-results-row">No vendors available.</td></tr>`}</tbody></table></div>
     </div>`;
 }
 function showMasterUserData(event){
@@ -1362,11 +3965,12 @@ function showMasterUserData(event){
   setActiveSidebar('masterDataHead');
   masterDataSub.style.display = 'block';
   masterDataArrow.innerText = '▼';
+  const list = liveUsers();
   contentArea.innerHTML = `
     <div class="pm-title">User Data</div>
     <p class="section-subtitle">User master records currently stored in the system</p>
     <div class="card">
-      <div class="table-wrap"><table class="table compact"><tr><th>User ID</th><th>Full Name</th><th>Employee ID</th><th>Email</th><th>Role</th><th>Associated Vendor</th><th>Division</th><th>Project Mapping</th><th>Status</th></tr>${demoUsers.map(u=>`<tr><td>${escapeHtml(u.userId)}</td><td>${escapeHtml(u.fullName)}</td><td>${escapeHtml(u.employeeId)}</td><td>${escapeHtml(u.email)}</td><td>${escapeHtml(u.role)}</td><td>${escapeHtml(u.vendorName)}</td><td>${escapeHtml(u.division)}</td><td>${escapeHtml(renderMappingText(u.projectMapping))}</td><td><span class="badge ${u.status==='Active'?'green':'red'}">${u.status}</span></td></tr>`).join('')}</table></div>
+      <div class="table-wrap"><table class="table compact"><thead><tr><th>User ID</th><th>Full Name</th><th>Employee ID</th><th>Email</th><th>Permissions</th><th>Associated Vendor</th><th>Division</th><th>Project Mapping</th><th>Status</th></tr></thead><tbody>${list.map(u=>{ const pc = (u.permissions||[]).length; const pBadge = pc>0 ? `<span class="perm-count-badge">${pc} permission${pc===1?'':'s'}</span>` : `<span class="perm-count-badge zero">None</span>`; return `<tr><td>${escapeHtml(u.userId)}</td><td>${escapeHtml(u.fullName)}</td><td>${escapeHtml(u.employeeId)}</td><td>${escapeHtml(u.email)}</td><td>${pBadge}</td><td>${escapeHtml(u.vendorName)}</td><td>${escapeHtml(u.division)}</td><td>${escapeHtml(renderMappingText(u.projectMapping))}</td><td><span class="badge ${u.status==='Active'?'green':'red'}">${u.status}</span></td></tr>`; }).join('') || `<tr><td colspan="9" class="no-results-row">No users available.</td></tr>`}</tbody></table></div>
     </div>`;
 }
 function toggleMasterDataMenu(){
@@ -1424,7 +4028,73 @@ window.addEventListener('resize', ()=>{ if(window.innerWidth > 840) sidebar.clas
 
 
 showHome();
-updateCollapseLabel();
+
+/* ─── Font resizer (accessibility: scales the entire UI via zoom) ─── */
+(function setupFontResizer(){
+  const STEPS = [80, 90, 100, 110, 125];
+  const DEFAULT_IDX = 2;
+  let idx = DEFAULT_IDX;
+  const inc = document.getElementById('frIncrease');
+  const dec = document.getElementById('frDecrease');
+  const rst = document.getElementById('frReset');
+  const wrapper = document.body;
+  const supportsZoom = (function(){
+    const probe = document.createElement('div');
+    probe.style.zoom = '2';
+    return probe.style.zoom === '2';
+  })();
+  function apply(){
+    const pct = STEPS[idx];
+    if(supportsZoom){
+      wrapper.style.zoom = (pct / 100).toString();
+    } else {
+      wrapper.style.transformOrigin = 'top left';
+      wrapper.style.transform = `scale(${pct/100})`;
+      wrapper.style.width = `${100 * 100 / pct}%`;
+    }
+    updatePressed();
+  }
+  function updatePressed(){
+    [inc,dec,rst].forEach(b => b && b.setAttribute('aria-pressed','false'));
+    if(idx === STEPS.length - 1 && inc) inc.setAttribute('aria-pressed','true');
+    if(idx === 0 && dec) dec.setAttribute('aria-pressed','true');
+    if(idx === DEFAULT_IDX && rst) rst.setAttribute('aria-pressed','true');
+  }
+  if(inc) inc.addEventListener('click', () => { if(idx < STEPS.length-1){ idx++; apply(); } });
+  if(dec) dec.addEventListener('click', () => { if(idx > 0){ idx--; apply(); } });
+  if(rst) rst.addEventListener('click', () => { idx = DEFAULT_IDX; apply(); });
+  updatePressed();
+})();
+
+/* ─── Floating header: collapse the accessibility strip when content scrolls down ─── */
+(function setupFloatingHeader(){
+  const strip = document.querySelector('.header-accessibility-strip');
+  const scrollEl = document.getElementById('mainContent');
+  if(!strip || !scrollEl) return;
+  const HIDE_AT = 28;
+  const SHOW_AT = 4;
+  let ticking = false;
+  let isHidden = false;
+  function update(){
+    const top = Math.max(scrollEl.scrollTop || 0, window.scrollY || 0);
+    if(!isHidden && top > HIDE_AT){
+      strip.classList.add('collapsed');
+      isHidden = true;
+    } else if(isHidden && top < SHOW_AT){
+      strip.classList.remove('collapsed');
+      isHidden = false;
+    }
+    ticking = false;
+  }
+  function onScroll(){
+    if(!ticking){
+      window.requestAnimationFrame(update);
+      ticking = true;
+    }
+  }
+  scrollEl.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('scroll', onScroll, {passive:true});
+})();
 </script>
 </body>
 </html>
