@@ -2,2312 +2,1073 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard | UIDAI Automation Governance Tool</title>
+<title>Dashboard | UIDAI PMIS</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
-
 <style>
 :root{
   --navy:#0b3c88;
   --navy-deep:#062a63;
   --cyan:#0aa1c0;
-  --cyan-light:#3cb8d4;
   --green:#1a8a3d;
   --green-soft:#e7f7ec;
   --saffron:#d4440e;
+  --amber:#b25900;
+  --purple:#5e3fb1;
+  --purple-soft:#efeafc;
   --light:#f4f7fb;
-  --light-cool:#eef3f9;
   --border:#dbe5f1;
   --border-soft:#e9eef6;
-  --red:#d32f2f;
   --text:#1e2a3a;
   --text-soft:#5a6680;
   --text-muted:#7a869a;
-  --card:#ffffff;
-  --uidai-stripe:linear-gradient(90deg, var(--navy) 0%, var(--cyan) 100%);
+  --stripe:linear-gradient(90deg,var(--navy),var(--cyan));
 }
-*{margin:0;padding:0;box-sizing:border-box}
+*{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{
-  font-family:'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
+  font-family:"Roboto",system-ui,-apple-system,"Segoe UI",sans-serif;
   background:var(--light);
+  color:var(--text);
+  min-height:100vh;
   display:flex;
   flex-direction:column;
-  min-height:100vh;
-  color:var(--text);
 }
-img{display:block;max-width:100%}
-
-/* ─── Accessibility helpers ─── */
-.sr-only{
-  position:absolute !important;
-  width:1px; height:1px;
-  padding:0; margin:-1px;
-  overflow:hidden; clip:rect(0,0,0,0);
-  white-space:nowrap; border:0;
-}
-.skip-link{
-  position:absolute; top:-40px; left:0;
-  background:var(--navy); color:#fff;
-  padding:8px 16px; z-index:9999;
-  text-decoration:none; font-weight:700;
-  border-radius:0 0 6px 0;
-}
-.skip-link:focus{top:0;}
-
-*:focus-visible{
-  outline:3px solid #ffb300;
-  outline-offset:2px;
-  border-radius:3px;
-}
-
-/* ─── UIDAI-style Header ─── */
-.site-header{
-  width:100%;
-  background:#fff;
-  box-shadow:0 2px 8px rgba(11,60,136,.08);
-  position:relative;
-  z-index:50;
-}
-.site-header::after{
-  content:"";
-  display:block;
-  height:4px;
-  background:var(--uidai-stripe);
-}
-.header-accessibility-strip{
-  background:#f5f8fd;
-  border-bottom:1px solid var(--border);
-  display:flex;
-  justify-content:flex-end;
-  align-items:center;
-  padding:3px 20px;
-  gap:12px;
-  min-height:28px;
-  font-size:13px;
-  color:var(--text);
-  /* Smooth collapse animation when content scrolls down */
-  max-height:40px;
-  overflow:hidden;
-  transition:max-height .28s ease, min-height .28s ease, opacity .22s ease, padding .28s ease, border-bottom-width .28s ease;
-}
-.header-accessibility-strip.collapsed{
-  max-height:0;
-  min-height:0;
-  opacity:0;
-  padding-top:0;
-  padding-bottom:0;
-  border-bottom-width:0;
-  pointer-events:none;
-}
-.a11y-label{
-  font-weight:600;
-  color:#4b5870;
-  font-size:12px;
-  user-select:none;
-}
-.font-resizer{
-  display:inline-flex;
-  align-items:center;
-  gap:4px;
-  border:1px solid var(--border);
-  border-radius:6px;
-  padding:1px;
-  background:#fff;
-}
-.font-resizer button{
-  background:transparent;
-  border:none;
-  cursor:pointer;
-  padding:3px 9px;
-  font-weight:700;
-  color:var(--navy);
-  border-radius:4px;
-  font-family:inherit;
-  font-size:13px;
-  line-height:1;
-  transition:background .12s;
-}
-.font-resizer button:hover{background:#eef6fb;}
-.font-resizer button[aria-pressed="true"]{background:var(--navy); color:#fff;}
-.font-resizer .fr-plus{font-size:15px;}
-.font-resizer .fr-reset{font-size:13px;}
-.font-resizer .fr-minus{font-size:11px;}
-
+button,input{font:inherit}
+button{touch-action:manipulation}
+:focus-visible{outline:3px solid #ffb300;outline-offset:2px;border-radius:4px}
+.site-header{background:#fff;box-shadow:0 2px 8px rgba(11,60,136,.08);position:relative;z-index:5}
+.site-header:after{content:"";display:block;height:4px;background:var(--stripe)}
 .header-main{
   display:grid;
   grid-template-columns:1fr auto 1fr;
-  align-items:center;
   gap:14px;
-  padding:8px 20px;
-  background:linear-gradient(90deg,#ffebc7 0%, #ffffff 45%, #ffffff 55%, #d7efd9 100%);
-}
-.header-brand{
-  display:flex;
   align-items:center;
-  gap:12px;
-  min-width:0;
+  padding:10px 20px;
+  background:linear-gradient(90deg,#ffebc7 0%,#fff 45%,#fff 55%,#d7efd9 100%);
 }
-.header-brand img{
-  height:52px;
-  width:auto;
-  flex:0 0 auto;
-}
-.header-brand-text{
-  display:flex;
-  flex-direction:column;
-  line-height:1.15;
-  min-width:0;
-  gap:2px;
-}
-.header-brand-hi-1,
-.header-brand-hi-2{
-  font-weight:900;
-  font-size:16px;
-  white-space:nowrap;
-  letter-spacing:0.2px;
-}
-.header-brand-hi-1{color:var(--saffron);}
-.header-brand-hi-2{color:#1a8a3d;}
-.header-title{
-  text-align:center;
-  font-size:20px;
-  font-weight:700;
-  line-height:1.2;
-  background:var(--uidai-stripe);
-  -webkit-background-clip:text; background-clip:text; color:transparent;
-  padding:0 8px;
-  margin:0;
-  letter-spacing:-0.1px;
-}
-.header-authority{
-  justify-self:end;
-  text-align:left;
-  font-weight:700;
-  font-size:16px;
-  line-height:1.2;
-  color:#1a2a3f;
-  min-width:0;
-}
-
-/* ─── Navbar ─── */
-.navbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:#fafcfe;
-  border-bottom:1px solid var(--border);
-  min-height:42px;
-  position:relative;
-  z-index:30;
-}
-.menu-home-block{
-  width:240px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  padding:6px 14px;
-  border-right:1px solid var(--border);
-}
-.menu-home-block span{
-  cursor:pointer;
-  padding:5px 10px;
-  border-radius:6px;
-  user-select:none;
-  white-space:nowrap;
-  font-size:14px;
-  font-weight:500;
-  color:var(--navy);
-  transition:background .15s, color .15s;
-}
-.menu-home-block span:hover{background:#eaf2fb;color:var(--navy-deep);}
-
-.profile{
-  padding:0 20px;
-  cursor:pointer;
-  position:relative;
-  font-size:18px;
-  line-height:1;
-  user-select:none;
-}
-.profile-menu{
-  position:absolute;
-  right:0;
-  top:42px;
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:8px;
-  display:none;
-  min-width:140px;
-  box-shadow:0 4px 10px rgba(0,0,0,.08);
-  overflow:hidden;
-  z-index:40;
-}
-.profile-menu div{padding:10px 12px;cursor:pointer}
-.profile-menu div:hover{background:#eef6fb}
-
-/* ─── Layout ─── */
-.layout{
-  display:flex;
-  flex:1;
-  min-height:0;
-}
-
-.sidebar{
-  width:240px;
-  background:#fff;
-  border-right:1px solid var(--border);
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-  transition:width .25s ease;
-  min-height:0;
-}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand-logo{height:48px;width:48px;border-radius:50%;background:var(--stripe);color:#fff;display:grid;place-items:center;font-weight:900}
+.brand-text{line-height:1.15;font-weight:800}
+.brand-text span:first-child{color:var(--saffron);display:block}
+.brand-text span:last-child{color:var(--green);display:block}
+.header-title{text-align:center;color:var(--navy);font-size:20px;font-weight:900}
+.authority{justify-self:end;font-weight:700;line-height:1.2}
+.navbar{min-height:42px;background:#fafcfe;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.nav-left{width:240px;display:flex;gap:10px;justify-content:space-between;padding:6px 14px;border-right:1px solid var(--border)}
+.top-action{border:0;background:transparent;color:var(--navy);font-weight:700;cursor:pointer;padding:6px 8px;border-radius:6px}
+.top-action:hover{background:#eef6fb}
+.profile{padding:0 18px;font-weight:900;color:var(--navy)}
+.layout{display:flex;flex:1;min-height:0}
+.sidebar{width:240px;background:#fff;border-right:1px solid var(--border);flex:0 0 auto;transition:width .2s ease;overflow:auto}
 .sidebar.collapsed{width:72px}
-.sidebar.collapsed .text,
-.sidebar.collapsed .submenu-arrow,
-.sidebar.collapsed .submenu-inline{display:none !important}
-.sidebar.collapsed .menu a,
-.sidebar.collapsed .section-head{justify-content:center}
-.sidebar.collapsed .menu a{padding-left:0;padding-right:0}
-
-.menu{
-  padding:12px;
-  overflow:auto;
-}
-.menu a,
-.section-head,
-.submenu div{
-  display:flex;
-  gap:10px;
-  padding:9px 10px;
-  margin-bottom:4px;
-  cursor:pointer;
-  border-radius:6px;
-  align-items:center;
-  user-select:none;
-  line-height:1.25;
-  text-decoration:none;
-  color:var(--text);
-}
-.menu a:hover,
-.section-head:hover,
-.submenu div:hover{background:#eef6fb;}
-.menu a.active,
-.section-head.active{
-  background:var(--uidai-stripe);
-  color:#fff;
-}
-.menu a.active:hover,
-.section-head.active:hover{
-  background:var(--uidai-stripe);
-}
-
-.submenu{
-  display:block;
-  padding-left:18px;
-  margin-bottom:8px;
-}
-.submenu-inline{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex:1;
-  line-height:1.35;
-}
-
-.section-head{
-  justify-content:space-between;
-}
-.submenu-arrow{
-  font-size:12px;
-  margin-left:auto;
-}
-
-/* ─── Content + Welcome Panel ─── */
-.content{
-  flex:1;
-  padding:20px;
-  min-width:0;
-  display:flex;
-  overflow:auto;
-}
-.welcome-panel{
+.menu{padding:12px}
+.menu-row,.view-tab{
   width:100%;
-  background:linear-gradient(180deg,#ffffff 0%, #f8fbff 100%);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:0;
+  background:transparent;
+  color:var(--text);
+  text-align:left;
+  cursor:pointer;
+  padding:9px 10px;
+  border-radius:6px;
+  margin-bottom:4px;
+}
+.menu-row.active,.view-tab.active{background:var(--stripe);color:#fff}
+.menu-row:hover,.view-tab:hover{background:#eef6fb}
+.menu-row.active:hover,.view-tab.active:hover{background:var(--stripe)}
+.nav-icon{width:18px;height:18px;flex:0 0 18px;border-radius:5px;border:2px solid currentColor;position:relative}
+.nav-icon.dashboard:after{content:"";position:absolute;left:3px;right:3px;top:7px;border-top:2px solid currentColor}
+.nav-icon.summary{border-radius:50%}
+.nav-icon.project:after{content:"";position:absolute;left:3px;right:3px;top:4px;border-top:2px solid currentColor;box-shadow:0 4px 0 currentColor}
+.nav-icon.org:before,.nav-icon.org:after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:currentColor;top:4px}
+.nav-icon.org:before{left:2px}.nav-icon.org:after{right:2px}
+.nav-icon.box{border-radius:3px}
+.submenu{padding-left:20px}
+.submenu.collapsed{display:none}
+.sidebar.collapsed .label,.sidebar.collapsed .chev,.sidebar.collapsed .submenu{display:none}
+.sidebar.collapsed .menu-row,.sidebar.collapsed .view-tab{justify-content:center}
+.chev{margin-left:auto;font-size:12px}
+.content{flex:1;min-width:0;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:16px}
+.page-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.page-title{font-size:22px;font-weight:900;color:var(--navy);padding-left:14px;position:relative}
+.page-title:before{content:"";position:absolute;left:0;top:5px;bottom:5px;width:5px;border-radius:3px;background:var(--stripe)}
+.primary-btn,.ghost-btn,.more-btn{
+  border:1px solid var(--border);
+  background:#fff;
+  color:var(--navy);
+  border-radius:7px;
+  padding:7px 12px;
+  font-size:12.5px;
+  font-weight:800;
+  cursor:pointer;
+}
+.primary-btn{background:var(--stripe);color:#fff;border:0}
+.ghost-btn:hover,.more-btn:hover{background:#eef6fb;border-color:#c8d6ee}
+.view{display:flex;flex-direction:column;gap:16px;animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card,.project-head,.track-head{
+  background:linear-gradient(180deg,#fff,#fbfdff);
   border:1px solid var(--border-soft);
   border-radius:12px;
-  box-shadow:0 4px 14px rgba(11,60,136,.08);
-  padding:28px;
-  align-self:flex-start;
+  box-shadow:0 4px 14px rgba(11,60,136,.07);
+  padding:18px;
   position:relative;
 }
-/* signature UIDAI stripe on welcome panel (it's a primary surface) */
-/* -1px offsets to align with rounded corners over the border */
-.welcome-panel::before{
+.card:before,.project-head:before,.track-head:before,.picker-card:before{
   content:"";
   position:absolute;
-  top:-1px; left:-1px; right:-1px;
+  top:-1px;
+  left:-1px;
+  right:-1px;
   height:4px;
-  background:var(--uidai-stripe);
+  background:var(--stripe);
   border-radius:12px 12px 0 0;
 }
-.welcome-title{
-  font-size:26px;
-  font-weight:700;
-  color:var(--navy);
-  line-height:1.25;
-  margin-bottom:6px;
-  position:relative;
-  padding-left:16px;
-  letter-spacing:-0.2px;
-}
-
-.welcome-subtitle{
-  font-size:15px;
-  color:var(--text-soft);
-  line-height:1.75;
-  max-width:980px;
-  margin-left:16px;
-}
-/* Sub-cards inside welcome panel — clean, no stripe (matches Aadhaar's "Media Coverage" pattern) */
-.info-grid{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:16px;
-  margin-top:22px;
-}
-.info-card{
+.card-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--navy);font-weight:900;margin-bottom:14px}
+.card-sub{margin-left:auto;color:var(--text-muted);font-size:11.5px;font-weight:500}
+.card-tools{margin-left:auto;display:flex;align-items:center;gap:8px}
+.card-tools label{font-size:11.5px;color:var(--text-muted);font-weight:900}
+.card-tools select{border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--navy);font-size:12px;font-weight:800;padding:6px 8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.kpi-grid{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:12px}
+.kpi{
   background:#fff;
   border:1px solid var(--border-soft);
   border-radius:10px;
-  padding:18px;
+  padding:14px 14px 12px;
   box-shadow:0 2px 8px rgba(11,60,136,.05);
-  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-}
-.info-card:hover{
-  transform:translateY(-2px);
-  box-shadow:0 6px 16px rgba(11,60,136,.10);
-  border-color:#c8d6ee;
-}
-.info-card h3{
-  font-size:16px;
-  font-weight:700;
-  color:var(--navy);
-  margin-bottom:6px;
-}
-/* Green tagline-style hint inside info cards — optional UIDAI flavour */
-.info-card .info-tag{
-  font-size:12.5px;
-  font-weight:700;
-  color:var(--green);
-  margin-bottom:6px;
-}
-.info-card p{
-  font-size:13px;
-  color:var(--text-soft);
-  line-height:1.7;
-}
-
-/* ─── UIDAI-themed Footer ─── */
-.site-footer{
-  background:linear-gradient(90deg, #eaf1fb 0%, #f5f9fe 50%, #eaf1fb 100%);
-  color:var(--navy);
-  text-align:center;
-  padding:10px 16px;
-  font-size:12.5px;
-  font-weight:600;
-  letter-spacing:0.2px;
-  margin-top:auto;
+  text-align:left;
   position:relative;
+  overflow:hidden;
 }
-.site-footer::before{
-  content:"";
-  position:absolute;
-  top:0; left:0; right:0;
-  height:3px;
-  background:var(--uidai-stripe);
+.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cyan)}
+.kpi.total:before{background:var(--navy)}
+.kpi.completed:before{background:var(--green)}
+.kpi.ontrack:before{background:var(--cyan)}
+.kpi.delayed:before{background:var(--saffron)}
+.kpi.pending:before{background:var(--purple)}
+.kpi.clickable{cursor:pointer}
+.kpi.clickable:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(11,60,136,.12);border-color:#c8d6ee}
+.kpi-label{font-size:10.5px;color:var(--text-muted);font-weight:900;text-transform:uppercase;letter-spacing:.45px;line-height:1.25}
+.kpi-value{font-size:27px;font-weight:900;color:var(--navy);line-height:1;margin-top:7px;font-variant-numeric:tabular-nums}
+.kpi.completed .kpi-value{color:var(--green)}
+.kpi.ontrack .kpi-value{color:var(--cyan)}
+.kpi.delayed .kpi-value{color:var(--saffron)}
+.kpi.pending .kpi-value{color:var(--purple)}
+.kpi-foot{font-size:11px;color:var(--text-muted);margin-top:7px;line-height:1.35}
+.click-note{font-size:10px;font-weight:800;color:var(--navy);margin-top:4px}
+.donut-wrap{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.donut{width:190px;height:190px}
+.legend{display:flex;flex-direction:column;gap:8px}
+.legend-item{display:flex;align-items:center;gap:8px;background:#f8fbff;border-radius:6px;padding:7px 8px;font-size:12.5px}
+.swatch{width:12px;height:12px;border-radius:3px;flex:0 0 12px}
+.legend-name{flex:1;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.legend-value{font-weight:900;color:var(--navy)}
+.delay-list{display:flex;flex-direction:column;gap:8px}
+.delay-row{
+  display:grid;
+  grid-template-columns:1fr 130px;
+  gap:10px;
+  align-items:center;
+  border:0;
+  background:#fff;
+  text-align:left;
+  border-radius:8px;
+  padding:7px;
+  cursor:pointer;
 }
-.site-footer .sep{
-  color:var(--cyan);
-  margin:0 8px;
-  font-weight:700;
-}
-
-@media (max-width: 960px){
-  .header-main{grid-template-columns:1fr; text-align:center; gap:8px; padding:8px 14px;}
-  .header-brand{justify-content:center;}
-  .header-title{padding:2px 0;}
-  .header-authority{text-align:center; justify-self:auto;}
-  .header-accessibility-strip{padding:3px 14px;}
-
-  .navbar{
-    flex-wrap:wrap;
-  }
-
-  .menu-home-block{
-    width:100%;
-    border-right:none;
-    border-bottom:1px solid var(--border);
-  }
-
-  .layout{
-    flex-direction:column;
-  }
-
-  .sidebar{
-    width:100%;
-    border-right:none;
-    border-bottom:1px solid var(--border);
-  }
-
-  .sidebar.collapsed{
-    width:100%;
-  }
-
-  .sidebar.collapsed .text,
-  .sidebar.collapsed .submenu-arrow,
-  .sidebar.collapsed .submenu-inline{
-    display:inline-flex !important;
-  }
-
-  .sidebar.collapsed .menu a,
-  .sidebar.collapsed .section-head{
-    justify-content:flex-start;
-  }
-
-  .menu{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:8px;
-  }
-
-  .menu a,
-  .section-head,
-  .submenu div{
-    margin-bottom:0;
-  }
-
-  .submenu{
-    padding-left:0;
-    display:block;
-  }
-
-  .content{
-    padding:16px;
-  }
-
-  .welcome-panel{
-    padding:22px;
-  }
-
-  .info-grid{
-    grid-template-columns:1fr;
-  }
-}
-
-@media (max-width: 640px){
-  .header-accessibility-strip{padding:3px 10px; flex-wrap:wrap; justify-content:center; gap:8px;}
-  .header-main{padding:8px 10px;}
-  .header-brand img{height:38px;}
-  .header-title{font-size:16px;}
-  .header-authority{font-size:12px;}
-
-  .menu-home-block{
-    padding:8px 10px;
-    gap:8px;
-  }
-
-  .menu-home-block span{
-    padding:6px 8px;
-  }
-
-  .profile{
-    padding:0 12px;
-  }
-
-  .welcome-panel{
-    padding:18px;
-  }
-
-  .welcome-title{
-    font-size:22px;
-  }
-
-  .welcome-subtitle{
-    font-size:13px;
-    line-height:1.65;
-  }
-
-  .menu{
-    grid-template-columns:1fr;
-  }
-
-  .welcome-title,
-  .welcome-subtitle{
-    max-width:100%;
-  }
-
-  .font-resizer button{padding:3px 7px; font-size:11px;}
-  .a11y-label{display:none;}
-}
-
-/* ============================================================
-   DASHBOARD-SPECIFIC STYLES (additive — base UX untouched)
-   ============================================================ */
-.dashboard-wrap{
-  width:100%;
+.delay-row:hover{background:#fff7f2}
+.delay-name{font-size:12.5px;font-weight:800;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.delay-context{display:block;color:var(--text-muted);font-size:11px;font-weight:500;margin-top:2px}
+.delay-meter{display:flex;align-items:center;gap:6px}
+.delay-pill{font-size:10.5px;font-weight:900;color:var(--saffron);min-width:48px;text-align:right;white-space:nowrap}
+.delay-track{flex:1;height:14px;background:#fdf3ee;border:1px solid #fae0d2;border-radius:4px;overflow:hidden;min-width:30px}
+.delay-fill{height:100%;background:linear-gradient(90deg,#f08762,var(--saffron));border-radius:4px}
+.actions{display:flex;justify-content:flex-end;margin-top:12px}
+.signal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.signal-card{
+  border:1px solid var(--border-soft);
+  background:#fff;
+  border-radius:10px;
+  padding:12px;
+  cursor:pointer;
+  text-align:left;
   display:flex;
   flex-direction:column;
-  gap:18px;
-  align-self:flex-start;
-}
-
-/* ── Page header ── */
-.dash-page-header{
-  display:flex;justify-content:space-between;align-items:flex-start;
-  gap:14px;flex-wrap:wrap;
-}
-.dash-page-title{
-  font-size:24px;font-weight:700;color:var(--navy);line-height:1.2;letter-spacing:-0.2px;
-}
-.dash-page-sub{
-  font-size:13px;color:var(--green);font-weight:500;margin-top:4px;
-}
-.dash-actions{display:flex;gap:8px;flex-wrap:wrap}
-.dash-btn{
-  background:var(--uidai-stripe);color:#fff;border:0;padding:8px 16px;
-  border-radius:6px;font-weight:700;font-size:13px;cursor:pointer;
-  font-family:inherit;display:inline-flex;align-items:center;gap:6px;
-  transition:transform .08s ease, box-shadow .15s ease;
-  box-shadow:0 2px 6px rgba(11,60,136,.15);
-}
-.dash-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(11,60,136,.22)}
-.dash-btn.cancel{
-  background:#fff;color:var(--navy);border:1px solid var(--border);
-  box-shadow:0 1px 3px rgba(11,60,136,.06);
-}
-.dash-btn.cancel:hover{background:var(--light-cool)}
-
-/* ── Cards (mirror welcome-panel pattern) ── */
-.dash-card{
-  background:linear-gradient(180deg,#ffffff 0%, #f8fbff 100%);
-  border:1px solid var(--border-soft);border-radius:12px;
-  box-shadow:0 4px 14px rgba(11,60,136,.08);padding:20px;position:relative;
-}
-.dash-card::before{
-  content:"";position:absolute;top:-1px;left:-1px;right:-1px;height:4px;
-  background:var(--uidai-stripe);border-radius:12px 12px 0 0;
-}
-.dash-card-title{
-  font-size:15px;font-weight:700;color:var(--navy);margin-bottom:14px;
-  display:flex;align-items:center;gap:8px;
-}
-.dash-card-title::before{
-  content:"";width:5px;height:14px;background:var(--uidai-stripe);
-  border-radius:3px;display:inline-block;
-}
-.dash-card-title .dash-card-sub{
-  font-size:12px;font-weight:500;color:var(--text-muted);margin-left:auto;
-}
-.dash-hint{font-size:12.5px;color:var(--text-muted)}
-
-/* ── View tabs ── */
-.dash-view-tabs{
-  display:flex;gap:4px;background:#fff;border:1px solid var(--border-soft);
-  border-radius:10px;padding:4px;box-shadow:0 1px 3px rgba(11,60,136,.05);
-  flex-wrap:wrap;
-}
-.dash-tab{
-  background:transparent;border:0;padding:8px 14px;border-radius:7px;
-  font-family:inherit;font-size:13px;font-weight:600;color:var(--text-soft);
-  cursor:pointer;display:inline-flex;align-items:center;gap:6px;flex:1;
-  justify-content:center;min-width:120px;
-  transition:background .12s ease, color .12s ease;
-}
-.dash-tab:hover{background:#eef6fb;color:var(--navy)}
-.dash-tab.active{background:var(--uidai-stripe);color:#fff;box-shadow:0 2px 6px rgba(11,60,136,.15)}
-.dash-tab .tab-ico{font-size:14px}
-
-/* ── Search + Breadcrumb row ── */
-.dash-toolbar{
-  display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:12px;align-items:center;
-}
-.dash-search{
-  position:relative;display:flex;align-items:center;
-  background:#fff;border:1px solid var(--border);border-radius:8px;
-  padding:0 12px;height:40px;box-shadow:0 1px 3px rgba(11,60,136,.05);
-}
-.dash-search:focus-within{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(10,161,192,.15)}
-.dash-search-ico{
-  font-size:14px;color:var(--text-muted);margin-right:8px;flex-shrink:0;
-}
-.dash-search input{
-  flex:1;border:0;outline:none;background:transparent;font-family:inherit;
-  font-size:13.5px;color:var(--text);min-width:0;
-}
-.dash-search input::placeholder{color:var(--text-muted)}
-.dash-search-clear{
-  background:transparent;border:0;color:var(--text-muted);cursor:pointer;
-  padding:4px;font-size:14px;line-height:1;display:none;
-}
-.dash-search-clear.visible{display:inline-block}
-.dash-search-clear:hover{color:var(--saffron)}
-
-.dash-breadcrumb{
-  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
-  font-size:12.5px;color:var(--text-muted);
-}
-.dash-bc-link{
-  background:#fff;border:1px solid var(--border);border-radius:6px;
-  padding:4px 10px;font-family:inherit;font-size:12.5px;font-weight:600;
-  color:var(--navy);cursor:pointer;transition:background .1s ease;
-}
-.dash-bc-link:hover{background:var(--light-cool)}
-.dash-bc-current{
-  padding:4px 10px;background:var(--light-cool);border-radius:6px;
-  font-weight:600;color:var(--text);
-}
-.dash-bc-sep{color:var(--text-muted);font-weight:700}
-
-/* ── KPI tiles ── */
-.dash-kpi-grid{
-  display:grid;grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));gap:12px;
-}
-.dash-kpi{
-  background:#fff;border:1px solid var(--border-soft);border-radius:10px;
-  padding:14px 16px;cursor:pointer;position:relative;overflow:hidden;
-  box-shadow:0 2px 8px rgba(11,60,136,.05);
-  transition:transform .12s ease, box-shadow .15s ease, border-color .15s ease;
-  text-align:left;font-family:inherit;
-}
-.dash-kpi:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(11,60,136,.10);border-color:#c8d6ee}
-.dash-kpi.active{border-color:var(--navy);box-shadow:0 0 0 2px rgba(11,60,136,.18), 0 6px 16px rgba(11,60,136,.10)}
-.dash-kpi.no-drill{cursor:default}
-.dash-kpi.no-drill:hover{transform:none}
-.dash-kpi::before{
-  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cyan);
-}
-.dash-kpi.k-total::before{background:var(--navy)}
-.dash-kpi.k-completed::before{background:var(--green)}
-.dash-kpi.k-ontrack::before{background:var(--cyan)}
-.dash-kpi.k-delayed::before{background:var(--saffron)}
-.dash-kpi.k-notstarted::before{background:#9aa6bd}
-.dash-kpi.k-extra::before{background:#7e57c2}
-.dash-kpi-label{
-  font-size:11.5px;color:var(--text-muted);font-weight:600;
-  text-transform:uppercase;letter-spacing:0.5px;
-}
-.dash-kpi-value{
-  font-size:26px;font-weight:900;color:var(--navy);margin-top:4px;line-height:1;
-}
-.dash-kpi-foot{font-size:11px;color:var(--text-muted);margin-top:4px}
-.dash-kpi.k-completed .dash-kpi-value{color:var(--green)}
-.dash-kpi.k-delayed .dash-kpi-value{color:var(--saffron)}
-.dash-kpi.k-ontrack .dash-kpi-value{color:var(--cyan)}
-.dash-kpi.k-extra .dash-kpi-value{color:#7e57c2}
-
-/* ── Two-column chart row ── */
-.dash-chart-row{
-  display:grid;grid-template-columns:1fr 1fr;gap:18px;
-}
-.dash-chart-row > .dash-card{margin:0}
-
-/* ── Donut + legend layout ── */
-.dash-donut-wrap{
-  display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;
-}
-.dash-donut{width:100%;max-width:200px;height:auto}
-.dash-legend{display:flex;flex-direction:column;gap:8px;min-width:0}
-.dash-legend-item{
-  display:flex;align-items:center;gap:8px;font-size:12.5px;
-  padding:6px 8px;border-radius:6px;background:#f8fbff;
-}
-.dash-legend-swatch{
-  width:12px;height:12px;border-radius:3px;flex-shrink:0;
-}
-.dash-legend-name{flex:1;color:var(--text);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dash-legend-value{
-  font-size:12.5px;font-weight:700;color:var(--navy);
-}
-.dash-legend-pct{font-size:11px;color:var(--text-muted);margin-left:4px}
-.l-completed{background:var(--green)}
-.l-ontrack{background:var(--cyan)}
-.l-delayed{background:var(--saffron)}
-.l-notstarted{background:#9aa6bd}
-
-/* ── Stacked bar ── */
-.dash-stacked{
-  display:flex;flex-direction:column;gap:14px;
-}
-.dash-stacked-bar{
-  display:flex;width:100%;height:36px;border-radius:8px;overflow:hidden;
-  border:1px solid var(--border);box-shadow:0 1px 3px rgba(11,60,136,.05);
-}
-.dash-stacked-bar .seg{
-  display:flex;align-items:center;justify-content:center;
-  color:#fff;font-size:11px;font-weight:700;min-width:0;
-  transition:flex-grow .3s ease;
-}
-.dash-stacked-bar .seg.empty{
-  background:#eef3fa;color:var(--text-muted);width:100%;
-  display:flex;align-items:center;justify-content:center;
-}
-.seg-completed{background:var(--green)}
-.seg-ontrack{background:var(--cyan)}
-.seg-delayed{background:var(--saffron)}
-.seg-notstarted{background:#9aa6bd}
-
-/* Mini per-status indicator strip */
-.dash-mini-strip{
-  display:flex;flex-direction:column;gap:6px;margin-top:4px;
-}
-.dash-mini-strip .row{
-  display:grid;grid-template-columns:90px 1fr 50px;gap:10px;align-items:center;
-  font-size:12px;
-}
-.dash-mini-strip .row .lbl{color:var(--text-soft);font-weight:600}
-.dash-mini-strip .row .bar{
-  height:8px;background:#eef3fa;border-radius:4px;overflow:hidden;
-}
-.dash-mini-strip .row .bar > div{height:100%;border-radius:4px}
-.dash-mini-strip .row .num{font-weight:700;color:var(--navy);text-align:right}
-
-/* ── Top delays bar chart ── */
-.dash-delays{display:flex;flex-direction:column;gap:10px}
-.dash-delay-row{
-  display:grid;grid-template-columns:1fr 90px;gap:10px;align-items:center;
-  font-size:12.5px;
-}
-.dash-delay-name{
-  color:var(--text);font-weight:600;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.dash-delay-name .ctx{color:var(--text-muted);font-weight:400;font-size:11.5px}
-.dash-delay-track{
-  position:relative;height:18px;background:#fdf3ee;border-radius:4px;
-  overflow:hidden;border:1px solid #fae0d2;
-}
-.dash-delay-fill{
-  height:100%;background:linear-gradient(90deg, #f08762, var(--saffron));
-  border-radius:4px;
-  display:flex;align-items:center;justify-content:flex-end;
-  padding-right:6px;color:#fff;font-size:10.5px;font-weight:700;
-  transition:width .3s ease;
-}
-
-/* ── Group comparison bars ── */
-.dash-groups{display:flex;flex-direction:column;gap:12px}
-.dash-group-row{
-  display:grid;grid-template-columns:120px 1fr 60px;gap:10px;align-items:center;
-  font-size:12.5px;
-}
-.dash-group-name{
-  color:var(--text);font-weight:600;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.dash-group-stack{
-  height:22px;display:flex;border-radius:5px;overflow:hidden;
-  border:1px solid var(--border);background:#eef3fa;
-}
-.dash-group-stack .seg{
-  height:100%;display:flex;align-items:center;justify-content:center;
-  color:#fff;font-size:10px;font-weight:700;transition:flex-grow .3s ease;
-}
-.dash-group-total{
-  font-weight:700;color:var(--navy);text-align:right;font-size:13px;
-}
-
-/* ── Mini gantt timeline ── */
-.dash-gantt{display:flex;flex-direction:column;gap:8px}
-.dash-gantt-row{
-  display:grid;grid-template-columns:160px 1fr;gap:12px;align-items:center;
-  font-size:12.5px;
-}
-.dash-gantt-label{
-  color:var(--text);font-weight:600;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.dash-gantt-label .ctx{display:block;color:var(--text-muted);font-weight:400;font-size:11px;margin-top:1px}
-.dash-gantt-track{
-  position:relative;height:20px;background:#f4f7fb;border-radius:4px;
-  border:1px solid var(--border-soft);overflow:hidden;
-}
-.dash-gantt-bar{
-  position:absolute;top:3px;height:14px;border-radius:3px;min-width:4px;
-  transition:left .3s ease, width .3s ease;
-}
-.dash-gantt-bar.g-completed{background:var(--green)}
-.dash-gantt-bar.g-ontrack{background:var(--cyan)}
-.dash-gantt-bar.g-delayed{background:var(--saffron)}
-.dash-gantt-bar.g-notstarted{background:#b5bfd1}
-.dash-gantt-actual{
-  position:absolute;top:14px;height:4px;background:rgba(11,60,136,.5);border-radius:2px;
-}
-.dash-gantt-today{
-  position:absolute;top:0;bottom:0;width:2px;background:var(--red);z-index:2;
-}
-.dash-gantt-today::after{
-  content:"TODAY";position:absolute;top:-15px;left:-18px;
-  font-size:9px;font-weight:700;color:var(--red);background:#fff;padding:1px 4px;
-  border:1px solid var(--red);border-radius:3px;white-space:nowrap;
-}
-.dash-gantt-axis{
-  display:flex;justify-content:space-between;margin-top:6px;padding-left:172px;
-  font-size:11px;color:var(--text-muted);
-}
-
-/* ── Items list (cards) ── */
-.dash-items-grid{
-  display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:12px;
-}
-.dash-item-card{
-  background:#fff;border:1px solid var(--border-soft);border-radius:10px;
-  padding:14px;cursor:pointer;text-align:left;font-family:inherit;
-  box-shadow:0 1px 3px rgba(11,60,136,.05);position:relative;overflow:hidden;
-  transition:transform .12s ease, box-shadow .15s ease, border-color .15s ease;
-  display:flex;flex-direction:column;gap:8px;
-}
-.dash-item-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(11,60,136,.10);border-color:#c8d6ee}
-.dash-item-card::before{
-  content:"";position:absolute;top:0;left:0;width:4px;height:100%;
-  background:var(--cyan);
-}
-.dash-item-card.s-completed::before{background:var(--green)}
-.dash-item-card.s-ontrack::before{background:var(--cyan)}
-.dash-item-card.s-delayed::before{background:var(--saffron)}
-.dash-item-card.s-notstarted::before{background:#9aa6bd}
-.dash-item-head{
-  display:flex;justify-content:space-between;align-items:flex-start;gap:8px;
-}
-.dash-item-id{
-  font-size:11px;font-weight:700;color:var(--text-muted);
-  text-transform:uppercase;letter-spacing:0.4px;
-}
-.dash-item-name{
-  font-size:14px;font-weight:700;color:var(--navy);line-height:1.3;
-  margin-top:2px;
-}
-.dash-item-meta{
-  display:flex;flex-wrap:wrap;gap:8px;font-size:11.5px;color:var(--text-muted);
-}
-.dash-item-meta-chip{
-  background:#f4f7fb;padding:2px 8px;border-radius:10px;
-  font-weight:600;color:var(--text-soft);
-}
-.dash-item-progress{
-  display:flex;align-items:center;gap:8px;
-}
-.dash-item-progress-bar{
-  flex:1;height:8px;background:#eef3fa;border-radius:4px;overflow:hidden;
-}
-.dash-item-progress-bar > div{
-  height:100%;background:linear-gradient(90deg,var(--cyan),var(--navy));border-radius:4px;
-}
-.dash-item-progress-pct{
-  font-size:13px;font-weight:800;color:var(--navy);min-width:36px;text-align:right;
-}
-.dash-item-foot{
-  display:flex;justify-content:space-between;align-items:center;gap:8px;
-  font-size:11.5px;color:var(--text-muted);flex-wrap:wrap;
-}
-.dash-item-foot .delay-badge{color:var(--saffron);font-weight:700}
-.dash-item-foot .ahead-badge{color:var(--green);font-weight:700}
-
-/* ── Status pills ── */
-.dash-pill{
-  display:inline-block;padding:3px 10px;border-radius:20px;
-  font-size:10.5px;font-weight:700;letter-spacing:0.3px;
-  white-space:nowrap;
-}
-.dash-s-completed{background:#e7f8ee;color:var(--green)}
-.dash-s-ontrack{background:#e3eefc;color:var(--navy)}
-.dash-s-delayed{background:#fde5d9;color:var(--saffron)}
-.dash-s-notstarted{background:#f0f2f7;color:var(--text-muted)}
-
-/* ── Tasks table (deepest level) ── */
-.dash-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.dash-tbl{
-  width:100%;border-collapse:separate;border-spacing:0;
-  font-size:13px;min-width:560px;
-}
-.dash-tbl th, .dash-tbl td{
-  padding:10px 12px;text-align:left;border-bottom:1px solid var(--border-soft);
-  vertical-align:middle;
-}
-.dash-tbl th{
-  background:#eef3fa;color:var(--navy);font-weight:700;font-size:12px;
-  text-transform:uppercase;letter-spacing:0.4px;
-}
-.dash-tbl tbody tr:hover td{background:#f4f9ff}
-
-/* ── Empty state ── */
-.dash-empty{
-  padding:30px 20px;text-align:center;color:var(--text-muted);font-size:13px;
-}
-.dash-empty .e-ico{font-size:32px;opacity:0.4;margin-bottom:8px}
-
-/* ── Filter chips (vendor/division view) ── */
-.dash-chips{display:flex;flex-wrap:wrap;gap:6px}
-.dash-chip{
-  background:#f4f7fb;border:1px solid var(--border-soft);
-  padding:4px 10px;border-radius:14px;font-size:11.5px;
-  color:var(--text-soft);font-weight:600;
-}
-
-/* ── Responsive — page-level dashboard tweaks ── */
-@media (max-width: 960px){
-  .dash-page-title{font-size:21px}
-  .dash-chart-row{grid-template-columns:1fr;gap:14px}
-  .dash-toolbar{grid-template-columns:1fr}
-  .dash-gantt-row{grid-template-columns:130px 1fr}
-  .dash-gantt-axis{padding-left:142px}
-  .dash-group-row{grid-template-columns:100px 1fr 50px}
-  .dash-donut-wrap{grid-template-columns:1fr;justify-items:center}
-  .dash-donut{max-width:180px}
-}
-@media (max-width: 640px){
-  .dashboard-wrap{gap:14px}
-  .dash-card{padding:14px}
-  .dash-page-title{font-size:19px}
-  .dash-page-header{flex-direction:column;align-items:stretch}
-  .dash-actions{justify-content:flex-end}
-  .dash-view-tabs{padding:3px}
-  .dash-tab{padding:7px 8px;font-size:12px;min-width:0}
-  .dash-tab .tab-ico{display:none}
-  .dash-kpi-grid{grid-template-columns:repeat(2, 1fr);gap:8px}
-  .dash-kpi{padding:11px 12px}
-  .dash-kpi-value{font-size:21px}
-  .dash-kpi-label{font-size:10px}
-  .dash-items-grid{grid-template-columns:1fr;gap:10px}
-  .dash-tbl th, .dash-tbl td{padding:8px 10px;font-size:12px}
-  .dash-gantt-row{grid-template-columns:1fr;gap:4px}
-  .dash-gantt-axis{padding-left:0}
-  .dash-gantt-label{font-size:12px;font-weight:700}
-  .dash-group-row{grid-template-columns:80px 1fr 40px;font-size:11.5px}
-  .dash-delay-row{grid-template-columns:1fr 70px;font-size:11.5px}
-  .dash-mini-strip .row{grid-template-columns:70px 1fr 40px;font-size:11px}
-  .dash-stacked-bar{height:30px}
-  .dash-stacked-bar .seg{font-size:10px}
-  .dash-search{height:36px}
-  .dash-search input{font-size:12.5px}
-}
-@media (max-width: 380px){
-  .dash-kpi-grid{grid-template-columns:1fr}
-  .dash-tab{padding:6px 4px;font-size:11px}
+  gap:10px;
+}
+.signal-card:hover{border-color:#c8d6ee;box-shadow:0 6px 16px rgba(11,60,136,.1)}
+.signal-head{display:flex;justify-content:space-between;gap:8px}
+.signal-name{font-weight:900;color:var(--navy)}
+.signal-total{font-size:12px;font-weight:900;color:var(--text-muted);white-space:nowrap}
+.signal-row{display:grid;grid-template-columns:84px 1fr 28px;gap:8px;align-items:center;font-size:11.5px;margin-top:7px}
+.signal-row .bar{height:8px;background:#eef3fa;border-radius:4px;overflow:hidden}
+.signal-row .bar div{height:100%;border-radius:4px}
+.signal-row .num{text-align:right;font-weight:900;color:var(--navy)}
+.picker-card{background:#fff;border:1px solid var(--border-soft);border-radius:12px;padding:14px 18px;box-shadow:0 4px 14px rgba(11,60,136,.07);position:relative}
+.picker-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.picker-label{font-size:12px;font-weight:900;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
+.combo{position:relative;flex:1;min-width:280px}
+.combo-btn{width:100%;height:42px;border:1px solid var(--border);background:#fff;border-radius:8px;padding:0 12px;display:flex;align-items:center;gap:10px;cursor:pointer;color:var(--text)}
+.combo-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;font-weight:700}
+.combo-menu{display:none;position:absolute;z-index:20;left:0;right:0;top:48px;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 26px rgba(11,60,136,.16);padding:10px}
+.combo.open .combo-menu{display:block}
+.project-search,.list-search{width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 10px;margin-bottom:8px}
+.option-list{max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:4px}
+.project-option{border:0;background:#fff;border-radius:7px;padding:9px 10px;text-align:left;cursor:pointer;color:var(--text)}
+.project-option:hover,.project-option.active{background:#eef6fb}
+.project-option-id{display:block;font-size:10.5px;font-weight:900;color:var(--text-muted)}
+.project-option-name{display:block;font-weight:900;color:var(--navy);margin-top:2px}
+.project-option-meta{display:block;font-size:11px;color:var(--text-muted);margin-top:2px}
+.project-title{font-size:20px;font-weight:900;color:var(--navy);line-height:1.25;margin-top:3px}
+.project-id{font-size:11px;font-weight:900;color:var(--text-muted);letter-spacing:.5px}
+.project-desc{font-size:13px;color:var(--text-soft);margin-top:6px;line-height:1.45}
+.project-meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border-soft)}
+.meta-item{display:flex;flex-direction:column;gap:2px;font-size:12.5px}
+.meta-label{font-size:10.5px;color:var(--text-muted);font-weight:900;text-transform:uppercase}
+.meta-value{font-weight:900;color:var(--navy)}
+.progress-line{display:flex;align-items:center;gap:10px;margin-top:14px}
+.progress-track{flex:1;min-width:140px;height:10px;background:#eef3fa;border-radius:5px;overflow:hidden}
+.progress-fill{height:100%;background:var(--stripe);border-radius:5px}
+.progress-pct{font-weight:900;color:var(--navy);font-variant-numeric:tabular-nums}
+.project-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.project-card{border:1px solid var(--border-soft);background:#fff;border-radius:10px;padding:14px;text-align:left;cursor:pointer}
+.project-card:hover{border-color:#c8d6ee;box-shadow:0 6px 16px rgba(11,60,136,.1)}
+.project-card-id{font-size:10.5px;font-weight:900;color:var(--text-muted)}
+.project-card-title{font-weight:900;color:var(--navy);margin-top:3px}
+.project-card-meta{font-size:11.5px;color:var(--text-muted);margin-top:5px;line-height:1.45}
+.pill{display:inline-block;border-radius:999px;padding:3px 9px;font-size:10.5px;font-weight:900;white-space:nowrap}
+.pill.completed{background:#e7f8ee;color:var(--green)}
+.pill.ontrack{background:#e3eefc;color:var(--navy)}
+.pill.delayed{background:#fde5d9;color:var(--saffron)}
+.pill.active{background:#f0f2f7;color:var(--text-muted)}
+.pill.pending{background:var(--purple-soft);color:var(--purple)}
+.track-head-title{font-size:22px;font-weight:900;color:var(--navy)}
+.track-sub{font-size:13px;color:var(--text-soft);margin-top:6px}
+.track-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.track-table-wrap{overflow:auto;border:1px solid var(--border);border-radius:10px;background:#fff}
+.track-table{width:100%;border-collapse:separate;border-spacing:0;min-width:960px;font-size:13px}
+.track-table th{background:linear-gradient(180deg,#3a6cb5,#2d5ba0);color:#fff;text-align:left;padding:13px 12px;font-size:11.5px;text-transform:uppercase;letter-spacing:.35px;white-space:nowrap}
+.track-table td{padding:10px 12px;border-bottom:1px solid var(--border-soft);vertical-align:middle}
+.track-table tbody tr td{cursor:pointer}
+.track-table tbody tr td:last-child{cursor:default}
+.track-table tbody tr:hover td{background:#e7f1ff}
+.row-milestone td{background:#eef4fc}
+.row-activity td{background:#f7fafe}
+.wbs{font-family:Consolas,Menlo,monospace;font-weight:900;color:#2d5ba0;white-space:nowrap}
+.track-name{font-weight:900;color:var(--navy)}
+.row-activity .track-name{color:#0e6fa3;padding-left:14px}
+.row-task .track-name{color:var(--cyan);padding-left:28px}
+.track-context{display:block;font-size:11px;color:var(--text-muted);margin-top:2px}
+.mini-progress{display:grid;grid-template-columns:1fr 38px;gap:8px;align-items:center;min-width:130px}
+.mini-progress .bar{height:7px;background:#eef3fa;border-radius:4px;overflow:hidden}
+.mini-progress .bar div{height:100%;background:var(--stripe);border-radius:4px}
+.mini-progress .pct{font-size:11px;font-weight:900;color:var(--navy);text-align:right}
+.date-cell{white-space:nowrap;font-variant-numeric:tabular-nums;color:#3d4c6b}
+.type-pill{display:inline-block;background:#eef3fa;color:var(--navy);border-radius:9px;padding:3px 8px;font-size:11px;font-weight:900}
+.pm-btn{border:1px solid var(--border);background:#fff;color:var(--navy);border-radius:7px;padding:5px 9px;font-size:11px;font-weight:900;cursor:pointer;white-space:nowrap}
+.pm-btn:hover{background:#eef6fb;border-color:#c8d6ee}
+.row-milestone .wbs,.row-milestone .track-name{font-weight:900}
+.row-activity .wbs{padding-left:10px}
+.row-task .wbs{padding-left:22px}
+.row-subtask .wbs{padding-left:34px}
+.row-subtask .track-name{color:#6b4fb7;padding-left:42px}
+.empty{padding:34px 18px;text-align:center;color:var(--text-muted);line-height:1.55}
+.site-footer{position:relative;background:linear-gradient(90deg,#eaf1fb,#f5f9fe,#eaf1fb);color:var(--navy);text-align:center;padding:10px 16px;font-size:12.5px;font-weight:700}
+.site-footer:before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--stripe)}
+@media(max-width:1100px){.grid-2{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
+@media(max-width:900px){
+  .header-main{grid-template-columns:1fr;text-align:center}
+  .brand{justify-content:center}.authority{justify-self:center;text-align:center}
+  .layout{flex-direction:column}.sidebar,.sidebar.collapsed{width:100%;border-right:0;border-bottom:1px solid var(--border)}
+  .sidebar.collapsed .label,.sidebar.collapsed .chev{display:inline}.sidebar.collapsed .menu-row,.sidebar.collapsed .view-tab{justify-content:flex-start}
+  .menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.submenu{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;padding-left:0}
+}
+@media(max-width:560px){
+  .content{padding:10px}.header-title{font-size:16px}.brand-logo{height:38px;width:38px}.nav-left{width:100%;border-right:0}
+  .navbar{flex-wrap:wrap}.profile{padding:8px 14px}.card,.project-head,.track-head{padding:14px}.page-title{font-size:18px}
+  .donut-wrap{grid-template-columns:1fr;justify-items:center}.legend{width:100%}
+  .delay-row{grid-template-columns:1fr 100px}.delay-pill{min-width:40px;font-size:10px}.combo{min-width:200px}.combo-menu{position:fixed;left:10px;right:10px;top:auto;margin-top:6px}
 }
 </style>
 </head>
-
 <body>
-<a href="#mainContent" class="skip-link">Skip to main content</a>
-
-<header class="site-header" role="banner">
-  <div class="header-accessibility-strip">
-    <span class="a11y-label" aria-hidden="true">Text Size:</span>
-    <div class="font-resizer" role="group" aria-label="Adjust text size">
-      <button type="button" class="fr-plus" id="frIncrease" aria-label="Increase text size" title="Increase text size">+A</button>
-      <button type="button" class="fr-reset" id="frReset" aria-label="Reset text size to default" title="Reset text size">A</button>
-      <button type="button" class="fr-minus" id="frDecrease" aria-label="Decrease text size" title="Decrease text size">-A</button>
-    </div>
-  </div>
+<header class="site-header">
   <div class="header-main">
-    <div class="header-brand">
-      <img src="Aadhaar.png" alt="Aadhaar logo">
-      <div class="header-brand-text">
-        <span class="header-brand-hi-1" lang="hi">मेरा आधार</span>
-        <span class="header-brand-hi-2" lang="hi">मेरी पहचान</span>
-      </div>
+    <div class="brand">
+      <div class="brand-logo">AI</div>
+      <div class="brand-text"><span>Mera Aadhaar</span><span>Meri Pehchaan</span></div>
     </div>
     <h1 class="header-title">UIDAI Automation Governance Tool</h1>
-    <div class="header-authority">
-      Unique Identification<br>Authority of India
-    </div>
+    <div class="authority">Unique Identification<br>Authority of India</div>
   </div>
 </header>
-
-<nav class="navbar" role="navigation" aria-label="Top navigation">
-  <div class="menu-home-block">
-    <span id="toggleBtn" role="button" tabindex="0" aria-label="Toggle side menu" aria-expanded="true">☰ Menu</span>
-    <span id="homeBtn" role="button" tabindex="0" aria-label="Go to home">🏠 Home</span>
+<nav class="navbar" aria-label="Top navigation">
+  <div class="nav-left">
+    <button class="top-action" id="toggleBtn" type="button">Menu</button>
+    <button class="top-action" type="button">Home</button>
   </div>
-
-  <div class="profile" id="profileBtn" role="button" tabindex="0" aria-label="User profile menu" aria-haspopup="true" aria-expanded="false">
-    <span aria-hidden="true">👤</span>
-    <span class="sr-only">User profile</span>
-    <div class="profile-menu" id="profileMenu" role="menu">
-      <div role="menuitem" tabindex="-1">Profile</div>
-      <div role="menuitem" tabindex="-1">Sign Out</div>
-    </div>
-  </div>
+  <div class="profile">User</div>
 </nav>
-
 <div class="layout">
-
-<aside class="sidebar" id="sidebar" role="complementary" aria-label="Primary navigation">
-  <nav class="menu" aria-label="Application sections">
-    <a class="active"><span>📊</span><span class="text">Dashboard</span></a>
-
-    <div class="section-head">
-      <span>📁</span>
-      <span class="text">Project Management</span>
-      <span class="submenu-arrow">▶</span>
-    </div>
-
-    <a><span>🗂️</span><span class="text">Master Data</span></a>
-
-    <div class="section-head">
-      <span>🏢</span>
-      <span class="text">Vendor Management</span>
-      <span class="submenu-arrow">▶</span>
-    </div>
-
-    <div class="section-head">
-      <span>👤</span>
-      <span class="text">User Management</span>
-      <span class="submenu-arrow">▶</span>
-    </div>
-  </nav>
-</aside>
-
-<main class="content" id="mainContent" role="main" tabindex="-1">
-  <div class="dashboard-wrap" id="dashboardRoot">
-
-    <!-- Page header -->
-    <div class="dash-page-header">
-      <div>
-        <div class="dash-page-title">Dashboard</div>
-        <div class="dash-page-sub">Real-time analytics across projects, vendors and divisions</div>
-      </div>
-      <div class="dash-actions">
-        <button type="button" class="dash-btn cancel" id="dashResetBtn">Reset View</button>
-        <button type="button" class="dash-btn" id="dashRefreshBtn">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="23 4 23 10 17 10"/>
-            <polyline points="1 20 1 14 7 14"/>
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-          </svg>
-          Refresh
-        </button>
-      </div>
-    </div>
-
-    <!-- View mode tabs -->
-    <div class="dash-view-tabs" role="tablist" aria-label="Dashboard view modes">
-      <button type="button" class="dash-tab active" data-view="project" role="tab" aria-selected="true">
-        <span class="tab-ico" aria-hidden="true">📁</span> Project View
+  <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+    <nav class="menu">
+      <button class="menu-row active" id="dashHead" type="button" aria-expanded="true">
+        <span class="nav-icon dashboard"></span><span class="label">Dashboard</span><span class="chev">v</span>
       </button>
-      <button type="button" class="dash-tab" data-view="vendor" role="tab" aria-selected="false">
-        <span class="tab-ico" aria-hidden="true">🏢</span> Vendor wise View
-      </button>
-      <button type="button" class="dash-tab" data-view="division" role="tab" aria-selected="false">
-        <span class="tab-ico" aria-hidden="true">👥</span> Division/Owner wise View
-      </button>
+      <div class="submenu" id="dashSubmenu">
+        <button class="view-tab active" type="button" data-view="summary"><span class="nav-icon summary"></span><span class="label">Summary</span></button>
+        <button class="view-tab" type="button" data-view="project"><span class="nav-icon project"></span><span class="label">Project View</span></button>
+        <button class="view-tab" type="button" data-view="org"><span class="nav-icon org"></span><span class="label">Organization View</span></button>
+      </div>
+      <button class="menu-row" type="button"><span class="nav-icon box"></span><span class="label">Project Management</span><span class="chev">></span></button>
+      <button class="menu-row" type="button"><span class="nav-icon box"></span><span class="label">Master Data</span></button>
+      <button class="menu-row" type="button"><span class="nav-icon box"></span><span class="label">Vendor Management</span><span class="chev">></span></button>
+      <button class="menu-row" type="button"><span class="nav-icon box"></span><span class="label">User Management</span><span class="chev">></span></button>
+    </nav>
+  </aside>
+  <main class="content">
+    <div class="page-head">
+      <div class="page-title" id="pageTitle">Dashboard</div>
+      <button class="primary-btn" id="refreshBtn" type="button">Refresh</button>
     </div>
-
-    <!-- Search + Breadcrumb -->
-    <div class="dash-toolbar">
-      <div class="dash-search">
-        <span class="dash-search-ico" aria-hidden="true">🔍</span>
-        <input type="search" id="dashSearch" placeholder="Search projects..." aria-label="Search">
-        <button type="button" class="dash-search-clear" id="dashSearchClear" aria-label="Clear search">✕</button>
-      </div>
-      <div class="dash-breadcrumb" id="dashBreadcrumb"></div>
-    </div>
-
-    <!-- KPIs -->
-    <div class="dash-kpi-grid" id="dashKpiGrid" role="group" aria-label="Key indicators"></div>
-
-    <!-- Status charts row -->
-    <div class="dash-chart-row">
-      <div class="dash-card">
-        <div class="dash-card-title">Status Distribution
-          <span class="dash-card-sub" id="dashDonutSub"></span>
-        </div>
-        <div class="dash-donut-wrap">
-          <div id="dashDonut"></div>
-          <div class="dash-legend" id="dashLegend"></div>
-        </div>
-      </div>
-      <div class="dash-card">
-        <div class="dash-card-title">Status Mix
-          <span class="dash-card-sub" id="dashStackedSub"></span>
-        </div>
-        <div class="dash-stacked">
-          <div id="dashStackedBar"></div>
-          <div class="dash-mini-strip" id="dashMiniStrip"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Performance / delays / groups row -->
-    <div class="dash-chart-row">
-      <div class="dash-card">
-        <div class="dash-card-title">Top Delays
-          <span class="dash-card-sub">items past due date</span>
-        </div>
-        <div class="dash-delays" id="dashDelays"></div>
-      </div>
-      <div class="dash-card">
-        <div class="dash-card-title" id="dashGroupTitle">Comparison
-          <span class="dash-card-sub" id="dashGroupSub"></span>
-        </div>
-        <div class="dash-groups" id="dashGroups"></div>
-      </div>
-    </div>
-
-    <!-- Timeline -->
-    <div class="dash-card">
-      <div class="dash-card-title">Timeline (Planned vs Actual)
-        <span class="dash-card-sub" id="dashGanttSub"></span>
-      </div>
-      <div class="dash-gantt" id="dashGantt"></div>
-    </div>
-
-    <!-- Drill-down list -->
-    <div class="dash-card">
-      <div class="dash-card-title" id="dashListTitle">Items
-        <span class="dash-card-sub" id="dashListSub"></span>
-      </div>
-      <div id="dashList"></div>
-    </div>
-
-  </div>
-</main>
-
+    <section class="view" id="view" aria-live="polite"></section>
+  </main>
 </div>
-
-<footer class="site-footer" role="contentinfo">
-  © 2026 UIDAI <span class="sep">·</span> PMIS Automation Tool <span class="sep">·</span> Internal Use Only
-</footer>
-
+<footer class="site-footer">2026 UIDAI | PMIS Automation Tool | Internal Use Only</footer>
 <script>
-const sidebar = document.getElementById("sidebar");
-const toggleBtn = document.getElementById("toggleBtn");
-const profileBtn = document.getElementById("profileBtn");
-const profileMenu = document.getElementById("profileMenu");
-
-/* Sidebar toggle */
-toggleBtn.onclick = () => {
-  sidebar.classList.toggle("collapsed");
-  const expanded = !sidebar.classList.contains("collapsed");
-  toggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-};
-toggleBtn.addEventListener('keydown', (e) => {
-  if(e.key === 'Enter' || e.key === ' '){
-    e.preventDefault(); toggleBtn.click();
-  }
-});
-
-/* Profile menu */
-profileBtn.onclick = (e) => {
-  e.stopPropagation();
-  const isOpen = profileMenu.style.display === 'block';
-  profileMenu.style.display = isOpen ? 'none' : 'block';
-  profileBtn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
-};
-profileBtn.addEventListener('keydown', (e) => {
-  if(e.key === 'Enter' || e.key === ' '){
-    e.preventDefault(); profileBtn.click();
-  } else if(e.key === 'Escape'){
-    profileMenu.style.display = 'none';
-    profileBtn.setAttribute('aria-expanded','false');
-  }
-});
-
-document.addEventListener("click", () => {
-  profileMenu.style.display = "none";
-  profileBtn.setAttribute('aria-expanded','false');
-});
-
-/* ─── Font resizer (accessibility: scales the entire UI via zoom) ─── */
-(function setupFontResizer(){
-  const STEPS = [80, 90, 100, 110, 125];
-  const DEFAULT_IDX = 2;
-  let idx = DEFAULT_IDX;
-  const inc = document.getElementById('frIncrease');
-  const dec = document.getElementById('frDecrease');
-  const rst = document.getElementById('frReset');
-  const wrapper = document.body;
-  const supportsZoom = (function(){
-    const probe = document.createElement('div');
-    probe.style.zoom = '2';
-    return probe.style.zoom === '2';
-  })();
-  function apply(){
-    const pct = STEPS[idx];
-    if(supportsZoom){
-      wrapper.style.zoom = (pct / 100).toString();
-    } else {
-      wrapper.style.transformOrigin = 'top left';
-      wrapper.style.transform = `scale(${pct/100})`;
-      wrapper.style.width = `${100 * 100 / pct}%`;
-    }
-    updatePressed();
-  }
-  function updatePressed(){
-    [inc,dec,rst].forEach(b => b && b.setAttribute('aria-pressed','false'));
-    if(idx === STEPS.length - 1 && inc) inc.setAttribute('aria-pressed','true');
-    if(idx === 0 && dec) dec.setAttribute('aria-pressed','true');
-    if(idx === DEFAULT_IDX && rst) rst.setAttribute('aria-pressed','true');
-  }
-  if(inc) inc.addEventListener('click', () => { if(idx < STEPS.length-1){ idx++; apply(); } });
-  if(dec) dec.addEventListener('click', () => { if(idx > 0){ idx--; apply(); } });
-  if(rst) rst.addEventListener('click', () => { idx = DEFAULT_IDX; apply(); });
-  updatePressed();
-})();
-
-/* ─── Floating header: collapse the accessibility strip when content scrolls down ─── */
-(function setupFloatingHeader(){
-  const strip = document.querySelector('.header-accessibility-strip');
-  const scrollEl = document.getElementById('mainContent');
-  if(!strip || !scrollEl) return;
-  const HIDE_AT = 28;
-  const SHOW_AT = 4;
-  let ticking = false;
-  let isHidden = false;
-  function update(){
-    const top = Math.max(scrollEl.scrollTop || 0, window.scrollY || 0);
-    if(!isHidden && top > HIDE_AT){
-      strip.classList.add('collapsed');
-      isHidden = true;
-    } else if(isHidden && top < SHOW_AT){
-      strip.classList.remove('collapsed');
-      isHidden = false;
-    }
-    ticking = false;
-  }
-  function onScroll(){
-    if(!ticking){
-      window.requestAnimationFrame(update);
-      ticking = true;
-    }
-  }
-  scrollEl.addEventListener('scroll', onScroll, {passive:true});
-  window.addEventListener('scroll', onScroll, {passive:true});
-})();
-
-/* ============================================================
-   DASHBOARD LOGIC (additive — does not change base UX behavior)
-   ============================================================ */
-(function setupDashboard(){
-  // In production replace TODAY with: new Date()
-  // Pinned for sensible demo numbers.
-  var TODAY = new Date('2026-04-12');
-  var DAY_MS = 86400000;
-
-  /* ─────────────────────────── DEMO DATA ─────────────────────────── */
-  var demoProjects = [
-    {
-      id:'PRJ001', name:'Aadhaar Enrolment Portal Revamp',
-      status:'PUBLISHED', vendor:'Tech Mahindra', division:'TMD1', owner:'R. Kumar',
-      milestones:[
-        { name:'Discovery and Design', activities:[
-          { name:'Stakeholder Interviews', tasks:[
-            { name:'Interview Operations Team', plannedStart:'2026-01-05', plannedEnd:'2026-01-12', actualStart:'2026-01-05', actualEnd:'2026-01-11' },
-            { name:'Interview Field Officers', plannedStart:'2026-01-13', plannedEnd:'2026-01-20', actualStart:'2026-01-13', actualEnd:'2026-01-22' },
-            { name:'Interview Citizens', plannedStart:'2026-01-21', plannedEnd:'2026-01-30', actualStart:'2026-01-21', actualEnd:'2026-01-29' }
-          ]},
-          { name:'UX Wireframes', tasks:[
-            { name:'Mobile flow wireframes', plannedStart:'2026-02-01', plannedEnd:'2026-02-15', actualStart:'2026-02-01', actualEnd:'2026-02-14' },
-            { name:'Desktop flow wireframes', plannedStart:'2026-02-10', plannedEnd:'2026-02-25', actualStart:'2026-02-10', actualEnd:'2026-02-26' }
-          ]}
+"use strict";
+const TODAY = new Date("2026-05-08");
+const DAY = 86400000;
+const projects = [
+  {
+    id:"PRJ001", name:"Aadhaar Enrolment Portal Revamp",
+    description:"Modernise the citizen-facing enrolment portal with new UX, mobile flows and operator console.",
+    organisation:"EY", division:"TMD-I", owner:"R. Kumar", status:"PUBLISHED",
+    plannedStart:"2026-01-05", plannedEnd:"2026-05-10", actualStart:"2026-01-05",
+    milestones:[
+      {name:"Discovery and Design", plannedStart:"2026-01-05", plannedEnd:"2026-02-28", activities:[
+        {name:"Stakeholder Interviews", owner:"TMD-I", vendor:"EY", approvalState:"completed", tasks:[
+          {name:"Interview Operations Team", plannedStart:"2026-01-05", plannedEnd:"2026-01-12", actualStart:"2026-01-05", actualEnd:"2026-01-11"},
+          {name:"Interview Field Officers", plannedStart:"2026-01-13", plannedEnd:"2026-01-20", actualStart:"2026-01-13", actualEnd:"2026-01-22"}
         ]},
-        { name:'Build and Deploy', activities:[
-          { name:'Frontend Development', tasks:[
-            { name:'Citizen registration screens', plannedStart:'2026-03-01', plannedEnd:'2026-03-25', actualStart:'2026-03-01', actualEnd:null },
-            { name:'Operator console screens', plannedStart:'2026-03-10', plannedEnd:'2026-04-05', actualStart:'2026-03-10', actualEnd:null },
-            { name:'Admin dashboard', plannedStart:'2026-03-20', plannedEnd:'2026-04-15', actualStart:null, actualEnd:null }
-          ]},
-          { name:'Backend Services', tasks:[
-            { name:'Auth service', plannedStart:'2026-03-01', plannedEnd:'2026-03-20', actualStart:'2026-03-01', actualEnd:'2026-03-22' },
-            { name:'Enrolment service', plannedStart:'2026-03-15', plannedEnd:'2026-04-10', actualStart:'2026-03-15', actualEnd:null }
-          ]}
+        {name:"UX Wireframes", owner:"TMD-I", vendor:"EY", approvalState:"completed", tasks:[
+          {name:"Mobile flow wireframes", plannedStart:"2026-02-01", plannedEnd:"2026-02-15", actualStart:"2026-02-01", actualEnd:"2026-02-14"},
+          {name:"Desktop flow wireframes", plannedStart:"2026-02-10", plannedEnd:"2026-02-25", actualStart:"2026-02-10", actualEnd:"2026-02-26"}
+        ]}
+      ]},
+      {name:"Build and Deploy", plannedStart:"2026-03-01", plannedEnd:"2026-04-15", activities:[
+        {name:"Frontend Development", owner:"TMD-I", vendor:"EY", approvalState:"pending_division", tasks:[
+          {name:"Citizen registration screens", plannedStart:"2026-03-01", plannedEnd:"2026-03-25", actualStart:"2026-03-01"},
+          {name:"Operator console screens", plannedStart:"2026-03-10", plannedEnd:"2026-04-05", actualStart:"2026-03-10"},
+          {name:"Admin dashboard", plannedStart:"2026-03-20", plannedEnd:"2026-04-15"}
         ]},
-        { name:'Sign-off and Handover', activities:[
-          { name:'UAT and Approval', tasks:[
-            { name:'Run UAT cycles', plannedStart:'2026-04-20', plannedEnd:'2026-05-05', actualStart:null, actualEnd:null },
-            { name:'Final sign-off', plannedStart:'2026-05-06', plannedEnd:'2026-05-10', actualStart:null, actualEnd:null }
-          ]}
+        {name:"Backend Services", owner:"TMD-I", vendor:"EY", approvalState:"idle", tasks:[
+          {name:"Auth service", plannedStart:"2026-03-01", plannedEnd:"2026-03-20", actualStart:"2026-03-01", actualEnd:"2026-03-22"},
+          {name:"Enrolment service", plannedStart:"2026-03-15", plannedEnd:"2026-04-10", actualStart:"2026-03-15"}
         ]}
-      ]
-    },
-    {
-      id:'PRJ002', name:'Vendor Compliance Portal',
-      status:'PUBLISHED', vendor:'Wipro', division:'TMD2', owner:'S. Sharma',
-      milestones:[
-        { name:'Requirements', activities:[
-          { name:'Compliance Audit', tasks:[
-            { name:'Map vendor compliance items', plannedStart:'2026-02-01', plannedEnd:'2026-02-10', actualStart:'2026-02-01', actualEnd:'2026-02-09' },
-            { name:'Define risk scoring', plannedStart:'2026-02-11', plannedEnd:'2026-02-20', actualStart:'2026-02-11', actualEnd:'2026-02-21' }
-          ]}
+      ]},
+      {name:"Sign-off and Handover", plannedStart:"2026-04-20", plannedEnd:"2026-05-10", activities:[
+        {name:"UAT and Approval", owner:"PMC", vendor:"EY", approvalState:"idle", tasks:[
+          {name:"Run UAT cycles", plannedStart:"2026-04-20", plannedEnd:"2026-05-05"},
+          {name:"Final sign-off", plannedStart:"2026-05-06", plannedEnd:"2026-05-10"}
+        ]}
+      ]}
+    ]
+  },
+  {
+    id:"PRJ002", name:"Vendor Compliance Portal",
+    description:"Single portal for empanelled vendors to submit compliance documents and respond to reviewer queries.",
+    organisation:"Wipro", division:"TMD-II", owner:"S. Sharma", status:"PUBLISHED",
+    plannedStart:"2026-02-01", plannedEnd:"2026-04-30", actualStart:"2026-02-01",
+    milestones:[
+      {name:"Requirements", plannedStart:"2026-02-01", plannedEnd:"2026-02-25", activities:[
+        {name:"Compliance Audit", owner:"TMD-II", vendor:"Wipro", approvalState:"completed", tasks:[
+          {name:"Map vendor compliance items", plannedStart:"2026-02-01", plannedEnd:"2026-02-10", actualStart:"2026-02-01", actualEnd:"2026-02-09"},
+          {name:"Define risk scoring", plannedStart:"2026-02-11", plannedEnd:"2026-02-20", actualStart:"2026-02-11", actualEnd:"2026-02-21"}
+        ]}
+      ]},
+      {name:"Implementation", plannedStart:"2026-03-01", plannedEnd:"2026-04-15", activities:[
+        {name:"Portal Build", owner:"TMD-II", vendor:"Wipro", approvalState:"pending_owner", tasks:[
+          {name:"Vendor self-service screens", plannedStart:"2026-03-01", plannedEnd:"2026-03-25", actualStart:"2026-03-01"},
+          {name:"Reviewer workflow", plannedStart:"2026-03-15", plannedEnd:"2026-04-10"}
         ]},
-        { name:'Implementation', activities:[
-          { name:'Portal Build', tasks:[
-            { name:'Vendor self-service screens', plannedStart:'2026-03-01', plannedEnd:'2026-03-25', actualStart:'2026-03-01', actualEnd:null },
-            { name:'Reviewer workflow', plannedStart:'2026-03-15', plannedEnd:'2026-04-10', actualStart:null, actualEnd:null }
-          ]},
-          { name:'Integrations', tasks:[
-            { name:'Integrate with master vendor DB', plannedStart:'2026-03-10', plannedEnd:'2026-04-01', actualStart:'2026-03-10', actualEnd:null }
-          ]}
+        {name:"Integrations", owner:"TMD-II", vendor:"Wipro", approvalState:"idle", tasks:[
+          {name:"Integrate with master vendor DB", plannedStart:"2026-03-10", plannedEnd:"2026-04-01", actualStart:"2026-03-10"}
         ]}
-      ]
-    },
-    {
-      id:'PRJ003', name:'Internal Audit Tracker',
-      status:'NEW', vendor:'Infosys', division:'TMD1', owner:'A. Patel',
-      milestones:[
-        { name:'Planning', activities:[
-          { name:'Scoping', tasks:[
-            { name:'Define audit scope', plannedStart:'2026-04-15', plannedEnd:'2026-04-25', actualStart:null, actualEnd:null },
-            { name:'Identify auditors', plannedStart:'2026-04-20', plannedEnd:'2026-04-30', actualStart:null, actualEnd:null }
-          ]}
+      ]}
+    ]
+  },
+  {
+    id:"PRJ003", name:"Internal Audit Tracker",
+    description:"Plan and follow audit cycles with milestone based reporting.",
+    organisation:"Deloitte", division:"Audit", owner:"A. Patel", status:"NEW",
+    plannedStart:"2026-04-15", plannedEnd:"2026-06-10",
+    milestones:[
+      {name:"Planning", plannedStart:"2026-04-15", plannedEnd:"2026-05-05", activities:[
+        {name:"Scoping", owner:"Audit", vendor:"Deloitte", approvalState:"idle", tasks:[
+          {name:"Define audit scope", plannedStart:"2026-04-15", plannedEnd:"2026-04-25"},
+          {name:"Identify auditors", plannedStart:"2026-04-20", plannedEnd:"2026-04-30"}
         ]}
-      ]
-    },
-    {
-      id:'PRJ004', name:'Biometric Authentication Upgrade',
-      status:'PUBLISHED', vendor:'Tech Mahindra', division:'Operations', owner:'V. Singh',
-      milestones:[
-        { name:'Research and POC', activities:[
-          { name:'Algorithm Evaluation', tasks:[
-            { name:'Benchmark fingerprint algos', plannedStart:'2026-01-15', plannedEnd:'2026-02-10', actualStart:'2026-01-15', actualEnd:'2026-02-08' },
-            { name:'Benchmark iris algos', plannedStart:'2026-02-01', plannedEnd:'2026-02-25', actualStart:'2026-02-01', actualEnd:'2026-02-24' }
-          ]},
-          { name:'POC Development', tasks:[
-            { name:'Build POC harness', plannedStart:'2026-02-20', plannedEnd:'2026-03-15', actualStart:'2026-02-20', actualEnd:'2026-03-14' }
-          ]}
+      ]}
+    ]
+  },
+  {
+    id:"PRJ004", name:"Biometric Authentication Upgrade",
+    description:"Upgrade fingerprint and iris matching engines and migrate auth services.",
+    organisation:"Tech Mahindra", division:"Operations", owner:"V. Singh", status:"PUBLISHED",
+    plannedStart:"2026-01-15", plannedEnd:"2026-04-15", actualStart:"2026-01-15",
+    milestones:[
+      {name:"Research and POC", plannedStart:"2026-01-15", plannedEnd:"2026-03-15", activities:[
+        {name:"Algorithm Evaluation", owner:"Operations", vendor:"Tech Mahindra", approvalState:"completed", tasks:[
+          {name:"Benchmark fingerprint algos", plannedStart:"2026-01-15", plannedEnd:"2026-02-10", actualStart:"2026-01-15", actualEnd:"2026-02-08"},
+          {name:"Benchmark iris algos", plannedStart:"2026-02-01", plannedEnd:"2026-02-25", actualStart:"2026-02-01", actualEnd:"2026-02-24"}
         ]},
-        { name:'Production Rollout', activities:[
-          { name:'Migration', tasks:[
-            { name:'Migrate auth service', plannedStart:'2026-03-15', plannedEnd:'2026-04-08', actualStart:'2026-03-15', actualEnd:null },
-            { name:'Cutover prod traffic', plannedStart:'2026-04-09', plannedEnd:'2026-04-15', actualStart:null, actualEnd:null }
-          ]}
+        {name:"POC Development", owner:"Operations", vendor:"Tech Mahindra", approvalState:"completed", tasks:[
+          {name:"Build POC harness", plannedStart:"2026-02-20", plannedEnd:"2026-03-15", actualStart:"2026-02-20", actualEnd:"2026-03-14"}
         ]}
-      ]
-    },
-    {
-      id:'PRJ005', name:'Citizen Grievance Module',
-      status:'PUBLISHED', vendor:'TCS', division:'TMD2', owner:'P. Joshi',
-      milestones:[
-        { name:'Product Definition', activities:[
-          { name:'Workflow Design', tasks:[
-            { name:'Map current grievance flow', plannedStart:'2026-02-05', plannedEnd:'2026-02-20', actualStart:'2026-02-05', actualEnd:'2026-02-19' },
-            { name:'Design new SLA structure', plannedStart:'2026-02-15', plannedEnd:'2026-03-05', actualStart:'2026-02-15', actualEnd:'2026-03-08' }
-          ]}
+      ]},
+      {name:"Production Rollout", plannedStart:"2026-03-15", plannedEnd:"2026-04-15", activities:[
+        {name:"Migration", owner:"Operations", vendor:"Tech Mahindra", approvalState:"rejected", tasks:[
+          {name:"Migrate auth service", plannedStart:"2026-03-15", plannedEnd:"2026-04-08", actualStart:"2026-03-15"},
+          {name:"Cutover prod traffic", plannedStart:"2026-04-09", plannedEnd:"2026-04-15"}
+        ]}
+      ]}
+    ]
+  },
+  {
+    id:"PRJ005", name:"Citizen Grievance Module",
+    description:"New grievance submission and tracking module with SLA escalation.",
+    organisation:"TCS", division:"TMD-II", owner:"P. Joshi", status:"PUBLISHED",
+    plannedStart:"2026-02-05", plannedEnd:"2026-05-15", actualStart:"2026-02-05",
+    milestones:[
+      {name:"Product Definition", plannedStart:"2026-02-05", plannedEnd:"2026-03-08", activities:[
+        {name:"Workflow Design", owner:"TMD-II", vendor:"TCS", approvalState:"completed", tasks:[
+          {name:"Map current grievance flow", plannedStart:"2026-02-05", plannedEnd:"2026-02-20", actualStart:"2026-02-05", actualEnd:"2026-02-19"},
+          {name:"Design new SLA structure", plannedStart:"2026-02-15", plannedEnd:"2026-03-05", actualStart:"2026-02-15", actualEnd:"2026-03-08"}
+        ]}
+      ]},
+      {name:"Build Phase 1", plannedStart:"2026-03-10", plannedEnd:"2026-04-15", activities:[
+        {name:"Citizen Submission", owner:"TMD-II", vendor:"TCS", approvalState:"pending_division", tasks:[
+          {name:"Submission form", plannedStart:"2026-03-10", plannedEnd:"2026-03-30", actualStart:"2026-03-10"},
+          {name:"Tracking screens", plannedStart:"2026-03-20", plannedEnd:"2026-04-10"}
         ]},
-        { name:'Build Phase 1', activities:[
-          { name:'Citizen Submission', tasks:[
-            { name:'Submission form', plannedStart:'2026-03-10', plannedEnd:'2026-03-30', actualStart:'2026-03-10', actualEnd:null },
-            { name:'Tracking screens', plannedStart:'2026-03-20', plannedEnd:'2026-04-10', actualStart:null, actualEnd:null }
-          ]},
-          { name:'Officer Console', tasks:[
-            { name:'Triage queue', plannedStart:'2026-03-15', plannedEnd:'2026-04-05', actualStart:'2026-03-15', actualEnd:null }
-          ]}
+        {name:"Officer Console", owner:"Operations", vendor:"TCS", approvalState:"idle", tasks:[
+          {name:"Triage queue", plannedStart:"2026-03-15", plannedEnd:"2026-04-05", actualStart:"2026-03-15"}
         ]}
-      ]
-    },
-    {
-      id:'PRJ006', name:'Field Office Data Sync',
-      status:'NEW', vendor:'Wipro', division:'TMD1', owner:'R. Kumar',
-      milestones:[
-        { name:'Discovery', activities:[
-          { name:'Field Survey', tasks:[
-            { name:'Visit 5 pilot offices', plannedStart:'2026-04-10', plannedEnd:'2026-04-30', actualStart:null, actualEnd:null },
-            { name:'Collect site readiness data', plannedStart:'2026-04-15', plannedEnd:'2026-05-05', actualStart:null, actualEnd:null }
-          ]}
+      ]}
+    ]
+  },
+  {
+    id:"PRJ006", name:"Field Office Data Sync",
+    description:"Resilient sync agent for field offices with intermittent connectivity.",
+    organisation:"Infosys", division:"TMD-I", owner:"R. Kumar", status:"NEW",
+    plannedStart:"2026-04-10", plannedEnd:"2026-06-30",
+    milestones:[
+      {name:"Discovery", plannedStart:"2026-04-10", plannedEnd:"2026-05-10", activities:[
+        {name:"Field Survey", owner:"TMD-I", vendor:"Infosys", approvalState:"idle", tasks:[
+          {name:"Visit 5 pilot offices", plannedStart:"2026-04-10", plannedEnd:"2026-04-30"},
+          {name:"Collect site readiness data", plannedStart:"2026-04-15", plannedEnd:"2026-05-05"}
         ]}
-      ]
-    }
-  ];
+      ]}
+    ]
+  }
+];
 
-  /* ─────────────────────────── HELPERS ─────────────────────────── */
-  function parseDate(s){ return s ? new Date(s) : null; }
-  function fmtDate(d){
-    if(!d) return '-';
-    var dd = (typeof d === 'string') ? new Date(d) : d;
-    if(!dd || isNaN(dd.getTime())) return '-';
-    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return dd.getDate() + ' ' + months[dd.getMonth()] + ' ' + dd.getFullYear();
-  }
-  function escapeHtml(s){
-    if(s == null) return '';
-    return String(s)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-  }
-  function classifyTask(t){
-    var pStart = parseDate(t.plannedStart);
-    var pEnd   = parseDate(t.plannedEnd);
-    var aStart = parseDate(t.actualStart);
-    var aEnd   = parseDate(t.actualEnd);
-    if(aEnd) return 'completed';
-    if(!aStart){
-      if(pStart && pStart < TODAY) return 'delayed';
-      return 'notstarted';
-    }
-    if(pEnd && pEnd < TODAY) return 'delayed';
-    return 'ontrack';
-  }
-  function statusLabel(key){
-    return ({completed:'Completed',ontrack:'On Track',delayed:'Delayed',notstarted:'Not Started'})[key] || key;
-  }
-  function pillClass(key){
-    return ({completed:'dash-s-completed',ontrack:'dash-s-ontrack',delayed:'dash-s-delayed',notstarted:'dash-s-notstarted'})[key] || '';
-  }
-  function statusColor(key){
-    return ({completed:'#1a8a3d',ontrack:'#0aa1c0',delayed:'#d4440e',notstarted:'#9aa6bd'})[key] || '#9aa6bd';
-  }
-
-  function collectTasks(node){
-    if(!node) return [];
-    if(node.tasks) return node.tasks.slice();
-    var out=[];
-    if(node.activities) node.activities.forEach(function(a){ out=out.concat(a.tasks||[]); });
-    if(node.milestones) node.milestones.forEach(function(m){
-      (m.activities||[]).forEach(function(a){ out=out.concat(a.tasks||[]); });
-    });
-    return out;
-  }
-  function classifyNode(node){
-    var tasks=collectTasks(node);
-    if(!tasks.length) return 'notstarted';
-    var ss=tasks.map(classifyTask);
-    if(ss.every(function(s){return s==='completed';})) return 'completed';
-    if(ss.some(function(s){return s==='delayed';})) return 'delayed';
-    if(ss.some(function(s){return s==='completed'||s==='ontrack';})) return 'ontrack';
-    return 'notstarted';
-  }
-  function nodeProgress(node){
-    var tasks=collectTasks(node);
-    if(!tasks.length) return 0;
-    var done=tasks.filter(function(t){return classifyTask(t)==='completed';}).length;
-    return Math.round(done/tasks.length*100);
-  }
-  function nodeDates(node){
-    // Returns {plannedStart, plannedEnd, actualStart, actualEnd} as Date|null
-    if(!node) return {plannedStart:null,plannedEnd:null,actualStart:null,actualEnd:null};
-    var tasks=collectTasks(node);
-    var pS=tasks.map(function(t){return parseDate(t.plannedStart);}).filter(Boolean);
-    var pE=tasks.map(function(t){return parseDate(t.plannedEnd);}).filter(Boolean);
-    var aS=tasks.map(function(t){return parseDate(t.actualStart);}).filter(Boolean);
-    var aE=tasks.map(function(t){return parseDate(t.actualEnd);}).filter(Boolean);
-    return {
-      plannedStart: pS.length ? new Date(Math.min.apply(null,pS)) : null,
-      plannedEnd:   pE.length ? new Date(Math.max.apply(null,pE)) : null,
-      actualStart:  aS.length ? new Date(Math.min.apply(null,aS)) : null,
-      actualEnd:    (aE.length === tasks.length && tasks.length > 0) ? new Date(Math.max.apply(null,aE)) : null
-    };
-  }
-  function getDelayDays(node){
-    // For delayed/ongoing items, compute days past planned end
-    var status = classifyNode(node);
-    if(status === 'completed'){
-      var d = nodeDates(node);
-      if(d.actualEnd && d.plannedEnd && d.actualEnd > d.plannedEnd){
-        return Math.round((d.actualEnd - d.plannedEnd) / DAY_MS);
-      }
-      return 0;
-    }
-    var dd = nodeDates(node);
-    if(dd.plannedEnd && TODAY > dd.plannedEnd){
-      return Math.round((TODAY - dd.plannedEnd) / DAY_MS);
-    }
-    return 0;
-  }
-  function statusCounts(items){
-    var c={completed:0,ontrack:0,delayed:0,notstarted:0,total:0};
-    items.forEach(function(it){
-      var s = it._status || classifyNode(it);
-      if(c[s] !== undefined) c[s]++;
-      c.total++;
-    });
-    return c;
-  }
-
-  /* ─────────────────────────── CHART RENDERERS ─────────────────────────── */
-
-  function donutChart(counts){
-    var total = counts.completed + counts.ontrack + counts.delayed + counts.notstarted;
-    var svgOpen = '<svg viewBox="0 0 200 200" class="dash-donut" role="img" aria-label="Status distribution donut chart">';
-    var svgClose = '</svg>';
-    if(total === 0){
-      return svgOpen +
-        '<circle cx="100" cy="100" r="70" fill="none" stroke="#eef3fa" stroke-width="22"/>' +
-        '<text x="100" y="100" text-anchor="middle" dominant-baseline="central" fill="#7a869a" font-size="13" font-family="Roboto, sans-serif">No data</text>' +
-        svgClose;
-    }
-    var r=70, sw=22, circ=2*Math.PI*r;
-    var segs=[
-      {key:'completed',color:'#1a8a3d',count:counts.completed},
-      {key:'ontrack',color:'#0aa1c0',count:counts.ontrack},
-      {key:'delayed',color:'#d4440e',count:counts.delayed},
-      {key:'notstarted',color:'#9aa6bd',count:counts.notstarted}
-    ];
-    var cumulative=0;
-    var paths = segs.map(function(s){
-      if(s.count === 0) return '';
-      var len = (s.count / total) * circ;
-      var offset = -cumulative;
-      cumulative += len;
-      return '<circle cx="100" cy="100" r="70" fill="none" stroke="' + s.color + '" stroke-width="' + sw + '" ' +
-             'stroke-dasharray="' + len.toFixed(2) + ' ' + (circ - len).toFixed(2) + '" ' +
-             'stroke-dashoffset="' + offset.toFixed(2) + '" stroke-linecap="butt" ' +
-             'transform="rotate(-90 100 100)"><title>' + statusLabel(s.key) + ': ' + s.count + '</title></circle>';
-    }).join('');
-    return svgOpen +
-      '<circle cx="100" cy="100" r="70" fill="none" stroke="#eef3fa" stroke-width="22"/>' +
-      paths +
-      '<text x="100" y="92" text-anchor="middle" font-size="34" font-weight="900" fill="#0b3c88" font-family="Roboto, sans-serif">' + total + '</text>' +
-      '<text x="100" y="116" text-anchor="middle" font-size="12" fill="#7a869a" font-family="Roboto, sans-serif">items</text>' +
-      svgClose;
-  }
-
-  function legendHtml(counts){
-    var total = counts.completed + counts.ontrack + counts.delayed + counts.notstarted || 1;
-    var keys = ['completed','ontrack','delayed','notstarted'];
-    return keys.map(function(k){
-      var n = counts[k];
-      var pct = Math.round(n/total*100);
-      return '<div class="dash-legend-item">' +
-        '<span class="dash-legend-swatch l-' + k + '"></span>' +
-        '<span class="dash-legend-name">' + statusLabel(k) + '</span>' +
-        '<span class="dash-legend-value">' + n + '<span class="dash-legend-pct">(' + pct + '%)</span></span>' +
-      '</div>';
-    }).join('');
-  }
-
-  function stackedBar(counts){
-    var total = counts.completed + counts.ontrack + counts.delayed + counts.notstarted;
-    if(total === 0){
-      return '<div class="dash-stacked-bar"><div class="seg empty">No data in current scope</div></div>';
-    }
-    var keys = ['completed','ontrack','delayed','notstarted'];
-    var segs = keys.map(function(k){
-      var n = counts[k];
-      if(n === 0) return '';
-      var pct = (n/total)*100;
-      var label = pct >= 8 ? Math.round(pct) + '%' : '';
-      return '<div class="seg seg-' + k + '" style="flex:' + n + ' 0 0%" title="' + statusLabel(k) + ': ' + n + '">' + label + '</div>';
-    }).join('');
-    return '<div class="dash-stacked-bar">' + segs + '</div>';
-  }
-
-  function miniStrip(counts){
-    var total = counts.completed + counts.ontrack + counts.delayed + counts.notstarted || 1;
-    var keys = ['completed','ontrack','delayed','notstarted'];
-    return '<div class="dash-mini-strip">' + keys.map(function(k){
-      var n = counts[k];
-      var pct = Math.round(n/total*100);
-      return '<div class="row">' +
-        '<span class="lbl">' + statusLabel(k) + '</span>' +
-        '<div class="bar"><div style="width:' + pct + '%;background:' + statusColor(k) + '"></div></div>' +
-        '<span class="num">' + n + '</span>' +
-      '</div>';
-    }).join('') + '</div>';
-  }
-
-  function topDelaysHtml(items){
-    var withDelays = items
-      .map(function(it){ return { ref:it, days:getDelayDays(it), status:classifyNode(it) }; })
-      .filter(function(x){ return x.days > 0; })
-      .sort(function(a,b){ return b.days - a.days; })
-      .slice(0, 6);
-    if(withDelays.length === 0){
-      return '<div class="dash-empty"><div class="e-ico">✓</div>No delays detected in current scope</div>';
-    }
-    var maxDays = withDelays[0].days;
-    return withDelays.map(function(x){
-      var pct = (x.days / maxDays) * 100;
-      var name = x.ref.name || x.ref.id || 'Item';
-      var ctx = x.ref._ctx ? '<span class="ctx"> · ' + escapeHtml(x.ref._ctx) + '</span>' : '';
-      return '<div class="dash-delay-row">' +
-        '<div class="dash-delay-name" title="' + escapeHtml(name) + '"><strong>' + escapeHtml(name) + '</strong>' + ctx + '</div>' +
-        '<div class="dash-delay-track"><div class="dash-delay-fill" style="width:' + pct.toFixed(1) + '%">' + x.days + 'd</div></div>' +
-      '</div>';
-    }).join('');
-  }
-
-  function groupBarsHtml(groups){
-    if(!groups.length) return '<div class="dash-empty">No groups in scope</div>';
-    var maxTotal = Math.max.apply(null, groups.map(function(g){ return g.total || 1; }));
-    return groups.map(function(g){
-      var keys = ['completed','ontrack','delayed','notstarted'];
-      var segs = keys.map(function(k){
-        if(!g[k]) return '';
-        var pct = (g[k] / maxTotal) * 100;
-        return '<div class="seg seg-' + k + '" style="flex:' + g[k] + ' 0 0%;width:' + pct.toFixed(1) + '%" title="' + statusLabel(k) + ': ' + g[k] + '"></div>';
-      }).join('');
-      // Use widths summing to total/maxTotal*100
-      var widthPct = (g.total / maxTotal) * 100;
-      return '<div class="dash-group-row">' +
-        '<div class="dash-group-name" title="' + escapeHtml(g.name) + '">' + escapeHtml(g.name) + '</div>' +
-        '<div class="dash-group-stack" style="width:' + widthPct.toFixed(1) + '%;min-width:60px">' + segs + '</div>' +
-        '<div class="dash-group-total">' + g.total + '</div>' +
-      '</div>';
-    }).join('');
-  }
-
-  function ganttHtml(items){
-    if(!items.length){
-      return '<div class="dash-empty"><div class="e-ico">📅</div>No items in current scope</div>';
-    }
-    // Build entries with planned & actual dates
-    var rows = items.map(function(it){
-      var d = nodeDates(it);
-      return {
-        name: it.name || it.id,
-        ctx: it._ctx || '',
-        status: classifyNode(it),
-        plannedStart: d.plannedStart,
-        plannedEnd: d.plannedEnd,
-        actualStart: d.actualStart,
-        actualEnd: d.actualEnd
-      };
-    }).filter(function(r){ return r.plannedStart && r.plannedEnd; });
-
-    if(!rows.length){
-      return '<div class="dash-empty">No date data available</div>';
-    }
-
-    var allDates = [];
-    rows.forEach(function(r){
-      if(r.plannedStart) allDates.push(r.plannedStart);
-      if(r.plannedEnd)   allDates.push(r.plannedEnd);
-      if(r.actualStart)  allDates.push(r.actualStart);
-      if(r.actualEnd)    allDates.push(r.actualEnd);
-    });
-    allDates.push(TODAY);
-    var minDate = new Date(Math.min.apply(null, allDates));
-    var maxDate = new Date(Math.max.apply(null, allDates));
-    // Pad ranges by ~3% on each side
-    var span = maxDate - minDate || DAY_MS;
-    var pad = span * 0.03;
-    minDate = new Date(minDate - pad);
-    maxDate = new Date(maxDate.getTime() + pad);
-    var range = maxDate - minDate || 1;
-
-    var todayPos = ((TODAY - minDate) / range) * 100;
-
-    var rowsHtml = rows.slice(0, 12).map(function(r){
-      var leftPct  = ((r.plannedStart - minDate) / range) * 100;
-      var widthPct = ((r.plannedEnd - r.plannedStart) / range) * 100;
-      var actualHtml = '';
-      if(r.actualStart){
-        var actEnd = r.actualEnd || TODAY;
-        var aLeft  = ((r.actualStart - minDate) / range) * 100;
-        var aWidth = ((actEnd - r.actualStart) / range) * 100;
-        actualHtml = '<div class="dash-gantt-actual" style="left:' + aLeft.toFixed(1) + '%;width:' + Math.max(aWidth, 0.4).toFixed(1) + '%"></div>';
-      }
-      var ctx = r.ctx ? '<span class="ctx">' + escapeHtml(r.ctx) + '</span>' : '';
-      return '<div class="dash-gantt-row">' +
-        '<div class="dash-gantt-label" title="' + escapeHtml(r.name) + '">' + escapeHtml(r.name) + ctx + '</div>' +
-        '<div class="dash-gantt-track">' +
-          '<div class="dash-gantt-bar g-' + r.status + '" style="left:' + leftPct.toFixed(1) + '%;width:' + Math.max(widthPct,0.5).toFixed(1) + '%" title="' + fmtDate(r.plannedStart) + ' → ' + fmtDate(r.plannedEnd) + '"></div>' +
-          actualHtml +
-          (todayPos >= 0 && todayPos <= 100 ? '<div class="dash-gantt-today" style="left:' + todayPos.toFixed(1) + '%"></div>' : '') +
-        '</div>' +
-      '</div>';
-    }).join('');
-
-    var axis = '<div class="dash-gantt-axis"><span>' + fmtDate(minDate) + '</span><span>' + fmtDate(maxDate) + '</span></div>';
-    return rowsHtml + axis;
-  }
-
-  /* ─────────────────────────── STATE ─────────────────────────── */
-  var state = {
-    viewMode: 'project',  // 'project' | 'vendor' | 'division'
-    search: '',
-    drill: []  // entries: {type:'vendor'|'division'|'project'|'milestone'|'activity', id|idx, label}
+function buildProject(id, name, organisation, division, owner, type, n){
+  const completed = type === "completed";
+  const delayed = type === "delayed";
+  const active = type === "active";
+  const start = completed ? "2026-01-10" : delayed ? "2026-02-15" : active ? "2026-05-20" : "2026-04-20";
+  const end = completed ? "2026-04-20" : delayed ? "2026-04-25" : active ? "2026-07-15" : "2026-07-20";
+  const doneEnd = completed ? "2026-04-18" : null;
+  const liveStart = active ? null : start;
+  const taskOne = completed
+    ? {name:"Baseline validation", plannedStart:start, plannedEnd:"2026-02-05", actualStart:start, actualEnd:"2026-02-04"}
+    : {name:"Baseline validation", plannedStart:start, plannedEnd:delayed ? "2026-04-02" : "2026-06-10", actualStart:liveStart};
+  const taskTwo = completed
+    ? {name:"Configuration review", plannedStart:"2026-02-06", plannedEnd:"2026-03-05", actualStart:"2026-02-06", actualEnd:"2026-03-04"}
+    : {name:"Configuration review", plannedStart:delayed ? "2026-03-10" : "2026-05-15", plannedEnd:delayed ? "2026-04-10" : "2026-06-25", actualStart:active ? null : (delayed ? "2026-03-10" : "2026-05-15"),
+       subtasks:[
+         {name:"Prepare review checklist", plannedStart:delayed ? "2026-03-10" : "2026-05-15", plannedEnd:delayed ? "2026-03-24" : "2026-06-01", actualStart:active ? null : (delayed ? "2026-03-10" : "2026-05-15"), actualEnd:delayed ? "2026-03-28" : null},
+         {name:"Resolve review observations", plannedStart:delayed ? "2026-03-25" : "2026-06-02", plannedEnd:delayed ? "2026-04-10" : "2026-06-25", actualStart:active ? null : (delayed ? "2026-03-25" : "2026-06-02")}
+       ]};
+  const taskThree = completed
+    ? {name:"Final sign-off", plannedStart:"2026-03-06", plannedEnd:"2026-04-20", actualStart:"2026-03-06", actualEnd:doneEnd}
+    : {name:"Final sign-off", plannedStart:delayed ? "2026-04-11" : "2026-06-26", plannedEnd:delayed ? "2026-04-25" : "2026-07-20", actualStart:null};
+  return {
+    id, name, description:`${name} delivery tracked through milestone, activity, task and sub-task hierarchy.`,
+    organisation, division, owner, status:completed ? "COMPLETED" : "PUBLISHED",
+    plannedStart:start, plannedEnd:end, actualStart:completed || delayed || type === "ontrack" ? start : null, actualEnd:doneEnd,
+    milestones:[
+      {name:"Planning and Baseline", plannedStart:start, plannedEnd:completed ? "2026-03-05" : delayed ? "2026-04-10" : "2026-06-25", activities:[
+        {name:"Scope and Configuration", owner:division, vendor:organisation, approvalState:completed ? "completed" : delayed && n % 2 ? "pending_division" : "idle", tasks:[taskOne, taskTwo]}
+      ]},
+      {name:"Rollout and Closure", plannedStart:completed ? "2026-03-06" : delayed ? "2026-04-11" : "2026-06-26", plannedEnd:end, activities:[
+        {name:"Deployment and Sign-off", owner:division, vendor:organisation, approvalState:completed ? "completed" : delayed ? "pending_owner" : "idle", tasks:[taskThree]}
+      ]}
+    ]
   };
+}
+[
+  ["PRJ007","KYC Reconciliation Service","KPMG","Audit","M. Iyer","completed"],
+  ["PRJ008","Operator Training Platform","EY","PMC","S. Sharma","ontrack"],
+  ["PRJ009","Resident Demographic Update","TCS","TMD-I","R. Kumar","completed"],
+  ["PRJ010","Authentication Analytics Dashboard","Infosys","Operations","V. Singh","ontrack"],
+  ["PRJ011","Aadhaar Seeding Monitor","Wipro","TMD-II","P. Joshi","completed"],
+  ["PRJ012","Document Verification Queue","Deloitte","Audit","A. Patel","completed"],
+  ["PRJ013","Field Kit Inventory Service","Tech Mahindra","Operations","V. Singh","ontrack"],
+  ["PRJ014","Enrollment Centre Heatmap","EY","PMC","S. Sharma","completed"],
+  ["PRJ015","Resident Consent Ledger","TCS","TMD-II","P. Joshi","ontrack"],
+  ["PRJ016","Operator Attendance Sync","Infosys","TMD-I","R. Kumar","completed"],
+  ["PRJ017","Exception Case Workflow","Wipro","TMD-II","S. Sharma","delayed"],
+  ["PRJ018","Fraud Signal Review Board","KPMG","Audit","M. Iyer","ontrack"],
+  ["PRJ019","Regional Office MIS Pack","Deloitte","PMC","A. Patel","completed"],
+  ["PRJ020","Biometric Device Registry","Tech Mahindra","Operations","V. Singh","ontrack"],
+  ["PRJ021","Aadhaar Letter Dispatch Tracker","TCS","Operations","P. Joshi","completed"],
+  ["PRJ022","API Consumer Onboarding","Infosys","TMD-I","R. Kumar","ontrack"],
+  ["PRJ023","Data Quality Correction Drive","EY","TMD-II","S. Sharma","ontrack"],
+  ["PRJ024","Audit Evidence Repository","KPMG","Audit","M. Iyer","completed"],
+  ["PRJ025","Grievance SLA Escalation","Wipro","PMC","P. Joshi","ontrack"],
+  ["PRJ026","Enrollment Packet Reprocess","Tech Mahindra","Operations","V. Singh","delayed"],
+  ["PRJ027","Division Approval Console","Deloitte","TMD-I","A. Patel","active"],
+  ["PRJ028","UIDAI Knowledge Base Refresh","EY","PMC","S. Sharma","completed"],
+  ["PRJ029","Mobile Number Update Flow","TCS","TMD-II","R. Kumar","ontrack"],
+  ["PRJ030","Vendor Invoice Milestone Linkage","Infosys","PMC","P. Joshi","active"]
+].forEach((p, i) => projects.push(buildProject(...p, i)));
 
-  /* ─────────────────────────── SCOPE / NAVIGATION ─────────────────────────── */
-  // Determine scope based on viewMode + drill path
-  function getScope(){
-    var d = state.drill;
-    var view = state.viewMode;
-    var s = {
-      level:'top',           // 'top'|'project'|'milestone'|'activity'
-      childKind:'projects',  // what items the list shows
-      project:null, milestone:null, activity:null,
-      vendorFilter:null, divisionFilter:null,
-      contextLabel:'',       // breadcrumb prefix label
-      crumbs:[]              // breadcrumb items for rendering
-    };
+const state = {view:"summary", selectedProject:null, comboOpen:false, org:null, division:null, showAllOrg:false, showAllDivision:false, projectListMode:null, searchText:"", delayFilter:5, track:null};
+const viewEl = document.getElementById("view");
+const pageTitle = document.getElementById("pageTitle");
 
-    var di = 0;
-
-    // Top-level grouping for vendor / division views
-    if(view === 'vendor'){
-      if(d.length === 0){
-        s.level = 'top';
-        s.childKind = 'vendors';
-        s.contextLabel = 'All Vendors';
-        s.crumbs.push({label:'All Vendors', idx:-1, current:true});
-        return s;
-      }
-      // First drill entry is vendor
-      s.vendorFilter = d[0].id;
-      s.crumbs.push({label:'All Vendors', idx:-1});
-      s.crumbs.push({label:d[0].label, idx:0, current:d.length===1});
-      di = 1;
-    } else if(view === 'division'){
-      if(d.length === 0){
-        s.level = 'top';
-        s.childKind = 'divisions';
-        s.contextLabel = 'All Divisions/Owners';
-        s.crumbs.push({label:'All Divisions/Owners', idx:-1, current:true});
-        return s;
-      }
-      s.divisionFilter = d[0].id;
-      s.crumbs.push({label:'All Divisions/Owners', idx:-1});
-      s.crumbs.push({label:d[0].label, idx:0, current:d.length===1});
-      di = 1;
-    } else {
-      // project view: top level
-      if(d.length === 0){
-        s.level = 'top';
-        s.childKind = 'projects';
-        s.contextLabel = 'All Projects';
-        s.crumbs.push({label:'All Projects', idx:-1, current:true});
-        return s;
-      }
-      s.crumbs.push({label:'All Projects', idx:-1});
-      di = 0;
-    }
-
-    // After grouping (or in project view), drill is project -> milestone -> activity
-    if(d.length > di){
-      var pEntry = d[di];
-      var p = demoProjects.find(function(x){ return x.id === pEntry.id; });
-      if(p){
-        s.project = p;
-        s.level = 'project';
-        s.childKind = 'milestones';
-        s.crumbs.push({label:p.id + ' — ' + p.name, idx:di, current:d.length === di+1});
-      }
-    }
-    if(d.length > di+1){
-      var mEntry = d[di+1];
-      if(s.project && s.project.milestones[mEntry.idx]){
-        s.milestone = s.project.milestones[mEntry.idx];
-        s.level = 'milestone';
-        s.childKind = 'activities';
-        s.crumbs.push({label:s.milestone.name, idx:di+1, current:d.length === di+2});
-      }
-    }
-    if(d.length > di+2){
-      var aEntry = d[di+2];
-      if(s.milestone && s.milestone.activities[aEntry.idx]){
-        s.activity = s.milestone.activities[aEntry.idx];
-        s.level = 'activity';
-        s.childKind = 'tasks';
-        s.crumbs.push({label:s.activity.name, idx:di+2, current:true});
-      }
-    }
-    return s;
+function esc(v){return String(v == null ? "" : v).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
+function d(v){return v ? new Date(v) : null;}
+function fmt(v){
+  const x = v instanceof Date ? v : d(v);
+  if(!x || Number.isNaN(x.getTime())) return "-";
+  return String(x.getDate()).padStart(2,"0")+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+x.getFullYear();
+}
+function range(a,b){return fmt(a)+" -> "+fmt(b);}
+function taskLeaves(t){
+  const kids = t && Array.isArray(t.subtasks) ? t.subtasks : [];
+  if(!kids.length) return [t];
+  return kids.flatMap(taskLeaves);
+}
+function allTasks(node){
+  if(!node) return [];
+  if(node.subtasks) return taskLeaves(node);
+  if(node.tasks) return node.tasks.flatMap(taskLeaves);
+  let out = [];
+  if(node.activities) node.activities.forEach(a => { out = out.concat(allTasks(a)); });
+  if(node.milestones) node.milestones.forEach(m => (m.activities || []).forEach(a => { out = out.concat(allTasks(a)); }));
+  return out;
+}
+function taskStatus(t){
+  if(t.subtasks && t.subtasks.length){
+    const child = t.subtasks.map(taskStatus);
+    if(child.every(x => x === "completed")) return "completed";
+    if(child.some(x => x === "delayed")) return "delayed";
+    if(child.some(x => x === "ontrack" || x === "completed")) return "ontrack";
+    return "active";
   }
-
-  // Get the analytic items (the ones we count for KPIs, charts, gantt)
-  // and the "list children" (the ones to drill into next).
-  function getAnalyticItems(scope){
-    var view = state.viewMode;
-
-    // At top-level vendor / division view, items are vendors/divisions (group cards)
-    if(scope.childKind === 'vendors'){
-      return buildGroupItems('vendor');
-    }
-    if(scope.childKind === 'divisions'){
-      return buildGroupItems('division');
-    }
-
-    // At top-level of project view OR drilled into a vendor/division (showing projects)
-    if(scope.childKind === 'projects'){
-      var ps = demoProjects.slice();
-      if(scope.vendorFilter)   ps = ps.filter(function(p){return p.vendor === scope.vendorFilter;});
-      if(scope.divisionFilter) ps = ps.filter(function(p){return p.division === scope.divisionFilter;});
-      return ps.map(function(p){
-        return wrapNode(p, {type:'project',id:p.id,label:p.id+' — '+p.name}, p.id+' — '+p.name, p.vendor + ' · ' + p.division);
+  const ps=d(t.plannedStart), pe=d(t.plannedEnd), as=d(t.actualStart), ae=d(t.actualEnd);
+  if(ae) return "completed";
+  if(pe && pe < TODAY) return "delayed";
+  return as ? "ontrack" : "active";
+}
+function nodeStatus(node){
+  const tasks = allTasks(node);
+  if(!tasks.length) return "active";
+  const st = tasks.map(taskStatus);
+  if(st.every(x => x === "completed")) return "completed";
+  if(st.some(x => x === "delayed")) return "delayed";
+  if(st.some(x => x === "ontrack" || x === "completed")) return "ontrack";
+  return "active";
+}
+function projectBucket(p){
+  return nodeStatus(p);
+}
+function progress(node){
+  const tasks = allTasks(node);
+  if(!tasks.length) return 0;
+  return Math.round(tasks.filter(t => taskStatus(t) === "completed").length / tasks.length * 100);
+}
+function dates(node){
+  const tasks = allTasks(node);
+  const ps = tasks.map(t => d(t.plannedStart)).filter(Boolean);
+  const pe = tasks.map(t => d(t.plannedEnd)).filter(Boolean);
+  const as = tasks.map(t => d(t.actualStart)).filter(Boolean);
+  const ae = tasks.map(t => d(t.actualEnd)).filter(Boolean);
+  return {
+    plannedStart: ps.length ? new Date(Math.min(...ps)) : d(node.plannedStart),
+    plannedEnd: pe.length ? new Date(Math.max(...pe)) : d(node.plannedEnd),
+    actualStart: as.length ? new Date(Math.min(...as)) : d(node.actualStart),
+    actualEnd: ae.length && ae.length === tasks.length ? new Date(Math.max(...ae)) : null
+  };
+}
+function delayDays(node){
+  const st = node.tasks ? taskStatus(node) : nodeStatus(node);
+  const nd = dates(node);
+  const pe = d(node.plannedEnd) || nd.plannedEnd;
+  const ae = d(node.actualEnd) || nd.actualEnd;
+  if(st === "completed" && ae && pe && ae > pe) return Math.round((ae - pe) / DAY);
+  if(st !== "completed" && pe && pe < TODAY) return Math.round((TODAY - pe) / DAY);
+  return 0;
+}
+function pendingApproval(a){return ["pending_division","pending_owner","rejected","division_approved"].includes(a.approvalState);}
+function kpis(p){
+  const ms = p.milestones || [];
+  const acts = ms.flatMap(m => m.activities || []);
+  const tasks = acts.flatMap(a => a.tasks || []);
+  return {
+    progress:progress(p),
+    milestonesDone:ms.filter(m => nodeStatus(m) === "completed").length,
+    milestonesTotal:ms.length,
+    activitiesDone:acts.filter(a => nodeStatus(a) === "completed" && a.approvalState === "completed").length,
+    activitiesTotal:acts.length,
+    pendingApprovals:acts.filter(pendingApproval).length,
+    delayed:flattenRows(p).filter(r => r.status === "delayed").length,
+    tasksDone:tasks.filter(t => taskStatus(t) === "completed").length,
+    tasksTotal:tasks.length
+  };
+}
+function countsForProjects(list){
+  const c = {active:0,completed:0,ontrack:0,delayed:0,total:list.length};
+  list.forEach(p => c[projectBucket(p)]++);
+  return c;
+}
+function countsForRows(rows){
+  const c = {active:0,completed:0,ontrack:0,delayed:0,total:rows.length};
+  rows.forEach(r => c[r.status]++);
+  return c;
+}
+function label(k){return ({active:"Active",completed:"Completed",ontrack:"On Track",delayed:"Delayed",milestone:"Milestones",activity:"Activities",task:"Tasks",subtask:"Sub Tasks"})[k] || k;}
+function color(k){return ({active:"#0b3c88",completed:"#1a8a3d",ontrack:"#0aa1c0",delayed:"#d4440e",milestone:"#0b3c88",activity:"#0aa1c0",task:"#5e3fb1",subtask:"#b25900"})[k] || "#9aa6bd";}
+function cssStatus(k){return k;}
+function groupBy(field){
+  const map = {};
+  projects.forEach(p => {
+    const name = p[field] || "-";
+    if(!map[name]) map[name] = [];
+    map[name].push(p);
+  });
+  return Object.keys(map).map(name => ({name, projects:map[name], counts:countsForProjects(map[name])}))
+    .sort((a,b) => b.projects.length - a.projects.length || a.name.localeCompare(b.name));
+}
+function flattenRows(project, opts={}){
+  const rows = [];
+  function includeTaskRows(taskList, prefix, parentName, mi, ai){
+    (taskList || []).forEach((t, ti) => {
+      const key = `${prefix}:t:${ti}`;
+      rows.push({project,key,parentKey:prefix,kind:"task",wbs:`T${mi+1}.${ai+1}.${ti+1}`,name:t.name,context:parentName,node:t,status:taskStatus(t),progress:progress(t),plannedStart:t.plannedStart,plannedEnd:t.plannedEnd,actualStart:t.actualStart,actualEnd:t.actualEnd,delay:delayDays(t)});
+      (t.subtasks || []).forEach((s, si) => {
+        const subKey = `${key}:s:${si}`;
+        rows.push({project,key:subKey,parentKey:key,kind:"subtask",wbs:`ST${mi+1}.${ai+1}.${ti+1}.${si+1}`,name:s.name,context:t.name,node:s,status:taskStatus(s),progress:taskStatus(s)==="completed"?100:0,plannedStart:s.plannedStart,plannedEnd:s.plannedEnd,actualStart:s.actualStart,actualEnd:s.actualEnd,delay:delayDays(s)});
       });
-    }
-    if(scope.childKind === 'milestones'){
-      var p = scope.project;
-      return (p.milestones||[]).map(function(m, idx){
-        return wrapNode(m, {type:'milestone',idx:idx,label:m.name}, m.name, p.id);
-      });
-    }
-    if(scope.childKind === 'activities'){
-      var m = scope.milestone;
-      return (m.activities||[]).map(function(a, idx){
-        return wrapNode(a, {type:'activity',idx:idx,label:a.name}, a.name, scope.project.id + ' · ' + m.name);
-      });
-    }
-    if(scope.childKind === 'tasks'){
-      var a = scope.activity;
-      return (a.tasks||[]).map(function(t){
-        // Tasks are leaf — don't drill further
-        return wrapNode({tasks:[t], _isLeaf:true, _task:t}, null, t.name, scope.activity.name);
-      });
-    }
-    return [];
-  }
-
-  // Wrap a node with display metadata
-  function wrapNode(node, drillEntry, displayName, ctx){
-    return {
-      _node: node,
-      _drillEntry: drillEntry,
-      name: displayName,
-      _ctx: ctx,
-      _status: classifyNode(node),
-      _progress: nodeProgress(node),
-      _delay: getDelayDays(node),
-      tasks: node.tasks,
-      activities: node.activities,
-      milestones: node.milestones,
-      _task: node._task
-    };
-  }
-
-  // Build group items (vendors or divisions) with their aggregated stats
-  function buildGroupItems(kind){
-    var groups = {};
-    demoProjects.forEach(function(p){
-      var key = (kind === 'vendor') ? p.vendor : p.division;
-      if(!groups[key]) groups[key] = { name:key, projects:[], owners:new Set ? new Set() : null };
-      groups[key].projects.push(p);
-    });
-    return Object.keys(groups).map(function(key){
-      var g = groups[key];
-      // Collect all owners as comma-list for divisions
-      var ownerList = '';
-      if(kind === 'division'){
-        var owners = {};
-        g.projects.forEach(function(p){ owners[p.owner] = 1; });
-        ownerList = Object.keys(owners).join(', ');
-      }
-      // Aggregate as if all milestones combined
-      var combined = { milestones: [] };
-      g.projects.forEach(function(p){ combined.milestones = combined.milestones.concat(p.milestones||[]); });
-      return {
-        _node: combined,
-        _drillEntry: { type:kind, id:key, label:key },
-        name: key,
-        _ctx: (kind === 'vendor')
-              ? (g.projects.length + ' project' + (g.projects.length===1?'':'s'))
-              : (ownerList + ' · ' + g.projects.length + ' project' + (g.projects.length===1?'':'s')),
-        _status: classifyNode(combined),
-        _progress: nodeProgress(combined),
-        _delay: getDelayDays(combined),
-        _projects: g.projects,
-        _ownerList: ownerList,
-        milestones: combined.milestones
-      };
     });
   }
-
-  // Search filter helper
-  function applySearch(items){
-    var q = state.search.trim().toLowerCase();
-    if(!q) return items;
-    return items.filter(function(it){
-      var hay = (it.name + ' ' + (it._ctx||'')).toLowerCase();
-      // For projects, also search vendor/division/owner via _node
-      if(it._node && it._node.vendor){
-        hay += ' ' + (it._node.vendor||'').toLowerCase();
-        hay += ' ' + (it._node.division||'').toLowerCase();
-        hay += ' ' + (it._node.owner||'').toLowerCase();
-        hay += ' ' + (it._node.id||'').toLowerCase();
-      }
-      return hay.indexOf(q) !== -1;
+  (project.milestones || []).forEach((m, mi) => {
+    const mKey = `m:${mi}`;
+    const md = dates(m);
+    rows.push({project,key:mKey,parentKey:null,kind:"milestone",wbs:`M${mi+1}`,name:m.name,context:project.name,node:m,status:nodeStatus(m),progress:progress(m),plannedStart:m.plannedStart||md.plannedStart,plannedEnd:m.plannedEnd||md.plannedEnd,actualStart:md.actualStart,actualEnd:md.actualEnd,delay:delayDays(m)});
+    (m.activities || []).forEach((a, ai) => {
+      const aKey = `${mKey}:a:${ai}`;
+      const ad = dates(a);
+      rows.push({project,key:aKey,parentKey:mKey,kind:"activity",wbs:`A${mi+1}.${ai+1}`,name:a.name,context:m.name,node:a,status:nodeStatus(a),progress:progress(a),plannedStart:ad.plannedStart,plannedEnd:ad.plannedEnd,actualStart:ad.actualStart,actualEnd:ad.actualEnd,delay:delayDays(a),approvalState:a.approvalState});
+      includeTaskRows(a.tasks, aKey, a.name, mi, ai);
+    });
+  });
+  const matchedKeys = new Set();
+  rows.forEach(r => {
+    if(opts.kind && r.kind !== opts.kind) return false;
+    if(opts.status && r.status !== opts.status) return false;
+    if(opts.minDelay && r.delay < opts.minDelay) return false;
+    if(opts.approval && !(r.kind === "activity" && pendingApproval(r.node))) return false;
+    if(opts.key && !(r.key === opts.key || r.key.startsWith(opts.key + ":"))) return false;
+    matchedKeys.add(r.key);
+  });
+  if(!opts.withAncestors && !opts.key) return rows.filter(r => matchedKeys.has(r.key));
+  const includeKeys = new Set(matchedKeys);
+  rows.forEach(r => {
+    if(!matchedKeys.has(r.key)) return;
+    let parent = r.parentKey;
+    while(parent){
+      includeKeys.add(parent);
+      const parentRow = rows.find(x => x.key === parent);
+      parent = parentRow && parentRow.parentKey;
+    }
+  });
+  return rows.filter(r => includeKeys.has(r.key));
+}
+function trackRows(scope={}){
+  return projects.filter(p => {
+    if(scope.projectId && p.id !== scope.projectId) return false;
+    if(scope.org && p.organisation !== scope.org) return false;
+    if(scope.division && p.division !== scope.division) return false;
+    if(scope.projectMode && projectBucket(p) !== scope.projectMode) return false;
+    return true;
+  }).flatMap(p => flattenRows(p, {...scope, withAncestors:true}));
+}
+function kpi(cls,name,value,foot,attrs=""){
+  const note = attrs ? '<div class="click-note">Click to open details</div>' : "";
+  const tag = attrs ? "button" : "div";
+  return `<${tag} type="${attrs ? "button" : ""}" class="kpi ${cls} ${attrs ? "clickable" : ""}" ${attrs}>
+    <div class="kpi-label">${name}</div><div class="kpi-value">${value}</div><div class="kpi-foot">${foot}</div>${note}
+  </${tag}>`;
+}
+function donut(counts, keys){
+  keys = keys || Object.keys(counts).filter(k => k !== "total");
+  const total = keys.reduce((s,k) => s + (counts[k] || 0), 0);
+  if(!total) return '<svg class="donut" viewBox="0 0 200 200"><circle cx="100" cy="100" r="70" fill="none" stroke="#eef3fa" stroke-width="22"></circle><text x="100" y="104" text-anchor="middle" fill="#7a869a" font-size="13">No data</text></svg>';
+  const r = 70, circ = 2 * Math.PI * r;
+  let used = 0;
+  const rings = keys.map(k => {
+    const n = counts[k] || 0;
+    if(!n) return "";
+    const len = n / total * circ;
+    const off = -used;
+    used += len;
+    return `<circle cx="100" cy="100" r="70" fill="none" stroke="${color(k)}" stroke-width="22" stroke-dasharray="${len.toFixed(2)} ${(circ-len).toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}" transform="rotate(-90 100 100)"></circle>`;
+  }).join("");
+  return `<svg class="donut" viewBox="0 0 200 200"><circle cx="100" cy="100" r="70" fill="none" stroke="#eef3fa" stroke-width="22"></circle>${rings}<text x="100" y="92" text-anchor="middle" font-size="34" font-weight="900" fill="#0b3c88">${total}</text><text x="100" y="116" text-anchor="middle" font-size="12" fill="#7a869a">items</text></svg>`;
+}
+function legend(counts, keys){
+  keys = keys || Object.keys(counts).filter(k => k !== "total");
+  const total = keys.reduce((s,k) => s + (counts[k] || 0), 0) || 1;
+  return keys.map(k => `<div class="legend-item"><span class="swatch" style="background:${color(k)}"></span><span class="legend-name">${label(k)}</span><span class="legend-value">${counts[k] || 0} (${Math.round((counts[k] || 0)/total*100)}%)</span></div>`).join("");
+}
+function delayedItems(list){
+  return list.flatMap(p => flattenRows(p, {status:"delayed"})).sort((a,b) => b.delay - a.delay);
+}
+function delayedProjects(list, minDelay){
+  return list.map(p => {
+    const delayed = flattenRows(p, {status:"delayed", minDelay});
+    if(!delayed.length) return null;
+    return {project:p, name:p.name, kind:"project", delay:Math.max(...delayed.map(x => x.delay || 0)), count:delayed.length};
+  }).filter(Boolean).sort((a,b) => b.count - a.count || b.delay - a.delay);
+}
+function moreButton(total, shown, attrs){
+  const hidden = Math.max(0, total - shown);
+  return hidden ? `<button class="more-btn" type="button" ${attrs}>+${hidden} More</button>` : "";
+}
+function delayFilterMarkup(scopeAttrs=""){
+  return `<span class="card-tools"><label for="delayFilter">Delayed by</label><select id="delayFilter" data-delay-filter ${scopeAttrs}>
+    <option value="5" ${state.delayFilter === 5 ? "selected" : ""}>5 days</option>
+    <option value="10" ${state.delayFilter === 10 ? "selected" : ""}>10 days</option>
+    <option value="15" ${state.delayFilter === 15 ? "selected" : ""}>15 days</option>
+    <option value="20" ${state.delayFilter === 20 ? "selected" : ""}>20 days</option>
+    <option value="30" ${state.delayFilter === 30 ? "selected" : ""}>30 days</option>
+  </select></span>`;
+}
+function delayList(rows, limit, mode="row"){
+  const items = limit ? rows.slice(0, limit) : rows;
+  if(!items.length) return '<div class="empty">No delayed track found.</div>';
+  if(mode === "project"){
+    const max = Math.max(...items.map(x => x.count || 1), 1);
+    return `<div class="delay-list">${items.map(x => {
+      const p = x.project;
+      const projectAttrs = `data-track-project="${esc(p.id)}" data-track-status="delayed" data-track-min-delay="${state.delayFilter}"`;
+      const context = `${esc(p.organisation)} / ${esc(p.division)} / max ${x.delay}d delay`;
+      return `<button class="delay-row" type="button" ${projectAttrs}>
+      <div class="delay-name">${esc(p.id)} - ${esc(x.name)}<span class="delay-context">${context}</span></div>
+      <div class="delay-meter"><span class="delay-pill">${x.count} item${x.count === 1 ? "" : "s"}</span><div class="delay-track"><div class="delay-fill" style="width:${Math.max(8,x.count/max*100).toFixed(1)}%"></div></div></div>
+    </button>`;
+    }).join("")}</div>`;
+  }
+  const max = Math.max(...items.map(x => x.delay || 1), 1);
+  return `<div class="delay-list">${items.map(x => {
+    const p = x.project;
+    const projectAttrs = `data-track-project="${esc(p.id)}" data-track-key="${esc(x.key)}"`;
+    const context = `${esc(p.organisation)} / ${esc(p.division)} / ${esc(x.kind)}`;
+    return `<button class="delay-row" type="button" ${projectAttrs}>
+    <div class="delay-name">${esc(p.id)} - ${esc(x.name)}<span class="delay-context">${context}</span></div>
+    <div class="delay-meter"><span class="delay-pill">${x.delay}d</span><div class="delay-track"><div class="delay-fill" style="width:${Math.max(8,x.delay/max*100).toFixed(1)}%"></div></div></div>
+  </button>`;
+  }).join("")}</div>`;
+}
+function signalCards(groups, limit, type){
+  const visible = limit ? groups.slice(0, limit) : groups;
+  const max = Math.max(...visible.map(g => g.projects.length || 1), 1);
+  return `<div class="signal-grid">${visible.map(g => {
+    const c = g.counts;
+    const rows = [
+      ["Total",g.projects.length,"var(--navy)"],
+      ["Completed",c.completed,"var(--green)"],
+      ["On Track",c.ontrack,"var(--cyan)"],
+      ["Delayed",c.delayed,"var(--saffron)"]
+    ].map(r => `<div class="signal-row"><span>${r[0]}</span><span class="bar"><div style="width:${Math.max(5,r[1]/max*100).toFixed(1)}%;background:${r[2]}"></div></span><span class="num">${r[1]}</span></div>`).join("");
+    const attr = type === "org" ? `data-open-org="${esc(g.name)}"` : `data-open-division="${esc(g.name)}"`;
+    return `<button class="signal-card" type="button" ${attr}><div class="signal-head"><span class="signal-name">${esc(g.name)}</span><span class="signal-total">${g.projects.length} project${g.projects.length === 1 ? "" : "s"}</span></div>${rows}</button>`;
+  }).join("")}</div>`;
+}
+function picker(){
+  const selected = projects.find(p => p.id === state.selectedProject);
+  return `<div class="picker-card"><div class="picker-row"><span class="picker-label">Project</span>
+    <div class="combo ${state.comboOpen ? "open" : ""}">
+      <button class="combo-btn" type="button" data-combo-toggle><span class="combo-title">${selected ? esc(selected.id+" - "+selected.name) : "Select a project"}</span><span>v</span></button>
+      <div class="combo-menu">
+        <input class="project-search" id="projectSearch" type="search" placeholder="Search project from dropdown">
+        <div class="option-list">${projects.map(p => `<button class="project-option ${selected && selected.id === p.id ? "active" : ""}" type="button" data-pick-project="${esc(p.id)}">
+          <span class="project-option-id">${esc(p.id)} / ${esc(p.status)}</span><span class="project-option-name">${esc(p.name)}</span><span class="project-option-meta">${esc(p.organisation)} / ${esc(p.division)} / ${esc(p.owner)}</span>
+        </button>`).join("")}<div class="empty" id="noProjectMatch" style="display:none">No matching project.</div></div>
+      </div>
+    </div></div></div>`;
+}
+function renderSummary(){
+  const c = countsForProjects(projects);
+  const orgs = groupBy("organisation");
+  const divs = groupBy("division");
+  const delays = delayedProjects(projects, state.delayFilter);
+  const totalDelayedItems = delays.reduce((s, d) => s + d.count, 0);
+  const visibleDelay = 4;
+  const visibleGroups = 3;
+  return `
+    <div class="kpi-grid">
+      ${kpi("total","Total Projects",projects.length,`${orgs.length} organizations / ${divs.length} divisions`,'data-project-list="total"')}
+      ${kpi("total","Active Projects",projects.filter(p => projectBucket(p) !== "completed").length,"open project list",'data-project-list="active"')}
+      ${kpi("completed","Completed Projects",c.completed,"delivered projects",'data-project-list="completed"')}
+      ${kpi("ontrack","On Track",c.ontrack,"within schedule",'data-project-list="ontrack"')}
+      ${kpi("delayed","Delayed",c.delayed,"open delayed track",'data-track-status="delayed"')}
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">Pie Chart<span class="card-sub">Project status</span></div><div class="donut-wrap">${donut(c,["active","completed","ontrack","delayed"])}<div class="legend">${legend(c,["active","completed","ontrack","delayed"])}</div></div></div>
+      <div class="card"><div class="card-title">Delayed Track${delayFilterMarkup()}<span class="card-sub">${delays.length} project${delays.length === 1 ? "" : "s"} / ${totalDelayedItems} item${totalDelayedItems === 1 ? "" : "s"} delayed by ${state.delayFilter}+ days</span></div>${delayList(delays,visibleDelay,"project")}<div class="actions">${moreButton(delays.length,visibleDelay,`data-track-status="delayed" data-track-min-delay="${state.delayFilter}"`)}</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">Organization View<span class="card-sub">Total / Completed / On Track / Delayed</span></div>${signalCards(orgs,visibleGroups,"org")}<div class="actions">${moreButton(orgs.length,visibleGroups,"data-all-orgs")}</div></div>
+      <div class="card"><div class="card-title">Division View<span class="card-sub">Total / Completed / On Track / Delayed</span></div>${signalCards(divs,visibleGroups,"division")}<div class="actions">${moreButton(divs.length,visibleGroups,"data-all-divisions")}</div></div>
+    </div>`;
+}
+function renderProject(){
+  const p = projects.find(x => x.id === state.selectedProject);
+  if(!p) return picker() + '<div class="card"><div class="empty">Select a project to see details, KPIs and pie chart.</div></div>';
+  const pk = kpis(p);
+  const rows = flattenRows(p);
+  const chartRows = rows.filter(r => r.kind === "milestone" || r.kind === "activity");
+  const chartCounts = countsForRows(chartRows);
+  const delays = flattenRows(p, {status:"delayed", minDelay:state.delayFilter});
+  const visibleDelay = 4;
+  return picker() + `
+    <div class="project-head" data-track-project="${esc(p.id)}">
+      <div class="project-id">${esc(p.id)} / ${esc(p.status)}</div>
+      <div class="project-title">${esc(p.name)}</div>
+      <div class="project-desc">${esc(p.description)}</div>
+      <div class="project-meta">
+        <div class="meta-item"><span class="meta-label">Organization</span><span class="meta-value">${esc(p.organisation)}</span></div>
+        <div class="meta-item"><span class="meta-label">Division</span><span class="meta-value">${esc(p.division)}</span></div>
+        <div class="meta-item"><span class="meta-label">Owner</span><span class="meta-value">${esc(p.owner)}</span></div>
+        <div class="meta-item"><span class="meta-label">Planned</span><span class="meta-value">${range(p.plannedStart,p.plannedEnd)}</span></div>
+      </div>
+      <div class="progress-line"><span class="meta-label">Progress</span><div class="progress-track"><div class="progress-fill" style="width:${pk.progress}%"></div></div><span class="progress-pct">${pk.progress}%</span></div>
+    </div>
+    <div class="kpi-grid">
+      ${kpi("total","Overall Progress",pk.progress+"%",`${pk.tasksDone}/${pk.tasksTotal} tasks completed`,`data-track-project="${esc(p.id)}"`)}
+      ${kpi("completed","Milestones",`${pk.milestonesDone}/${pk.milestonesTotal}`,"open milestones",`data-track-project="${esc(p.id)}" data-track-kind="milestone"`)}
+      ${kpi("ontrack","Activities",`${pk.activitiesDone}/${pk.activitiesTotal}`,"open activities",`data-track-project="${esc(p.id)}" data-track-kind="activity"`)}
+      ${kpi("pending","Pending for Approval",pk.pendingApprovals,"activities only",`data-track-project="${esc(p.id)}" data-track-kind="activity" data-track-approval="true"`)}
+      ${kpi("delayed","Delayed",pk.delayed,"open delayed items",`data-track-project="${esc(p.id)}" data-track-status="delayed"`)}
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">Project Pie Chart<span class="card-sub">Milestones and activities</span></div><div class="donut-wrap">${donut(chartCounts,["active","completed","ontrack","delayed"])}<div class="legend">${legend(chartCounts,["active","completed","ontrack","delayed"])}</div></div></div>
+      <div class="card"><div class="card-title">Delayed Track${delayFilterMarkup(`data-delay-project="${esc(p.id)}"`)}<span class="card-sub">${delays.length} item${delays.length === 1 ? "" : "s"} delayed by ${state.delayFilter}+ days</span></div>${delayList(delays,visibleDelay)}<div class="actions">${moreButton(delays.length,visibleDelay,`data-track-project="${esc(p.id)}" data-track-status="delayed" data-track-min-delay="${state.delayFilter}"`)}</div></div>
+    </div>`;
+}
+function renderProjectList(){
+  const mode = state.projectListMode || "total";
+  const q = state.searchText.trim().toLowerCase();
+  const rows = projects.filter(p => {
+    if(mode !== "total"){
+      if(mode === "active" && projectBucket(p) === "completed") return false;
+      else if(mode !== "active" && projectBucket(p) !== mode) return false;
+    }
+    return !q || [p.id,p.name,p.organisation,p.division,p.owner].join(" ").toLowerCase().includes(q);
+  });
+  const title = ({total:"All Projects",active:"Active Projects",completed:"Completed Projects",ontrack:"On Track Projects",delayed:"Delayed Projects"})[mode];
+  const c = countsForProjects(rows);
+  return `<div class="card"><div class="card-title">Pie Chart<span class="card-sub">${title} status distribution</span></div><div class="donut-wrap">${donut(c,["active","completed","ontrack","delayed"])}<div class="legend">${legend(c,["active","completed","ontrack","delayed"])}</div></div></div>
+    <div class="card"><div class="card-title">${title}<span class="card-sub">${rows.length} project${rows.length === 1 ? "" : "s"}</span></div>
+    <input class="list-search" id="projectListSearch" type="search" value="${esc(state.searchText)}" placeholder="Search Project">
+    <div class="project-card-grid">${rows.map(p => {
+      const pk = kpis(p), st = projectBucket(p);
+      return `<button class="project-card" type="button" data-open-project="${esc(p.id)}"><span class="project-card-id">${esc(p.id)}</span><div class="project-card-title">${esc(p.name)}</div><div class="project-card-meta">${esc(p.organisation)} / ${esc(p.division)} / ${esc(p.owner)}</div><div class="project-card-meta"><span class="pill ${cssStatus(st)}">${label(st)}</span> ${pk.progress}% complete</div></button>`;
+    }).join("") || '<div class="empty">No projects found.</div>'}</div>
+  </div>`;
+}
+function renderOrg(){
+  const groups = groupBy("organisation");
+  const visible = 4;
+  if(state.org){
+    const g = groups.find(x => x.name === state.org);
+    return renderGroup("org", g.name, g.projects);
+  }
+  const c = countsForProjects(projects);
+  return `<div class="card"><div class="card-title">Pie Chart<span class="card-sub">All organizations / project status</span></div><div class="donut-wrap">${donut(c,["active","completed","ontrack","delayed"])}<div class="legend">${legend(c,["active","completed","ontrack","delayed"])}</div></div></div>
+    <div class="card"><div class="card-title">All Organizations<span class="card-sub">Click organization to see projects</span></div>${signalCards(state.showAllOrg ? groups : groups.slice(0,visible),0,"org")}${!state.showAllOrg ? `<div class="actions">${moreButton(groups.length,visible,"data-all-orgs")}</div>` : ""}</div>`;
+}
+function renderDivision(){
+  const groups = groupBy("division");
+  const visible = 4;
+  if(state.division){
+    const g = groups.find(x => x.name === state.division);
+    return renderGroup("division", g.name, g.projects);
+  }
+  const c = countsForProjects(projects);
+  return `<div class="card"><div class="card-title">Pie Chart<span class="card-sub">All divisions / project status</span></div><div class="donut-wrap">${donut(c,["active","completed","ontrack","delayed"])}<div class="legend">${legend(c,["active","completed","ontrack","delayed"])}</div></div></div>
+    <div class="card"><div class="card-title">All Divisions<span class="card-sub">Click division to see projects</span></div>${signalCards(state.showAllDivision ? groups : groups.slice(0,visible),0,"division")}${!state.showAllDivision ? `<div class="actions">${moreButton(groups.length,visible,"data-all-divisions")}</div>` : ""}</div>`;
+}
+function renderGroup(kind, name, list){
+  const c = countsForProjects(list);
+  const attr = kind === "org" ? `data-track-org="${esc(name)}"` : `data-track-division="${esc(name)}"`;
+  return `<div class="project-head"><div class="project-title">${esc(name)}</div><div class="project-desc">${list.length} projects with completed, on track and delayed project counts.</div><div class="track-actions"><button class="ghost-btn" type="button" data-back-group="${kind}">Back</button></div></div>
+  <div class="kpi-grid">
+    ${kpi("total","Total Projects",list.length,"assigned projects")}
+    ${kpi("completed","Completed",c.completed,"delivered",`${attr} data-track-project-mode="completed"`)}
+    ${kpi("ontrack","On Track",c.ontrack,"within schedule",`${attr} data-track-project-mode="ontrack"`)}
+    ${kpi("delayed","Delayed",c.delayed,"open delayed tracks",`${attr} data-track-status="delayed"`)}
+  </div>
+  <div class="card"><div class="card-title">Pie Chart<span class="card-sub">${esc(name)}</span></div><div class="donut-wrap">${donut(c,["active","completed","ontrack","delayed"])}<div class="legend">${legend(c,["active","completed","ontrack","delayed"])}</div></div></div>
+  <div class="card"><div class="card-title">Projects<span class="card-sub">Click project to open Project View</span></div><div class="project-card-grid">${list.map(p => `<button class="project-card" type="button" data-open-project="${esc(p.id)}"><span class="project-card-id">${esc(p.id)}</span><div class="project-card-title">${esc(p.name)}</div><div class="project-card-meta">${esc(p.organisation)} / ${esc(p.division)} / ${esc(p.owner)}</div><div class="project-card-meta"><span class="pill ${cssStatus(projectBucket(p))}">${label(projectBucket(p))}</span> ${progress(p)}% complete</div></button>`).join("")}</div></div>`;
+}
+function renderTrack(){
+  const scope = state.track || {};
+  const rows = trackRows(scope);
+  const c = countsForRows(rows);
+  const avg = rows.length ? Math.round(rows.reduce((s,r) => s + r.progress, 0) / rows.length) : 0;
+  const pending = rows.filter(r => r.kind === "activity" && pendingApproval(r.node)).length;
+  const p = scope.projectId ? projects.find(x => x.id === scope.projectId) : null;
+  const isDelayed = scope.status === "delayed";
+  const titleMap = {milestone:"Milestones",activity:"Activities",task:"Tasks",subtask:"Sub Tasks"};
+  const title = scope.approval ? "Activities Pending for Approval" : isDelayed ? "Delayed Tracks" : (scope.kind && titleMap[scope.kind]) ? titleMap[scope.kind] : "Track Progress";
+  // For Delayed page, all rows are delayed by definition (ancestors propagate). A status pie would be all one color.
+  // So switch to a "by kind" breakdown which shows how many delayed milestones / activities / tasks / sub tasks.
+  const kindKeys = ["milestone","activity","task","subtask"];
+  const statusKeys = ["active","completed","ontrack","delayed"];
+  const byKind = {milestone:0,activity:0,task:0,subtask:0,total:rows.length};
+  rows.forEach(r => { if(byKind[r.kind] != null) byKind[r.kind]++; });
+  const pieCounts = isDelayed ? byKind : c;
+  const pieKeys = isDelayed ? kindKeys : statusKeys;
+  const pieSubtitle = isDelayed ? "Delayed items by hierarchy level" : scope.kind ? `${titleMap[scope.kind] || scope.kind} status distribution` : "Status distribution";
+  return `<div class="track-head"><div class="track-head-title">${title}</div><div class="track-sub">${p ? esc(p.id+" - "+p.name) : "All projects"}${scope.kind ? " / "+esc(scope.kind) : ""}${scope.org ? " / "+esc(scope.org) : ""}${scope.division ? " / "+esc(scope.division) : ""}${isDelayed && scope.minDelay ? " / delayed by "+scope.minDelay+"+ days" : ""}</div><div class="track-actions"><button class="ghost-btn" type="button" data-back-track>Back</button></div></div>
+    <div class="kpi-grid">
+      ${kpi("total","Overall Progress",avg+"%",`${rows.length} items in scope`)}
+      ${kpi("total","Total Items",rows.length,"selected scope")}
+      ${kpi("completed","Completed",c.completed,"finished")}
+      ${scope.kind === "milestone" || scope.kind === "activity" ? "" : kpi("delayed","Delayed",c.delayed,"past expected end date")}
+      ${scope.kind === "milestone" || scope.kind === "activity" ? "" : kpi("ontrack","On Track",c.ontrack,"within schedule")}
+      ${scope.kind === "activity" || scope.approval ? kpi("pending","Pending for Approval",pending,"activities only") : ""}
+    </div>
+    <div class="card"><div class="card-title">Pie Chart${isDelayed ? delayFilterMarkup() : ""}<span class="card-sub">${pieSubtitle}</span></div><div class="donut-wrap">${donut(pieCounts,pieKeys)}<div class="legend">${legend(pieCounts,pieKeys)}</div></div></div>
+    <div class="track-table-wrap"><table class="track-table"><thead><tr><th>WBS</th><th>Name</th><th>Progress</th><th>Status</th><th>Expected Dates</th><th>Actual Dates</th><th>Type</th><th>Project Management</th></tr></thead><tbody>
+      ${rows.map(r => `<tr class="row-${r.kind}" data-track-project="${esc(r.project.id)}" data-track-key="${esc(r.key)}"><td class="wbs">${esc(r.wbs)}</td><td><span class="track-name">${esc(r.name)}</span><span class="track-context">${esc(r.project.id)} / ${esc(r.context)}</span></td><td><div class="mini-progress"><span class="bar"><div style="width:${r.progress}%"></div></span><span class="pct">${r.progress}%</span></div></td><td><span class="pill ${cssStatus(r.status)}">${label(r.status)}</span>${r.kind === "activity" ? `<br><span class="pill pending" style="margin-top:4px">${esc((r.approvalState || "idle").replace("_"," "))}</span>` : ""}</td><td class="date-cell">${range(r.plannedStart,r.plannedEnd)}</td><td class="date-cell">${r.actualStart ? range(r.actualStart,r.actualEnd) : "-"}</td><td><span class="type-pill">${esc(r.kind)}</span></td><td><button type="button" class="pm-btn" data-pm-open data-pm-project="${esc(r.project.id)}" data-pm-key="${esc(r.key)}" data-pm-kind="${esc(r.kind)}">Open in PM</button></td></tr>`).join("") || '<tr><td colspan="8"><div class="empty">No track items found.</div></td></tr>'}
+    </tbody></table></div>`;
+}
+function openTrack(attrs){
+  state.track = attrs;
+  state.view = "track";
+  render();
+}
+function render(){
+  const titleMap = {summary:"Dashboard",project:"Project View",org:"Organization View",division:"Division View",projects:"Search Project",track:"Track Progress"};
+  pageTitle.textContent = titleMap[state.view] || "Dashboard";
+  document.querySelectorAll("[data-view]").forEach(btn => {
+    const active = btn.dataset.view === (state.view === "track" && state.track && state.track.projectId ? "project" : ["summary","project","org"].includes(state.view) ? state.view : "summary");
+    btn.classList.toggle("active", active);
+  });
+  if(state.view === "summary") viewEl.innerHTML = renderSummary();
+  else if(state.view === "project") viewEl.innerHTML = renderProject();
+  else if(state.view === "org") viewEl.innerHTML = renderOrg();
+  else if(state.view === "division") viewEl.innerHTML = renderDivision();
+  else if(state.view === "projects") viewEl.innerHTML = renderProjectList();
+  else if(state.view === "track") viewEl.innerHTML = renderTrack();
+}
+document.addEventListener("click", e => {
+  const viewBtn = e.target.closest("[data-view]");
+  if(viewBtn){ state.view = viewBtn.dataset.view; state.comboOpen = false; state.track = null; render(); return; }
+  if(e.target.closest("#toggleBtn")){ document.getElementById("sidebar").classList.toggle("collapsed"); return; }
+  if(e.target.closest("#dashHead")){
+    const sub = document.getElementById("dashSubmenu");
+    sub.classList.toggle("collapsed");
+    document.querySelector("#dashHead .chev").textContent = sub.classList.contains("collapsed") ? ">" : "v";
+    return;
+  }
+  if(e.target.closest("[data-combo-toggle]")){ state.comboOpen = !state.comboOpen; render(); setTimeout(() => document.getElementById("projectSearch")?.focus(), 0); return; }
+  const pick = e.target.closest("[data-pick-project]");
+  if(pick){ state.selectedProject = pick.dataset.pickProject; state.comboOpen = false; render(); return; }
+  const openProject = e.target.closest("[data-open-project]");
+  if(openProject){ state.selectedProject = openProject.dataset.openProject; state.view = "project"; state.comboOpen = false; render(); return; }
+  const projectList = e.target.closest("[data-project-list]");
+  if(projectList){ state.projectListMode = projectList.dataset.projectList; state.searchText = ""; state.view = "projects"; render(); return; }
+  const openOrg = e.target.closest("[data-open-org]");
+  if(openOrg){ state.org = openOrg.dataset.openOrg; state.view = "org"; render(); return; }
+  const openDiv = e.target.closest("[data-open-division]");
+  if(openDiv){ state.division = openDiv.dataset.openDivision; state.view = "division"; render(); return; }
+  if(e.target.closest("[data-all-orgs]")){ state.showAllOrg = true; state.org = null; state.view = "org"; render(); return; }
+  if(e.target.closest("[data-all-divisions]")){ state.showAllDivision = true; state.division = null; state.view = "division"; render(); return; }
+  const backGroup = e.target.closest("[data-back-group]");
+  if(backGroup){ if(backGroup.dataset.backGroup === "org") state.org = null; else state.division = null; render(); return; }
+  if(e.target.closest("[data-back-track]")){ state.view = state.track && state.track.projectId ? "project" : "summary"; state.track = null; render(); return; }
+  const pmOpen = e.target.closest("[data-pm-open]");
+  if(pmOpen){
+    e.stopPropagation();
+    const target = {projectId:pmOpen.dataset.pmProject, nodeKey:pmOpen.dataset.pmKey, nodeKind:pmOpen.dataset.pmKind};
+    sessionStorage.setItem("pmisTarget", JSON.stringify(target));
+    const url = `Project Management.html?projectId=${encodeURIComponent(target.projectId)}&nodeKey=${encodeURIComponent(target.nodeKey)}&nodeKind=${encodeURIComponent(target.nodeKind)}#track`;
+    window.open(url, "_blank");
+    return;
+  }
+  const track = e.target.closest("[data-track-status],[data-track-project],[data-track-kind],[data-track-approval],[data-track-org],[data-track-division],[data-track-project-mode]");
+  if(track){
+    openTrack({
+      status:track.dataset.trackStatus || null,
+      projectId:track.dataset.trackProject || null,
+      key:track.dataset.trackKey || null,
+      kind:track.dataset.trackKind || null,
+      approval:track.hasAttribute("data-track-approval"),
+      org:track.dataset.trackOrg || null,
+      division:track.dataset.trackDivision || null,
+      projectMode:track.dataset.trackProjectMode || null,
+      minDelay:track.dataset.trackMinDelay ? Number(track.dataset.trackMinDelay) : (track.dataset.trackStatus === "delayed" ? state.delayFilter : null)
     });
   }
-
-  /* ─────────────────────────── RENDERERS ─────────────────────────── */
-
-  function renderTabs(){
-    var tabs = document.querySelectorAll('.dash-tab');
-    tabs.forEach(function(t){
-      var on = t.getAttribute('data-view') === state.viewMode;
-      t.classList.toggle('active', on);
-      t.setAttribute('aria-selected', on ? 'true' : 'false');
+});
+document.addEventListener("change", e => {
+  if(e.target.matches("[data-delay-filter]")){
+    state.delayFilter = Number(e.target.value) || 5;
+    if(state.view === "track" && state.track && state.track.status === "delayed"){
+      state.track = {...state.track, minDelay:state.delayFilter};
+    }
+    render();
+  }
+});
+document.addEventListener("input", e => {
+  if(e.target.id === "projectSearch"){
+    const q = e.target.value.toLowerCase();
+    let shown = 0;
+    document.querySelectorAll(".project-option[data-pick-project]").forEach(btn => {
+      const hit = btn.textContent.toLowerCase().includes(q);
+      btn.style.display = hit ? "" : "none";
+      if(hit) shown++;
     });
+    const empty = document.getElementById("noProjectMatch");
+    if(empty) empty.style.display = shown ? "none" : "";
   }
-
-  function renderBreadcrumb(scope){
-    var bc = document.getElementById('dashBreadcrumb');
-    var html = scope.crumbs.map(function(c, i){
-      var sep = i > 0 ? '<span class="dash-bc-sep" aria-hidden="true">›</span>' : '';
-      if(c.current){
-        return sep + '<span class="dash-bc-current">' + escapeHtml(c.label) + '</span>';
-      }
-      return sep + '<button type="button" class="dash-bc-link" data-bc="' + c.idx + '">' + escapeHtml(c.label) + '</button>';
-    }).join('');
-    bc.innerHTML = html;
+  if(e.target.id === "projectListSearch"){
+    state.searchText = e.target.value;
+    render();
+    setTimeout(() => {
+      const input = document.getElementById("projectListSearch");
+      if(input){ input.focus(); input.setSelectionRange(input.value.length,input.value.length); }
+    }, 0);
   }
-
-  function renderSearch(scope){
-    var input = document.getElementById('dashSearch');
-    var clear = document.getElementById('dashSearchClear');
-    var labelMap = {
-      vendors:'Search vendors...',
-      divisions:'Search divisions/owners...',
-      projects:'Search projects...',
-      milestones:'Search milestones...',
-      activities:'Search activities...',
-      tasks:'Search tasks...'
-    };
-    input.placeholder = labelMap[scope.childKind] || 'Search...';
-    if(input.value !== state.search){
-      input.value = state.search;
-    }
-    clear.classList.toggle('visible', !!state.search);
-  }
-
-  function renderKpis(scope, items){
-    var counts = statusCounts(items);
-    var grid = document.getElementById('dashKpiGrid');
-
-    // KPI: total items = number of entries shown at this level
-    var kindLabel = ({
-      vendors:'Total Vendors',
-      divisions:'Divisions/Owners',
-      projects: scope.vendorFilter ? 'Vendor Projects' : (scope.divisionFilter ? 'Division Projects' : 'Total Projects'),
-      milestones:'Milestones',
-      activities:'Activities',
-      tasks:'Tasks'
-    })[scope.childKind] || 'Items';
-
-    // For deeper levels, also show overall progress
-    var progress = (function(){
-      var node = scope.activity || scope.milestone || scope.project;
-      if(node) return nodeProgress(node);
-      // top-level: aggregate progress over all tasks in scope
-      var allTasks = [];
-      items.forEach(function(it){
-        allTasks = allTasks.concat(collectTasks(it._node || {}));
-      });
-      if(!allTasks.length) return 0;
-      return Math.round(allTasks.filter(function(t){return classifyTask(t)==='completed';}).length / allTasks.length * 100);
-    })();
-
-    var kpis = [
-      { key:'total',      cls:'k-total no-drill',      label: kindLabel, value: counts.total, sub: progress + '% complete' },
-      { key:'completed',  cls:'k-completed',           label:'Completed', value: counts.completed, sub:'on path' },
-      { key:'ontrack',    cls:'k-ontrack',             label:'On Track',  value: counts.ontrack,   sub:'in progress' },
-      { key:'delayed',    cls:'k-delayed',             label:'Delayed',   value: counts.delayed,   sub:'past due' },
-      { key:'notstarted', cls:'k-notstarted',          label:'Not Started', value: counts.notstarted, sub:'awaiting' }
-    ];
-
-    grid.innerHTML = kpis.map(function(k){
-      return '<button type="button" class="dash-kpi ' + k.cls + '" data-kpi="' + k.key + '">' +
-        '<div class="dash-kpi-label">' + escapeHtml(k.label) + '</div>' +
-        '<div class="dash-kpi-value">' + k.value + '</div>' +
-        '<div class="dash-kpi-foot">' + escapeHtml(k.sub) + '</div>' +
-      '</button>';
-    }).join('');
-  }
-
-  function renderStatusCharts(scope, items){
-    var counts = statusCounts(items);
-    document.getElementById('dashDonut').innerHTML = donutChart(counts);
-    document.getElementById('dashLegend').innerHTML = legendHtml(counts);
-    document.getElementById('dashStackedBar').innerHTML = stackedBar(counts);
-    document.getElementById('dashMiniStrip').innerHTML = miniStrip(counts);
-    var sub = ({
-      vendors:'across vendors',
-      divisions:'across divisions',
-      projects:'across projects',
-      milestones:'across milestones',
-      activities:'across activities',
-      tasks:'across tasks'
-    })[scope.childKind] || '';
-    document.getElementById('dashDonutSub').textContent = sub;
-    document.getElementById('dashStackedSub').textContent = sub;
-  }
-
-  function renderDelays(scope, items){
-    document.getElementById('dashDelays').innerHTML = topDelaysHtml(items);
-  }
-
-  function renderGroupChart(scope, items){
-    // What goes in the "Comparison" slot depends on level:
-    // - top level project view: per-project task counts
-    // - top level vendor view: per-vendor task counts (aggregate)
-    // - top level division view: per-division task counts
-    // - drilled into project: per-milestone task counts
-    // - drilled into milestone: per-activity task counts
-    // - drilled into activity: per-task status (single bar each)
-    var groups = items.map(function(it){
-      var tasks = collectTasks(it._node || {});
-      var c = { name: it.name, total: tasks.length, completed:0, ontrack:0, delayed:0, notstarted:0 };
-      tasks.forEach(function(t){
-        var s = classifyTask(t);
-        if(c[s] !== undefined) c[s]++;
-      });
-      return c;
-    }).filter(function(g){ return g.total > 0; })
-      .sort(function(a,b){ return b.total - a.total; })
-      .slice(0, 8);
-
-    document.getElementById('dashGroups').innerHTML = groupBarsHtml(groups);
-    var titleMap = {
-      vendors:'Vendor Comparison',
-      divisions:'Division Comparison',
-      projects:'Project Comparison',
-      milestones:'Milestone Comparison',
-      activities:'Activity Comparison',
-      tasks:'Task Distribution'
-    };
-    document.getElementById('dashGroupTitle').firstChild.textContent = titleMap[scope.childKind] || 'Comparison';
-    // Re-add the dash-card-title::before pill (textContent on firstChild kills the ::before pseudo, but pseudo is CSS-only so it's fine)
-    document.getElementById('dashGroupSub').textContent = 'tasks · stacked by status';
-  }
-
-  function renderGantt(scope, items){
-    document.getElementById('dashGantt').innerHTML = ganttHtml(items);
-    var ctx = scope.activity ? 'tasks under ' + scope.activity.name
-            : scope.milestone ? 'activities under ' + scope.milestone.name
-            : scope.project ? 'milestones under ' + scope.project.id
-            : (scope.childKind === 'vendors' ? 'aggregated by vendor'
-              : scope.childKind === 'divisions' ? 'aggregated by division'
-              : 'projects in scope');
-    document.getElementById('dashGanttSub').textContent = ctx;
-  }
-
-  function renderItemsList(scope, items){
-    var titleMap = {
-      vendors:'Vendors',
-      divisions:'Divisions / Owners',
-      projects:'Projects',
-      milestones:'Milestones',
-      activities:'Activities',
-      tasks:'Tasks'
-    };
-    document.getElementById('dashListTitle').firstChild.textContent = titleMap[scope.childKind] || 'Items';
-    document.getElementById('dashListSub').textContent = items.length + ' shown · click to drill in';
-
-    var container = document.getElementById('dashList');
-
-    if(items.length === 0){
-      container.innerHTML = '<div class="dash-empty"><div class="e-ico">∅</div>No items match the current search</div>';
-      return;
-    }
-
-    if(scope.childKind === 'tasks'){
-      // Render as table for tasks (leaf level)
-      document.getElementById('dashListSub').textContent = items.length + ' tasks';
-      var rows = items.map(function(it){
-        var t = it._task || (it._node && it._node._task);
-        if(!t) return '';
-        var status = classifyTask(t);
-        var dueOrEnd = t.actualEnd ? ('Done: ' + fmtDate(t.actualEnd)) : ('Due: ' + fmtDate(t.plannedEnd));
-        var startInfo = t.actualStart ? ('Started: ' + fmtDate(t.actualStart)) : (t.plannedStart ? ('Planned: ' + fmtDate(t.plannedStart)) : '-');
-        var delayDays = (function(){
-          if(status === 'completed' && t.actualEnd && t.plannedEnd){
-            var d = (new Date(t.actualEnd) - new Date(t.plannedEnd)) / DAY_MS;
-            if(d > 0) return Math.round(d) + ' days late';
-            if(d < 0) return Math.abs(Math.round(d)) + ' days early';
-            return 'on time';
-          }
-          if(status === 'delayed' && t.plannedEnd){
-            return Math.round((TODAY - new Date(t.plannedEnd)) / DAY_MS) + ' days overdue';
-          }
-          return '-';
-        })();
-        return '<tr>' +
-          '<td><strong>' + escapeHtml(t.name) + '</strong></td>' +
-          '<td><span class="dash-pill ' + pillClass(status) + '">' + statusLabel(status) + '</span></td>' +
-          '<td>' + startInfo + '</td>' +
-          '<td>' + dueOrEnd + '</td>' +
-          '<td>' + delayDays + '</td>' +
-        '</tr>';
-      }).join('');
-      container.innerHTML =
-        '<div class="dash-table-wrap"><table class="dash-tbl">' +
-          '<thead><tr><th>Task</th><th>Status</th><th>Start</th><th>End</th><th>Variance</th></tr></thead>' +
-          '<tbody>' + rows + '</tbody>' +
-        '</table></div>';
-      return;
-    }
-
-    // Card-based list
-    var cards = items.map(function(it, i){
-      var status = it._status;
-      var pct = it._progress;
-      var delay = it._delay;
-      var node = it._node || {};
-      var idx = (typeof i === 'number') ? i : 0;
-
-      // Build meta chips
-      var chips = [];
-      if(node.vendor)   chips.push(node.vendor);
-      if(node.division) chips.push(node.division);
-      if(node.owner)    chips.push('Owner: ' + node.owner);
-      if(it._ctx && !node.vendor) chips.push(it._ctx);
-
-      var idStr = node.id || '';
-      var idHtml = idStr ? '<span class="dash-item-id">' + escapeHtml(idStr) + '</span>' : '';
-      // Header: id stacked above name (or just name if no id)
-      var head = idStr
-        ? '<div>' + idHtml + '<div class="dash-item-name">' + escapeHtml(it.name.replace(idStr + ' — ','')) + '</div></div>'
-        : '<div class="dash-item-name">' + escapeHtml(it.name) + '</div>';
-
-      // Sub-item count
-      var subs = '';
-      if(scope.childKind === 'projects' || scope.childKind === 'vendors' || scope.childKind === 'divisions'){
-        var mCount = (node.milestones || []).length;
-        if(scope.childKind === 'vendors' || scope.childKind === 'divisions'){
-          subs = (it._projects ? it._projects.length : 0) + ' projects · ' + collectTasks(node).length + ' items';
-        } else {
-          subs = mCount + ' milestone' + (mCount===1?'':'s') + ' · ' + collectTasks(node).length + ' items';
-        }
-      } else if(scope.childKind === 'milestones'){
-        var aCount = (node.activities || []).length;
-        subs = aCount + ' activit' + (aCount===1?'y':'ies') + ' · ' + collectTasks(node).length + ' items';
-      } else if(scope.childKind === 'activities'){
-        var tCount = (node.tasks || []).length;
-        subs = tCount + ' task' + (tCount===1?'':'s');
-      }
-
-      var delayBadge = '';
-      if(status === 'delayed' && delay > 0){
-        delayBadge = '<span class="delay-badge">' + delay + 'd overdue</span>';
-      } else if(status === 'completed' && delay > 0){
-        delayBadge = '<span class="delay-badge">finished ' + delay + 'd late</span>';
-      } else if(status === 'completed'){
-        delayBadge = '<span class="ahead-badge">on time</span>';
-      }
-
-      return '<button type="button" class="dash-item-card s-' + status + '" data-drill-idx="' + idx + '">' +
-        '<div class="dash-item-head">' + head + '<span class="dash-pill ' + pillClass(status) + '">' + statusLabel(status) + '</span></div>' +
-        (chips.length ? '<div class="dash-item-meta">' + chips.map(function(c){return '<span class="dash-item-meta-chip">' + escapeHtml(c) + '</span>';}).join('') + '</div>' : '') +
-        '<div class="dash-item-progress">' +
-          '<div class="dash-item-progress-bar"><div style="width:' + pct + '%"></div></div>' +
-          '<div class="dash-item-progress-pct">' + pct + '%</div>' +
-        '</div>' +
-        '<div class="dash-item-foot">' +
-          '<span>' + escapeHtml(subs) + '</span>' +
-          delayBadge +
-        '</div>' +
-      '</button>';
-    }).join('');
-
-    container.innerHTML = '<div class="dash-items-grid">' + cards + '</div>';
-  }
-
-  /* ─────────────────────────── MASTER RENDER ─────────────────────────── */
-  // Cache the unfiltered analytics items so KPIs/charts and item-list use the SAME source
-  // but the item list applies search filter. The user said search should be a list filter.
-  function renderAll(){
-    var scope = getScope();
-    var items = getAnalyticItems(scope);
-    var filteredItems = applySearch(items);
-
-    renderTabs();
-    renderBreadcrumb(scope);
-    renderSearch(scope);
-    // KPIs/charts/gantt use the full scoped items (so search doesn't change the analytics)
-    renderKpis(scope, items);
-    renderStatusCharts(scope, items);
-    renderDelays(scope, items);
-    renderGroupChart(scope, items);
-    renderGantt(scope, items);
-    // Items list applies the search filter
-    renderItemsList(scope, filteredItems);
-  }
-
-  /* ─────────────────────────── EVENT HANDLERS ─────────────────────────── */
-  document.getElementById('dashboardRoot').addEventListener('click', function(e){
-    // Tab switch
-    var tab = e.target.closest('.dash-tab');
-    if(tab){
-      var v = tab.getAttribute('data-view');
-      if(v && v !== state.viewMode){
-        state.viewMode = v;
-        state.drill = [];
-        state.search = '';
-        renderAll();
-      }
-      return;
-    }
-    // Breadcrumb
-    var bc = e.target.closest('.dash-bc-link');
-    if(bc){
-      var idx = parseInt(bc.getAttribute('data-bc'), 10);
-      if(idx === -1){
-        state.drill = [];
-      } else {
-        state.drill = state.drill.slice(0, idx + 1);
-      }
-      state.search = '';
-      renderAll();
-      return;
-    }
-    // Item card → drill in
-    var card = e.target.closest('.dash-item-card');
-    if(card){
-      var i = parseInt(card.getAttribute('data-drill-idx'), 10);
-      var scope = getScope();
-      var items = applySearch(getAnalyticItems(scope));
-      var item = items[i];
-      if(item && item._drillEntry){
-        state.drill = state.drill.concat([item._drillEntry]);
-        state.search = '';
-        renderAll();
-      }
-      return;
-    }
-    // KPI tap (visual only — no drill, but could highlight)
-    // We don't drill on KPI clicks here to keep the model simple.
-  });
-
-  // Search input
-  var searchInput = document.getElementById('dashSearch');
-  var searchClear = document.getElementById('dashSearchClear');
-  var searchTimer = null;
-  searchInput.addEventListener('input', function(e){
-    state.search = e.target.value;
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(function(){
-      // Re-render items list and search clear button only
-      var scope = getScope();
-      var filtered = applySearch(getAnalyticItems(scope));
-      renderItemsList(scope, filtered);
-      searchClear.classList.toggle('visible', !!state.search);
-    }, 100);
-  });
-  searchClear.addEventListener('click', function(){
-    state.search = '';
-    searchInput.value = '';
-    var scope = getScope();
-    renderItemsList(scope, getAnalyticItems(scope));
-    searchClear.classList.remove('visible');
-    searchInput.focus();
-  });
-
-  // Reset button
-  document.getElementById('dashResetBtn').addEventListener('click', function(){
-    state.viewMode = 'project';
-    state.drill = [];
-    state.search = '';
-    renderAll();
-  });
-  // Refresh button
-  document.getElementById('dashRefreshBtn').addEventListener('click', function(){
-    renderAll();
-  });
-
-  // Initial render
-  renderAll();
-})();
+});
+document.getElementById("refreshBtn").addEventListener("click", render);
+render();
 </script>
-
 </body>
 </html>
