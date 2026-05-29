@@ -178,6 +178,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       <a href="#">🗂️ Activities</a>
       <div class="menu-section">Contract</div>
       <a href="SLA Master.html">📐 SLA Masters</a>
+      <a href="Project Severity.html">⚙️ Project Severity &amp; LD</a>
       <a href="Activity SLAs.html" class="active">🔗 Activity SLAs</a>
       <a href="#">⚖️ LD Reports</a>
       <div class="menu-section">Admin</div>
@@ -684,14 +685,35 @@ async function runEvaluate(){
   }catch(e){ toast('Network error', e.message, 'error'); }
 }
 
+function sourcePill(source, kind){
+  // source is "project" | "default" | "unavailable"
+  const cls = source==='project' ? 'badge green'
+            : source==='default' ? 'badge orange'
+            : 'badge red';
+  const label = source==='project'     ? `${kind}: project chart`
+              : source==='default'     ? `${kind}: RFP default`
+              : `${kind}: upstream unavailable`;
+  return `<span class="${cls}">${label}</span>`;
+}
+
 function renderEvalResult(r){
   const sev = r.severity_level;
   const sevPill = (sev===0||sev>0) ? `<span class="sev-pill s${sev}">Severity L${sev}</span>` : '';
   const breaches = r.breaches || [];
   const guards = r.guards || [];
+  const sevSrc = r.severity_master_source || 'default';
+  const ldSrc  = r.ld_band_source || 'default';
+  const projectBadge = r.project_id
+    ? `<span class="badge grey">project ${esc(r.project_id).slice(0,8)}…</span>`
+    : `<span class="badge red">project: unresolved</span>`;
   return `
     <div class="subsection">
       <div class="subsection-title">Result</div>
+      <div style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px;">
+        ${projectBadge}
+        ${sourcePill(sevSrc, 'Severity')}
+        ${sourcePill(ldSrc, 'LD bands')}
+      </div>
       <div class="grid-4">
         <div class="field"><label>Severity</label><div class="field-value">${sevPill || '—'}</div></div>
         <div class="field"><label>Points</label><div class="field-value">${r.accumulated_points ?? '—'}</div></div>
