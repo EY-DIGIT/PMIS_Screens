@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>UIDAI PMIS - Activity SLAs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0b3c88; --navy-deep:#062a63;
+  --cyan:#0aa1c0; --cyan-light:#3cb8d4;
+  --green:#1a8a3d; --green-soft:#e7f7ec;
+  --saffron:#d4440e;
+  --light:#f4f7fb; --light-cool:#eef3f9;
+  --border:#dbe5f1; --border-soft:#e9eef6;
+  --red:#d32f2f;
+  --text:#1e2a3a; --text-soft:#5a6680; --text-muted:#7a869a;
+  --row-hover:#e7f1ff;
+  --uidai-stripe:linear-gradient(90deg, var(--navy) 0%, var(--cyan) 100%);
+  --sev0:#1a7f37; --sev1:#7a9b1c; --sev2:#b25e00; --sev3:#c33a1a; --sev4:#7a1212;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{font-family:'Roboto',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--light);color:var(--text);display:flex;flex-direction:column;min-height:100vh;}
+button{font-family:inherit;}
+.site-header{width:100%;background:#fff;box-shadow:0 2px 8px rgba(11,60,136,.08);position:relative;z-index:50;}
+.site-header::after{content:"";display:block;height:4px;background:var(--uidai-stripe);}
+.header-strip{background:#f5f8fd;border-bottom:1px solid var(--border);display:flex;justify-content:flex-end;align-items:center;padding:3px 20px;gap:12px;min-height:28px;font-size:13px;}
+.header-main{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;padding:8px 20px;background:linear-gradient(90deg,#ffebc7 0%,#ffffff 45%,#ffffff 55%,#d7efd9 100%);}
+.header-brand{display:flex;align-items:center;gap:12px;}
+.header-brand-text{display:flex;flex-direction:column;line-height:1.15;gap:2px;}
+.header-brand-hi-1{font-weight:800;font-size:16px;color:#D4440E;}
+.header-brand-hi-2{font-weight:800;font-size:16px;color:#1a8a3d;}
+.header-title{text-align:center;font-size:20px;font-weight:800;background:linear-gradient(90deg,var(--navy),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.header-authority{justify-self:end;text-align:left;font-weight:700;font-size:14px;color:#1a2a3f;line-height:1.2;}
+.logo-circle{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--cyan));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;}
+.navbar{display:flex;justify-content:space-between;align-items:center;background:#fafcfe;border-bottom:1px solid var(--border);min-height:42px;}
+.menu-home-block{width:240px;display:flex;justify-content:space-between;padding:6px 14px;border-right:1px solid var(--border);gap:10px;}
+.menu-home-block span{cursor:pointer;padding:5px 10px;border-radius:6px;white-space:nowrap;font-size:14px;font-weight:500;color:var(--navy);}
+.menu-home-block span:hover{background:#eaf2fb;}
+.profile{padding:0 20px;cursor:pointer;font-size:14px;font-weight:600;color:var(--navy);}
+.layout{display:flex;flex:1;min-height:0;}
+.sidebar{width:240px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.menu{padding:12px;}
+.menu a{display:flex;gap:10px;padding:9px 10px;margin-bottom:4px;cursor:pointer;border-radius:6px;align-items:center;text-decoration:none;color:var(--text);font-size:14px;font-weight:500;}
+.menu a:hover{background:#eef6fb;}
+.menu a.active{background:linear-gradient(90deg,var(--navy),var(--cyan));color:#fff;}
+.menu .menu-section{font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;letter-spacing:.4px;padding:10px 10px 4px;}
+.content{flex:1;padding:14px 20px;overflow:auto;min-width:0;}
+.pm-title{font-size:22px;font-weight:700;color:var(--navy);padding-left:14px;position:relative;line-height:1.2;}
+.pm-title::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:4px;border-radius:3px;background:var(--uidai-stripe);}
+.pm-subtitle{color:var(--green);font-weight:700;font-size:14px;margin:2px 0 4px 14px;}
+.pm-description{color:var(--text-soft);font-size:13px;margin:0 0 12px 14px;}
+.page-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.page-header-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.card{background:#fff;padding:16px 20px 14px;border-radius:10px;border:1px solid var(--border-soft);box-shadow:0 2px 8px rgba(11,60,136,.06);margin-bottom:14px;position:relative;}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--uidai-stripe);border-radius:10px 10px 0 0;}
+.card-title{font-size:15px;font-weight:800;color:var(--navy);margin-bottom:10px;}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
+.full{grid-column:1 / -1;}
+.field label{font-weight:600;display:block;margin-bottom:4px;font-size:13px;color:var(--text-soft);}
+.field .field-value{font-weight:700;color:var(--text);font-size:14px;}
+.required{color:var(--red);}
+input,select,textarea{width:100%;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--text);font:inherit;font-size:13px;}
+textarea{height:80px;resize:vertical;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(10,161,192,.12);}
+.btn{background:linear-gradient(90deg,var(--navy),var(--cyan));color:#fff;padding:9px 16px;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:13px;box-shadow:0 1px 3px rgba(11,60,136,.15);transition:transform .15s,box-shadow .15s;}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(11,60,136,.22);}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.btn.cancel{background:#fff;color:var(--navy);border:1px solid var(--border);box-shadow:none;}
+.btn.cancel:hover{background:#f4f8fd;}
+.btn.delete-btn{background:#fff;color:var(--red);border:1px solid var(--red);box-shadow:none;}
+.btn.delete-btn:hover{background:var(--red);color:#fff;}
+.btn.evaluate-btn{background:linear-gradient(90deg,#5e3fb1,#8b6fd7);}
+.btn.ld-btn{background:linear-gradient(90deg,#c33a1a,#e8734a);}
+.btn.small-btn{padding:5px 10px;font-size:12px;}
+.btn.icon-btn{padding:5px 8px;font-size:12px;}
+.table-wrap{width:100%;overflow-x:auto;border-radius:10px;border:1px solid var(--border);margin-top:8px;}
+.table{width:100%;border-collapse:collapse;background:#fff;}
+.table th{background:#f1f6fd;padding:10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;}
+.table td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top;font-size:13px;}
+.table tr:hover td{background:var(--row-hover);}
+.table .actions-cell{white-space:nowrap;}
+.table .actions-cell .btn{margin-right:4px;}
+.link{color:var(--navy);font-weight:600;cursor:pointer;text-decoration:underline;}
+.link:hover{color:var(--cyan);}
+.empty-row td{text-align:center;color:var(--text-muted);padding:18px;font-style:italic;}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;background:#eaf4ff;color:#114a8d;font-size:11px;font-weight:700;}
+.badge.green{background:#e8f7ee;color:#1a7f37;}
+.badge.red{background:#fdecec;color:#b42318;}
+.badge.orange{background:#fff4e5;color:#b25e00;}
+.badge.purple{background:#efeafc;color:#5e3fb1;}
+.badge.grey{background:#f0f2f7;color:#5a6680;}
+.modal{position:fixed;inset:0;background:rgba(7,26,52,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:1900;}
+.modal.open{display:flex;}
+.modal-box{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:12px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.18);position:relative;}
+.modal-box::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--uidai-stripe);border-radius:12px 12px 0 0;}
+.modal-box.wide{width:min(960px,100%);}
+.modal-box.narrow{width:min(520px,100%);}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.modal-title{font-size:18px;font-weight:800;color:var(--navy);}
+.modal-sub{font-size:12px;color:var(--text-soft);margin-top:3px;}
+.modal-close{width:30px;height:30px;border-radius:50%;background:#fdecec;border:none;color:#b42318;cursor:pointer;font-size:14px;font-weight:700;}
+.modal-close:hover{background:var(--red);color:#fff;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+.subsection{border:1px solid var(--border-soft);border-radius:8px;padding:12px;margin-top:10px;background:#fafcff;}
+.subsection-title{font-weight:800;color:var(--navy);font-size:13px;margin-bottom:8px;}
+.toast{position:fixed;top:20px;right:20px;background:#fff;border-left:4px solid var(--cyan);padding:12px 16px;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);z-index:2000;min-width:280px;max-width:420px;display:none;}
+.toast.open{display:block;animation:slideIn .2s;}
+.toast.success{border-left-color:#1a7f37;}
+.toast.error{border-left-color:var(--red);}
+.toast-title{font-weight:800;font-size:13px;margin-bottom:3px;color:var(--navy);}
+.toast-msg{font-size:12px;color:var(--text-soft);}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.site-footer{background:linear-gradient(90deg,#eaf1fb 0%,#f5f9fe 50%,#eaf1fb 100%);color:var(--navy);text-align:center;padding:10px 16px;font-size:12px;font-weight:600;margin-top:auto;position:relative;}
+.site-footer::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--uidai-stripe);}
+.api-bar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;padding:10px 12px;background:#eef6fb;border:1px dashed var(--cyan);border-radius:8px;margin-bottom:12px;}
+.api-bar .field{flex:1 1 240px;min-width:220px;}
+.api-bar .field input{padding:6px 9px;font-size:12px;}
+.status-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#bbb;margin-right:5px;}
+.status-dot.ok{background:#1a7f37;}
+.status-dot.err{background:var(--red);}
+/* Activity header card */
+.act-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:6px;}
+.act-meta .field{margin:0;}
+/* Severity pill */
+.sev-pill{display:inline-flex;align-items:center;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:800;color:#fff;}
+.sev-pill.s0{background:var(--sev0);}.sev-pill.s1{background:var(--sev1);}.sev-pill.s2{background:var(--sev2);}.sev-pill.s3{background:var(--sev3);}.sev-pill.s4{background:var(--sev4);}
+/* LD totals */
+.ld-totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:14px;}
+.ld-tile{background:#fff;border:1px solid var(--border-soft);border-radius:10px;padding:14px;box-shadow:0 2px 8px rgba(11,60,136,.04);position:relative;overflow:hidden;}
+.ld-tile::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--uidai-stripe);}
+.ld-tile-label{font-size:12px;color:var(--text-muted);}
+.ld-tile-value{font-size:22px;font-weight:800;color:var(--navy);margin-top:4px;}
+.ld-tile-sub{font-size:11px;color:var(--text-soft);margin-top:3px;}
+/* Override fields highlighted as prefill */
+.field.prefill input{background:#fffde8;border-color:#f5c97c;}
+.field.prefill .field-pre{font-size:10px;font-weight:700;color:#b25e00;text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;}
+/* Observation form */
+.obs-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr)) auto;gap:8px;margin-bottom:6px;align-items:end;}
+.obs-row .field label{font-size:11px;color:var(--text-soft);margin-bottom:2px;}
+.obs-row input,.obs-row select{padding:6px 8px;font-size:12px;}
+.obs-row .remove-btn{width:28px;height:28px;border-radius:6px;background:#fff;color:var(--red);border:1px solid var(--red);cursor:pointer;font-size:14px;}
+.hidden{display:none !important;}
+@media (max-width:1100px){.grid-4,.act-meta,.ld-totals{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:760px){.sidebar{display:none;}.grid,.grid-3,.grid-4,.act-meta,.ld-totals{grid-template-columns:1fr;}.obs-row{grid-template-columns:repeat(2,1fr) auto;}}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-strip"><span>Text Size:</span> <button class="btn small-btn cancel">+A</button> <button class="btn small-btn cancel">A</button> <button class="btn small-btn cancel">-A</button></div>
+  <div class="header-main">
+    <div class="header-brand">
+      <div class="logo-circle">आ</div>
+      <div class="header-brand-text"><span class="header-brand-hi-1">मेरा आधार</span><span class="header-brand-hi-2">मेरी पहचान</span></div>
+    </div>
+    <h1 class="header-title">UIDAI Automation Governance Tool</h1>
+    <div class="header-authority">Unique Identification<br>Authority of India</div>
+  </div>
+</header>
+
+<div class="navbar">
+  <div class="menu-home-block"><span>☰ Menu</span><span>🏠 Home</span></div>
+  <div class="profile">👤 Profile</div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="menu">
+      <div class="menu-section">Workspace</div>
+      <a href="#">📊 Dashboard</a>
+      <a href="#">📁 Projects</a>
+      <a href="#">🗂️ Activities</a>
+      <div class="menu-section">Contract</div>
+      <a href="SLA Master.html">📐 SLA Masters</a>
+      <a href="Activity SLAs.html" class="active">🔗 Activity SLAs</a>
+      <a href="#">⚖️ LD Reports</a>
+      <div class="menu-section">Admin</div>
+      <a href="#">👥 Users</a>
+      <a href="#">⚙️ Settings</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="page-header">
+      <div>
+        <div class="pm-title">Activity SLAs</div>
+        <div class="pm-subtitle">Map. Evaluate. Calculate LD.</div>
+        <div class="pm-description">Attach SLAs to a project activity, evaluate severity per SLA, and roll up Liquidated Damages.</div>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn cancel" onclick="loadAll()">🔄 Refresh</button>
+        <button class="btn evaluate-btn" onclick="openBulkEvaluateInfo()">⚡ Evaluate All</button>
+        <button class="btn ld-btn" onclick="calculateActivityLd()">⚖️ Calculate Activity LD</button>
+      </div>
+    </div>
+
+    <!-- API base bar -->
+    <div class="api-bar">
+      <div class="field">
+        <label>Contract API</label>
+        <input id="apiContract" value="http://localhost:9000/contracts">
+      </div>
+      <div class="field">
+        <label>Project Mgmt API (for prefill)</label>
+        <input id="apiProject" value="http://localhost:9000/projects">
+      </div>
+      <div class="field">
+        <label>Activity ID</label>
+        <input id="activityIdInput" placeholder="act-msap-sla001-demo or UUID">
+      </div>
+      <button class="btn small-btn cancel" onclick="loadAll()">Load</button>
+      <div style="font-size:12px;color:var(--text-soft);align-self:center;"><span id="hdot" class="status-dot"></span><span id="hstatus">enter activity id</span></div>
+    </div>
+
+    <!-- Activity Info Card -->
+    <div class="card">
+      <div class="card-title">Activity Details <span style="font-size:11px;font-weight:500;color:var(--text-muted);">(from PMIS-Project-Management)</span></div>
+      <div class="act-meta" id="actMeta">
+        <div class="field"><label>Activity</label><div class="field-value" id="actName">—</div></div>
+        <div class="field"><label>Code</label><div class="field-value" id="actCode">—</div></div>
+        <div class="field"><label>Project</label><div class="field-value" id="actProject">—</div></div>
+        <div class="field"><label>Vendor</label><div class="field-value" id="actVendor">—</div></div>
+        <div class="field"><label>Start (planned)</label><div class="field-value" id="actStart">—</div></div>
+        <div class="field"><label>End (planned)</label><div class="field-value" id="actEnd">—</div></div>
+        <div class="field"><label>Actual Start</label><div class="field-value" id="actActStart">—</div></div>
+        <div class="field"><label>Actual End</label><div class="field-value" id="actActEnd">—</div></div>
+      </div>
+    </div>
+
+    <!-- LD totals (shown after Calculate Activity LD) -->
+    <div class="ld-totals hidden" id="ldTotals">
+      <div class="ld-tile"><div class="ld-tile-label">Total SLAs Evaluated</div><div class="ld-tile-value" id="ldT1">0</div></div>
+      <div class="ld-tile"><div class="ld-tile-label">Total Accumulated Points</div><div class="ld-tile-value" id="ldT2">0</div></div>
+      <div class="ld-tile"><div class="ld-tile-label">Average LD %</div><div class="ld-tile-value" id="ldT3">0%</div></div>
+      <div class="ld-tile"><div class="ld-tile-label">Total LD Amount</div><div class="ld-tile-value" id="ldT4">₹ 0</div><div class="ld-tile-sub" id="ldT4Sub"></div></div>
+    </div>
+
+    <!-- Mapped SLAs -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div class="card-title" style="margin:0;">Mapped SLAs</div>
+        <button class="btn" onclick="openAddSlaModal()">+ Add SLA</button>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr>
+            <th>SLA Ref</th><th>Name</th><th>Formula</th><th>Effective</th><th>Status</th>
+            <th>Severity</th><th>Points</th><th>LD %</th><th>LD ₹</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="mapTbody">
+            <tr class="empty-row"><td colspan="10">Enter activity ID and click <strong>Load</strong>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ─── Add SLA modal ─── -->
+<div class="modal" id="addModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Add SLA to Activity</div>
+        <div class="modal-sub" id="addSub">Pre-fill values come from the activity & project.</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('addModal')">×</button>
+    </div>
+    <div class="grid">
+      <div class="field full"><label>SLA <span class="required">*</span></label>
+        <select id="m_sla"><option value="">— Select an SLA —</option></select>
+      </div>
+      <div class="field"><label>Effective From <span class="required">*</span></label><input id="m_eff_from" type="date"></div>
+      <div class="field"><label>Effective Until</label><input id="m_eff_until" type="date"></div>
+    </div>
+    <div class="subsection">
+      <div class="subsection-title">Overrides (prefilled from activity)</div>
+      <div class="grid">
+        <div class="field prefill"><div class="field-pre">⚡ prefill</div><label>T Anchor Date</label><input id="o_t_anchor" type="date"></div>
+        <div class="field prefill"><div class="field-pre">⚡ prefill</div><label>Actual Start Date</label><input id="o_actual_start" type="date"></div>
+        <div class="field prefill"><div class="field-pre">⚡ prefill</div><label>Actual End Date</label><input id="o_actual_end" type="date"></div>
+        <div class="field"><label>LD Base Amount (₹)</label><input id="o_ld_base" placeholder="1000000"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn cancel" onclick="closeModal('addModal')">Cancel</button>
+      <button class="btn" onclick="submitMapping()">Map SLA</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Evaluate modal ─── -->
+<div class="modal" id="evalModal">
+  <div class="modal-box wide">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="evalTitle">Evaluate SLA</div>
+        <div class="modal-sub" id="evalSub"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('evalModal')">×</button>
+    </div>
+    <div class="grid">
+      <div class="field"><label>Period Start <span class="required">*</span></label><input id="e_start" type="date"></div>
+      <div class="field"><label>Period End <span class="required">*</span></label><input id="e_end" type="date"></div>
+      <div class="field full"><label>LD Base Amount Override (optional)</label><input id="e_ld_base" placeholder="leave blank to use mapping"></div>
+    </div>
+    <div class="subsection">
+      <div class="subsection-title" id="obsTitle">Observations</div>
+      <div id="obsArea"></div>
+    </div>
+    <div id="evalResult"></div>
+    <div class="modal-actions">
+      <button class="btn cancel" onclick="closeModal('evalModal')">Close</button>
+      <button class="btn evaluate-btn" id="evalRunBtn" onclick="runEvaluate()">Run Evaluation</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Confirm retire ─── -->
+<div class="modal" id="retireModal">
+  <div class="modal-box narrow">
+    <div class="modal-head"><div><div class="modal-title">Retire mapping?</div></div><button class="modal-close" onclick="closeModal('retireModal')">×</button></div>
+    <div id="retireMsg" style="margin:10px 0;font-size:13px;color:var(--text-soft);"></div>
+    <div class="modal-actions">
+      <button class="btn cancel" onclick="closeModal('retireModal')">Cancel</button>
+      <button class="btn delete-btn" onclick="confirmRetire()">Retire</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="toast-title" id="toastTitle"></div><div class="toast-msg" id="toastMsg"></div></div>
+
+<footer class="site-footer">© 2026 UIDAI <span style="color:var(--cyan);">·</span> PMIS Automation Tool <span style="color:var(--cyan);">·</span> Internal Use Only</footer>
+
+<script>
+let activity = null;
+let project = null;
+let mappings = [];      // existing activity mappings (with attached SLA info)
+let slaCatalog = [];    // list of all SLAs for picker
+let evaluationCache = {}; // mappingId -> last eval result
+let pendingRetireId = null;
+let currentEvalMappingId = null;
+
+const A_C = () => document.getElementById('apiContract').value.trim().replace(/\/$/, '');
+const A_P = () => document.getElementById('apiProject').value.trim().replace(/\/$/, '');
+const ACTID = () => document.getElementById('activityIdInput').value.trim();
+
+function toast(title, msg, kind='success'){
+  const t = document.getElementById('toast');
+  t.className = 'toast open ' + kind;
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastMsg').textContent = msg || '';
+  setTimeout(()=>t.classList.remove('open'), 3500);
+}
+
+function esc(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ─── URL helper: read ?activity_id= from URL */
+(function bootFromQuery(){
+  const u = new URL(window.location.href);
+  const aid = u.searchParams.get('activity_id');
+  if(aid) document.getElementById('activityIdInput').value = aid;
+})();
+
+/* ─── Load all */
+async function loadAll(){
+  const aid = ACTID();
+  if(!aid){ toast('Activity ID required', 'Type an activity ID and click Load.', 'error'); return; }
+  document.getElementById('hdot').className='status-dot';
+  document.getElementById('hstatus').textContent='loading...';
+  await Promise.all([loadActivity(aid), loadMappings(aid), loadSlaCatalog()]);
+  document.getElementById('hdot').className='status-dot ok';
+  document.getElementById('hstatus').textContent='loaded';
+  renderMappings();
+}
+
+async function loadActivity(aid){
+  try{
+    const r = await fetch(A_P() + '/project/activities/' + encodeURIComponent(aid));
+    if(!r.ok){ markActivityUnknown(aid, 'HTTP '+r.status); return; }
+    const body = await r.json();
+    activity = body.data || body;
+    document.getElementById('actName').textContent = activity.name || '—';
+    document.getElementById('actCode').textContent = activity.displayCode || activity.display_code || '—';
+    document.getElementById('actVendor').textContent = activity.vendorId || activity.vendor_id || '—';
+    document.getElementById('actStart').textContent = fmtDate(activity.startDate || activity.start_date);
+    document.getElementById('actEnd').textContent = fmtDate(activity.endDate || activity.end_date);
+    document.getElementById('actActStart').textContent = fmtDate(activity.actualStartDate || activity.actual_start_date);
+    document.getElementById('actActEnd').textContent = fmtDate(activity.actualEndDate || activity.actual_end_date);
+    const pid = activity.projectId || activity.project_id;
+    if(pid) await loadProject(pid);
+  }catch(e){ markActivityUnknown(aid, e.message); }
+}
+
+function markActivityUnknown(aid, reason){
+  document.getElementById('actName').textContent = '— (activity not found in project-mgmt)';
+  document.getElementById('actCode').textContent = aid;
+  document.getElementById('actProject').textContent = '— ' + reason;
+  ['actVendor','actStart','actEnd','actActStart','actActEnd'].forEach(id => document.getElementById(id).textContent = '—');
+}
+
+async function loadProject(pid){
+  try{
+    const r = await fetch(A_P() + '/project/projects/' + encodeURIComponent(pid));
+    if(!r.ok) return;
+    const body = await r.json();
+    project = body.data || body;
+    document.getElementById('actProject').textContent = (project.name || project.displayCode || pid);
+  }catch(e){}
+}
+
+async function loadMappings(aid){
+  try{
+    const r = await fetch(A_C() + '/api/v3/activities/' + encodeURIComponent(aid) + '/sla-mappings?pageSize=100');
+    if(!r.ok){ mappings = []; return; }
+    const body = await r.json();
+    mappings = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+  }catch(e){ mappings = []; }
+}
+
+async function loadSlaCatalog(){
+  try{
+    const r = await fetch(A_C() + '/api/v3/sla-masters?pageSize=200');
+    if(!r.ok){ slaCatalog = []; return; }
+    const body = await r.json();
+    slaCatalog = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+  }catch(e){ slaCatalog = []; }
+}
+
+function fmtDate(d){
+  if(!d) return '—';
+  return String(d).slice(0,10);
+}
+
+/* ─── Render mappings */
+function renderMappings(){
+  const tbody = document.getElementById('mapTbody');
+  if(!mappings.length){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="10">No SLAs mapped yet. Click <strong>Add SLA</strong> above.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = mappings.map(m => {
+    const sla = slaCatalog.find(s => s.id === m.sla_id) || {};
+    const ev = evaluationCache[m.id] || {};
+    const sev = ev.severity_level;
+    const sevHtml = (sev===0||sev>0) ? `<span class="sev-pill s${sev}">L${sev}</span>` : '<span class="badge grey">—</span>';
+    return `<tr>
+      <td><strong>${esc(sla.sla_ref || m.sla_ref || '-')}</strong></td>
+      <td>${esc(sla.name || '-')}</td>
+      <td><span class="badge purple">${esc(sla.formula_type || m.formula_type || '-')}</span></td>
+      <td>${esc(fmtDate(m.effective_from))} → ${esc(fmtDate(m.effective_until))}</td>
+      <td><span class="badge ${m.status==='ACTIVE'?'green':(m.status==='RETIRED'?'red':'orange')}">${esc(m.status||'-')}</span></td>
+      <td>${sevHtml}</td>
+      <td>${ev.accumulated_points!==undefined?esc(ev.accumulated_points):'—'}</td>
+      <td>${ev.ld_percent!==undefined?(Number(ev.ld_percent)).toFixed(2)+'%':'—'}</td>
+      <td>${ev.ld_amount!==undefined?'₹ '+Number(ev.ld_amount).toLocaleString('en-IN'):'—'}</td>
+      <td class="actions-cell">
+        <button class="btn small-btn icon-btn evaluate-btn" onclick='openEvaluate("${m.id}")'>⚡ Evaluate</button>
+        <button class="btn small-btn icon-btn delete-btn" onclick='askRetire("${m.id}","${esc(sla.sla_ref||"")}")'>Retire</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ─── Add SLA modal */
+function openAddSlaModal(){
+  if(!ACTID()){ toast('Activity ID required', 'Load an activity first.', 'error'); return; }
+  const sel = document.getElementById('m_sla');
+  sel.innerHTML = '<option value="">— Select an SLA —</option>' +
+    slaCatalog.map(s => `<option value="${s.id}">${esc(s.sla_ref||'?')} — ${esc(s.name||'')} (${esc(s.contract_type||'')}/${esc(s.formula_type||'')})</option>`).join('');
+  // Prefill from activity if loaded
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('m_eff_from').value = (activity?.startDate || activity?.start_date || today).slice(0,10);
+  document.getElementById('m_eff_until').value = (activity?.endDate || activity?.end_date || '').slice(0,10);
+  document.getElementById('o_t_anchor').value = (activity?.startDate || activity?.start_date || '').slice(0,10);
+  document.getElementById('o_actual_start').value = (activity?.actualStartDate || activity?.actual_start_date || '').slice(0,10);
+  document.getElementById('o_actual_end').value = (activity?.actualEndDate || activity?.actual_end_date || '').slice(0,10);
+  document.getElementById('o_ld_base').value = '';
+  document.getElementById('addSub').textContent =
+    activity ? `Prefilled from activity "${activity.name||''}"` : 'No activity loaded — fill fields manually.';
+  openModal('addModal');
+}
+
+async function submitMapping(){
+  const sla_id = document.getElementById('m_sla').value;
+  if(!sla_id){ toast('Pick an SLA', '', 'error'); return; }
+  const eff_from = document.getElementById('m_eff_from').value;
+  const eff_until = document.getElementById('m_eff_until').value;
+  if(!eff_from){ toast('Effective From required', '', 'error'); return; }
+  const overrides = {};
+  const t_anchor = document.getElementById('o_t_anchor').value;
+  const a_start  = document.getElementById('o_actual_start').value;
+  const a_end    = document.getElementById('o_actual_end').value;
+  const ld_base  = document.getElementById('o_ld_base').value;
+  if(t_anchor) overrides.t_anchor_date = t_anchor;
+  if(a_start)  overrides.actual_start_date = a_start;
+  if(a_end)    overrides.actual_end_date = a_end;
+  if(ld_base)  overrides.ld_base_amount = ld_base;
+  const payload = {
+    sla_id, activity_id: ACTID(),
+    effective_from: eff_from,
+    effective_until: eff_until || null,
+    overrides
+  };
+  try{
+    const r = await fetch(A_C() + '/api/v3/sla-activity-mappings', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if(!r.ok){
+      const t = await r.text();
+      toast('Map failed', 'HTTP '+r.status+' '+t.slice(0,200), 'error');
+      return;
+    }
+    toast('Mapped', 'SLA mapped to activity.', 'success');
+    closeModal('addModal');
+    await loadMappings(ACTID());
+    renderMappings();
+  }catch(e){ toast('Network error', e.message, 'error'); }
+}
+
+/* ─── Retire */
+function askRetire(id, ref){
+  pendingRetireId = id;
+  document.getElementById('retireMsg').innerHTML = `Retire mapping <strong>${esc(ref)}</strong>? It will be excluded from future evaluations.`;
+  openModal('retireModal');
+}
+async function confirmRetire(){
+  if(!pendingRetireId) return;
+  try{
+    const r = await fetch(A_C() + '/api/v3/sla-activity-mappings/' + pendingRetireId, {method:'DELETE'});
+    if(!r.ok){ toast('Retire failed', 'HTTP '+r.status, 'error'); return; }
+    toast('Retired', 'Mapping removed.', 'success');
+    closeModal('retireModal');
+    pendingRetireId = null;
+    await loadMappings(ACTID());
+    renderMappings();
+  }catch(e){ toast('Network error', e.message, 'error'); }
+}
+
+/* ─── Evaluate per-row */
+function openEvaluate(mappingId){
+  currentEvalMappingId = mappingId;
+  const m = mappings.find(x => x.id === mappingId);
+  if(!m){ toast('Mapping not found', '', 'error'); return; }
+  const sla = slaCatalog.find(s => s.id === m.sla_id) || {};
+  document.getElementById('evalTitle').textContent = 'Evaluate — ' + (sla.sla_ref || '');
+  document.getElementById('evalSub').textContent = `${sla.name||''} · ${sla.formula_type||''}`;
+  document.getElementById('e_start').value = (activity?.startDate || activity?.start_date || '').slice(0,10);
+  document.getElementById('e_end').value = (activity?.endDate || activity?.end_date || '').slice(0,10);
+  document.getElementById('e_ld_base').value = '';
+  buildObservationForm(sla);
+  document.getElementById('evalResult').innerHTML = '';
+  openModal('evalModal');
+}
+
+function buildObservationForm(sla){
+  const ft = sla.formula_type || 'band_accumulation';
+  const primary = (sla.metrics||[]).find(m => m.is_primary) || (sla.metrics||[])[0] || {metric_key:'value'};
+  const mkey = primary.metric_key || 'value';
+  const area = document.getElementById('obsArea');
+  document.getElementById('obsTitle').textContent = `Observations (formula: ${ft}, primary metric: ${mkey})`;
+  if(ft === 'band_accumulation'){
+    area.innerHTML = `
+      <div class="grid">
+        <div class="field"><label>Period type</label>
+          <select id="obs_period_kind" onchange="toggleDailyVsBand()">
+            <option value="DAILY_VALUES">Daily values</option>
+            <option value="BAND_COUNTS">Band counts</option>
+          </select>
+        </div>
+      </div>
+      <div id="dailyBox" class="subsection">
+        <div class="subsection-title">Daily values (comma or newline separated)</div>
+        <textarea id="obs_daily" placeholder="0.05, 0.06, 0.40, 0.42, ..." style="height:90px;"></textarea>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Tip: ~90 entries = a quarter (one per day).</div>
+      </div>
+      <div id="bandBox" class="subsection hidden">
+        <div class="subsection-title">Band counts</div>
+        <div class="grid-3">
+          <div class="field"><label>L1 days</label><input id="obs_b1" type="number" value="0"></div>
+          <div class="field"><label>L2 days</label><input id="obs_b2" type="number" value="0"></div>
+          <div class="field"><label>L3 days</label><input id="obs_b3" type="number" value="0"></div>
+        </div>
+      </div>`;
+  } else if(ft === 'point_accumulation'){
+    area.innerHTML = `
+      <div class="grid"><div class="field"><label>Observation value</label><input id="obs_single" placeholder="85.0"></div></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Single value gets bucketed into a severity band by the evaluator.</div>`;
+  } else if(ft === 'fixed_escalation'){
+    area.innerHTML = `
+      <div class="grid"><div class="field"><label>Delay (days)</label><input id="obs_single" type="number" placeholder="2"></div></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Evaluator picks the lookup tier where sort_order ≥ delay.</div>`;
+  } else if(ft === 'wac'){
+    area.innerHTML = `
+      <div class="subsection-title" style="margin-top:0;">WAC Breakdown</div>
+      <div class="grid-4">
+        <div class="field"><label>Blocker</label><input id="w_blocker" type="number" value="0"></div>
+        <div class="field"><label>Critical</label><input id="w_critical" type="number" value="0"></div>
+        <div class="field"><label>Major</label><input id="w_major" type="number" value="0"></div>
+        <div class="field"><label>Minor</label><input id="w_minor" type="number" value="0"></div>
+        <div class="field"><label>Applications</label><input id="w_apps" type="number" value="1"></div>
+        <div class="field"><label>Baseline</label><input id="w_baseline" placeholder="0.40"></div>
+        <div class="field"><label>Previous WAC</label><input id="w_prev" placeholder="0.40"></div>
+      </div>`;
+  }
+  area.dataset.metricKey = mkey;
+  area.dataset.formulaType = ft;
+}
+
+function toggleDailyVsBand(){
+  const v = document.getElementById('obs_period_kind').value;
+  document.getElementById('dailyBox').classList.toggle('hidden', v !== 'DAILY_VALUES');
+  document.getElementById('bandBox').classList.toggle('hidden', v !== 'BAND_COUNTS');
+}
+
+function buildObservationPayload(){
+  const area = document.getElementById('obsArea');
+  const mkey = area.dataset.metricKey;
+  const ft = area.dataset.formulaType;
+  if(ft==='band_accumulation'){
+    const kind = document.getElementById('obs_period_kind').value;
+    if(kind==='DAILY_VALUES'){
+      const raw = document.getElementById('obs_daily').value.trim();
+      const arr = raw.split(/[,\s]+/).filter(Boolean).map(parseFloat).filter(v=>!isNaN(v));
+      return [{metric_key:mkey, shape:'DAILY_VALUES', daily_values:arr}];
+    } else {
+      return [{metric_key:mkey, shape:'BAND_COUNTS', band_counts:{
+        L1: Number(document.getElementById('obs_b1').value)||0,
+        L2: Number(document.getElementById('obs_b2').value)||0,
+        L3: Number(document.getElementById('obs_b3').value)||0,
+      }}];
+    }
+  } else if(ft==='point_accumulation' || ft==='fixed_escalation'){
+    return [{metric_key:mkey, shape:'SINGLE_VALUE', single_value:String(document.getElementById('obs_single').value).trim()}];
+  } else if(ft==='wac'){
+    return [{metric_key:mkey, shape:'WAC_BREAKDOWN', wac_breakdown:{
+      blocker: document.getElementById('w_blocker').value,
+      critical: document.getElementById('w_critical').value,
+      major: document.getElementById('w_major').value,
+      minor: document.getElementById('w_minor').value,
+      applications: document.getElementById('w_apps').value,
+      baseline: document.getElementById('w_baseline').value,
+      previous_wac: document.getElementById('w_prev').value,
+    }}];
+  }
+  return [];
+}
+
+async function runEvaluate(){
+  const start = document.getElementById('e_start').value;
+  const end = document.getElementById('e_end').value;
+  if(!start||!end){ toast('Period required', '', 'error'); return; }
+  const overrides = {};
+  const ld = document.getElementById('e_ld_base').value;
+  if(ld) overrides.ld_base_amount = ld;
+  const payload = {
+    period_start: start, period_end: end,
+    metric_observations: buildObservationPayload(),
+    overrides
+  };
+  try{
+    const r = await fetch(A_C() + '/api/v3/sla-activity-mappings/' + currentEvalMappingId + '/evaluate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if(!r.ok){
+      const t = await r.text();
+      toast('Evaluate failed', 'HTTP '+r.status+' '+t.slice(0,300), 'error');
+      return;
+    }
+    const body = await r.json();
+    const result = body.data || body;
+    evaluationCache[currentEvalMappingId] = result;
+    document.getElementById('evalResult').innerHTML = renderEvalResult(result);
+    toast('Evaluated', 'See result below.', 'success');
+    renderMappings();
+  }catch(e){ toast('Network error', e.message, 'error'); }
+}
+
+function renderEvalResult(r){
+  const sev = r.severity_level;
+  const sevPill = (sev===0||sev>0) ? `<span class="sev-pill s${sev}">Severity L${sev}</span>` : '';
+  const breaches = r.breaches || [];
+  const guards = r.guards || [];
+  return `
+    <div class="subsection">
+      <div class="subsection-title">Result</div>
+      <div class="grid-4">
+        <div class="field"><label>Severity</label><div class="field-value">${sevPill || '—'}</div></div>
+        <div class="field"><label>Points</label><div class="field-value">${r.accumulated_points ?? '—'}</div></div>
+        <div class="field"><label>LD %</label><div class="field-value">${r.ld_percent!==undefined ? Number(r.ld_percent).toFixed(2)+'%' : '—'}</div></div>
+        <div class="field"><label>LD Amount</label><div class="field-value">${r.ld_amount!==undefined ? '₹ '+Number(r.ld_amount).toLocaleString('en-IN') : '—'}</div></div>
+      </div>
+      ${breaches.length ? `<div style="margin-top:10px;font-weight:700;color:var(--navy);font-size:13px;">Breaches (${breaches.length})</div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>#</th><th>Metric</th><th>Detail</th></tr></thead><tbody>
+        ${breaches.map((b,i)=>`<tr><td>${i+1}</td><td>${esc(b.metric_key||'-')}</td><td>${esc(JSON.stringify(b))}</td></tr>`).join('')}
+        </tbody></table></div>` : ''}
+      ${guards.length ? `<div style="margin-top:10px;font-weight:700;color:var(--navy);font-size:13px;">Guards</div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>Guard</th><th>Passed</th><th>Note</th></tr></thead><tbody>
+        ${guards.map(g=>`<tr><td>${esc(g.guard_key||'-')}</td><td>${g.passed?'<span class="badge green">PASS</span>':'<span class="badge red">FAIL</span>'}</td><td>${esc(g.message||'')}</td></tr>`).join('')}
+        </tbody></table></div>` : ''}
+    </div>
+  `;
+}
+
+/* ─── Activity-level LD (calls /activities/{id}/evaluate when available) */
+async function calculateActivityLd(){
+  if(!ACTID()){ toast('Activity ID required', '', 'error'); return; }
+  if(!mappings.length){ toast('Nothing to calculate', 'No SLAs mapped.', 'error'); return; }
+  try{
+    const r = await fetch(A_C() + '/api/v3/activities/' + encodeURIComponent(ACTID()) + '/evaluate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        period_start: (activity?.startDate || activity?.start_date || '').slice(0,10) || null,
+        period_end:   (activity?.endDate   || activity?.end_date   || '').slice(0,10) || null,
+        observations_by_mapping: {}
+      })
+    });
+    if(r.ok){
+      const body = await r.json();
+      const result = body.data || body;
+      // Expected shape: results: [{mapping_id, severity_level, accumulated_points, ld_percent, ld_amount}, ...]
+      const results = result.results || result.mappings || [];
+      results.forEach(x => { if(x.mapping_id) evaluationCache[x.mapping_id] = x; });
+      showLdTotals(results, result);
+      renderMappings();
+      toast('Activity LD calculated', `${results.length} SLAs evaluated.`, 'success');
+    } else {
+      // fallback: aggregate from local evaluationCache
+      const results = Object.entries(evaluationCache).map(([id,v]) => ({mapping_id:id, ...v}));
+      if(!results.length){
+        toast('Run per-SLA evaluations first', 'No cached results to aggregate. Click Evaluate on each row, then retry.', 'error');
+        return;
+      }
+      showLdTotals(results, {});
+      toast('Aggregated locally', 'Activity endpoint unavailable; rolled up cached results.', 'success');
+    }
+  }catch(e){ toast('Network error', e.message, 'error'); }
+}
+
+function showLdTotals(results, summary){
+  const totals = document.getElementById('ldTotals');
+  totals.classList.remove('hidden');
+  const totalPts = results.reduce((a,b)=>a+(Number(b.accumulated_points)||0),0);
+  const avgPct   = results.length ? results.reduce((a,b)=>a+(Number(b.ld_percent)||0),0) / results.length : 0;
+  const totalAmt = results.reduce((a,b)=>a+(Number(b.ld_amount)||0),0);
+  document.getElementById('ldT1').textContent = results.length;
+  document.getElementById('ldT2').textContent = totalPts;
+  document.getElementById('ldT3').textContent = avgPct.toFixed(2)+'%';
+  document.getElementById('ldT4').textContent = '₹ ' + totalAmt.toLocaleString('en-IN');
+  document.getElementById('ldT4Sub').textContent = summary.notes || ('Sum across ' + results.length + ' mappings');
+}
+
+function openBulkEvaluateInfo(){
+  toast('Per-SLA evaluation', 'Click ⚡ Evaluate on each row to evaluate one SLA, or use ⚖️ Calculate Activity LD to roll up.', 'success');
+}
+
+/* ─── Modal helpers */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+</script>
+</body>
+</html>

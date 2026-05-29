@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>UIDAI PMIS - SLA Masters</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0b3c88; --navy-deep:#062a63;
+  --cyan:#0aa1c0; --cyan-light:#3cb8d4;
+  --green:#1a8a3d; --green-soft:#e7f7ec;
+  --saffron:#d4440e;
+  --light:#f4f7fb; --light-cool:#eef3f9;
+  --border:#dbe5f1; --border-soft:#e9eef6;
+  --red:#d32f2f;
+  --text:#1e2a3a; --text-soft:#5a6680; --text-muted:#7a869a;
+  --row-hover:#e7f1ff;
+  --uidai-stripe:linear-gradient(90deg, var(--navy) 0%, var(--cyan) 100%);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{font-family:'Roboto',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--light);color:var(--text);display:flex;flex-direction:column;min-height:100vh;}
+button{font-family:inherit;}
+/* ─── Header ─── */
+.site-header{width:100%;background:#fff;box-shadow:0 2px 8px rgba(11,60,136,.08);position:relative;z-index:50;}
+.site-header::after{content:"";display:block;height:4px;background:var(--uidai-stripe);}
+.header-strip{background:#f5f8fd;border-bottom:1px solid var(--border);display:flex;justify-content:flex-end;align-items:center;padding:3px 20px;gap:12px;min-height:28px;font-size:13px;}
+.header-main{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;padding:8px 20px;background:linear-gradient(90deg,#ffebc7 0%,#ffffff 45%,#ffffff 55%,#d7efd9 100%);}
+.header-brand{display:flex;align-items:center;gap:12px;}
+.header-brand-text{display:flex;flex-direction:column;line-height:1.15;gap:2px;}
+.header-brand-hi-1{font-weight:800;font-size:16px;color:#D4440E;}
+.header-brand-hi-2{font-weight:800;font-size:16px;color:#1a8a3d;}
+.header-title{text-align:center;font-size:20px;font-weight:800;background:linear-gradient(90deg,var(--navy),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.header-authority{justify-self:end;text-align:left;font-weight:700;font-size:14px;color:#1a2a3f;line-height:1.2;}
+.logo-circle{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--cyan));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;}
+/* Navbar */
+.navbar{display:flex;justify-content:space-between;align-items:center;background:#fafcfe;border-bottom:1px solid var(--border);min-height:42px;}
+.menu-home-block{width:240px;display:flex;justify-content:space-between;padding:6px 14px;border-right:1px solid var(--border);gap:10px;}
+.menu-home-block span{cursor:pointer;padding:5px 10px;border-radius:6px;white-space:nowrap;font-size:14px;font-weight:500;color:var(--navy);}
+.menu-home-block span:hover{background:#eaf2fb;}
+.profile{padding:0 20px;cursor:pointer;font-size:14px;font-weight:600;color:var(--navy);}
+/* Layout */
+.layout{display:flex;flex:1;min-height:0;}
+.sidebar{width:240px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.menu{padding:12px;}
+.menu a{display:flex;gap:10px;padding:9px 10px;margin-bottom:4px;cursor:pointer;border-radius:6px;align-items:center;text-decoration:none;color:var(--text);font-size:14px;font-weight:500;}
+.menu a:hover{background:#eef6fb;}
+.menu a.active{background:linear-gradient(90deg,var(--navy),var(--cyan));color:#fff;}
+.menu .menu-section{font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;letter-spacing:.4px;padding:10px 10px 4px;}
+.content{flex:1;padding:14px 20px;overflow:auto;min-width:0;}
+/* Title */
+.pm-title{font-size:22px;font-weight:700;color:var(--navy);padding-left:14px;position:relative;line-height:1.2;}
+.pm-title::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:4px;border-radius:3px;background:var(--uidai-stripe);}
+.pm-subtitle{color:var(--green);font-weight:700;font-size:14px;margin:2px 0 4px 14px;}
+.pm-description{color:var(--text-soft);font-size:13px;margin:0 0 12px 14px;}
+.page-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.page-header-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+/* Card */
+.card{background:#fff;padding:16px 20px 14px;border-radius:10px;border:1px solid var(--border-soft);box-shadow:0 2px 8px rgba(11,60,136,.06);margin-bottom:14px;position:relative;}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--uidai-stripe);border-radius:10px 10px 0 0;}
+.card.no-stripe::before{display:none;}
+.card-title{font-size:15px;font-weight:800;color:var(--navy);margin-bottom:10px;}
+/* Form */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
+.full{grid-column:1 / -1;}
+.field label{font-weight:600;display:block;margin-bottom:4px;font-size:13px;}
+.required{color:var(--red);}
+input,select,textarea{width:100%;padding:9px 10px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--text);font:inherit;font-size:13px;}
+textarea{height:80px;resize:vertical;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(10,161,192,.12);}
+.hint{font-size:11px;color:var(--text-muted);margin-top:4px;}
+/* Buttons */
+.btn{background:linear-gradient(90deg,var(--navy),var(--cyan));color:#fff;padding:9px 16px;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:13px;box-shadow:0 1px 3px rgba(11,60,136,.15);transition:transform .15s,box-shadow .15s;}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(11,60,136,.22);}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.btn.cancel{background:#fff;color:var(--navy);border:1px solid var(--border);box-shadow:none;}
+.btn.cancel:hover{background:#f4f8fd;}
+.btn.delete-btn{background:#fff;color:var(--red);border:1px solid var(--red);box-shadow:none;}
+.btn.delete-btn:hover{background:var(--red);color:#fff;}
+.btn.small-btn{padding:5px 10px;font-size:12px;}
+.btn.icon-btn{padding:5px 8px;font-size:12px;}
+.action-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+/* Filter shell */
+.filter-shell{border:1px solid var(--border);border-radius:10px;background:#f8fbff;padding:12px;margin-bottom:12px;}
+.filter-head{display:flex;justify-content:space-between;align-items:center;}
+.filter-title{font-weight:800;color:var(--navy);font-size:14px;}
+.filter-body{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:10px;}
+.search-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.search-row input{flex:1 1 240px;max-width:340px;}
+/* Tables */
+.table-wrap{width:100%;overflow-x:auto;border-radius:10px;border:1px solid var(--border);margin-top:8px;}
+.table{width:100%;border-collapse:collapse;background:#fff;}
+.table th{background:#f1f6fd;padding:10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;}
+.table td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top;font-size:13px;}
+.table tr:hover td{background:var(--row-hover);}
+.table .actions-cell{white-space:nowrap;}
+.table .actions-cell .btn{margin-right:4px;}
+.link{color:var(--navy);font-weight:600;cursor:pointer;text-decoration:underline;}
+.link:hover{color:var(--cyan);}
+.empty-row td{text-align:center;color:var(--text-muted);padding:18px;font-style:italic;}
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;background:#eaf4ff;color:#114a8d;font-size:11px;font-weight:700;}
+.badge.green{background:#e8f7ee;color:#1a7f37;}
+.badge.red{background:#fdecec;color:#b42318;}
+.badge.orange{background:#fff4e5;color:#b25e00;}
+.badge.purple{background:#efeafc;color:#5e3fb1;}
+.badge.grey{background:#f0f2f7;color:#5a6680;}
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(7,26,52,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:1900;}
+.modal.open{display:flex;}
+.modal-box{background:#fff;width:min(900px,100%);max-height:92vh;overflow:auto;border-radius:12px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.18);position:relative;}
+.modal-box::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--uidai-stripe);border-radius:12px 12px 0 0;}
+.modal-box.wide{width:min(1100px,100%);}
+.modal-box.narrow{width:min(520px,100%);}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.modal-title{font-size:18px;font-weight:800;color:var(--navy);}
+.modal-sub{font-size:12px;color:var(--text-soft);margin-top:3px;}
+.modal-close{width:30px;height:30px;border-radius:50%;background:#fdecec;border:none;color:#b42318;cursor:pointer;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.modal-close:hover{background:var(--red);color:#fff;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+/* Sub-section */
+.subsection{border:1px solid var(--border-soft);border-radius:8px;padding:12px;margin-top:10px;background:#fafcff;}
+.subsection-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.subsection-title{font-weight:800;color:var(--navy);font-size:13px;}
+.subrow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr)) auto;gap:8px;margin-bottom:6px;align-items:end;}
+.subrow .field label{font-size:11px;color:var(--text-soft);margin-bottom:2px;}
+.subrow input,.subrow select{padding:6px 8px;font-size:12px;}
+.subrow .remove-btn{width:28px;height:28px;border-radius:6px;background:#fff;color:var(--red);border:1px solid var(--red);cursor:pointer;font-size:14px;font-weight:700;}
+/* Toast */
+.toast{position:fixed;top:20px;right:20px;background:#fff;border-left:4px solid var(--cyan);padding:12px 16px;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);z-index:2000;min-width:280px;max-width:420px;display:none;}
+.toast.open{display:block;animation:slideIn .2s;}
+.toast.success{border-left-color:#1a7f37;}
+.toast.error{border-left-color:var(--red);}
+.toast-title{font-weight:800;font-size:13px;margin-bottom:3px;color:var(--navy);}
+.toast-msg{font-size:12px;color:var(--text-soft);}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+/* Footer */
+.site-footer{background:linear-gradient(90deg,#eaf1fb 0%,#f5f9fe 50%,#eaf1fb 100%);color:var(--navy);text-align:center;padding:10px 16px;font-size:12px;font-weight:600;margin-top:auto;position:relative;}
+.site-footer::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--uidai-stripe);}
+/* Misc */
+.hidden{display:none !important;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:14px;}
+.kpi{background:#fff;border:1px solid var(--border-soft);border-radius:10px;padding:14px;box-shadow:0 2px 8px rgba(11,60,136,.04);}
+.kpi-label{font-size:12px;color:var(--text-muted);}
+.kpi-value{font-size:22px;font-weight:800;color:var(--navy);margin-top:4px;}
+.api-bar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;padding:10px 12px;background:#eef6fb;border:1px dashed var(--cyan);border-radius:8px;margin-bottom:12px;}
+.api-bar .field{flex:1 1 280px;}
+.api-bar .field input{padding:6px 9px;font-size:12px;}
+.status-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#bbb;margin-right:5px;vertical-align:middle;}
+.status-dot.ok{background:#1a7f37;}
+.status-dot.err{background:var(--red);}
+@media (max-width:1100px){.kpi-row,.grid-4,.filter-body{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:760px){.sidebar{display:none;}.grid,.grid-3,.grid-4,.kpi-row,.filter-body{grid-template-columns:1fr;}.subrow{grid-template-columns:repeat(2,1fr) auto;}}
+</style>
+</head>
+<body>
+
+<!-- ─── Header ─── -->
+<header class="site-header">
+  <div class="header-strip"><span>Text Size:</span> <button class="btn small-btn cancel">+A</button> <button class="btn small-btn cancel">A</button> <button class="btn small-btn cancel">-A</button></div>
+  <div class="header-main">
+    <div class="header-brand">
+      <div class="logo-circle">आ</div>
+      <div class="header-brand-text">
+        <span class="header-brand-hi-1">मेरा आधार</span>
+        <span class="header-brand-hi-2">मेरी पहचान</span>
+      </div>
+    </div>
+    <h1 class="header-title">UIDAI Automation Governance Tool</h1>
+    <div class="header-authority">Unique Identification<br>Authority of India</div>
+  </div>
+</header>
+
+<!-- ─── Navbar ─── -->
+<div class="navbar">
+  <div class="menu-home-block"><span>☰ Menu</span><span>🏠 Home</span></div>
+  <div class="profile">👤 Profile</div>
+</div>
+
+<!-- ─── Layout ─── -->
+<div class="layout">
+  <aside class="sidebar">
+    <div class="menu">
+      <div class="menu-section">Workspace</div>
+      <a href="#">📊 Dashboard</a>
+      <a href="#">📁 Projects</a>
+      <a href="#">🗂️ Activities</a>
+      <div class="menu-section">Contract</div>
+      <a href="SLA Master.html" class="active">📐 SLA Masters</a>
+      <a href="Activity SLAs.html">🔗 Activity SLAs</a>
+      <a href="#">⚖️ LD Reports</a>
+      <div class="menu-section">Admin</div>
+      <a href="#">👥 Users</a>
+      <a href="#">⚙️ Settings</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <!-- Page header -->
+    <div class="page-header">
+      <div>
+        <div class="pm-title">SLA Masters</div>
+        <div class="pm-subtitle">Define once, map everywhere.</div>
+        <div class="pm-description">Onboard contract SLAs as reusable templates. Map them to activities to evaluate severity, accumulated points and LD.</div>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn cancel" onclick="loadSlas()">🔄 Refresh</button>
+        <button class="btn" onclick="openOnboardModal()">+ Onboard New SLA</button>
+      </div>
+    </div>
+
+    <!-- API base bar -->
+    <div class="api-bar">
+      <div class="field">
+        <label>Contract API Base URL</label>
+        <input id="apiBase" value="http://localhost:9000/contracts">
+      </div>
+      <button class="btn small-btn cancel" onclick="checkHealth()">Check</button>
+      <div style="font-size:12px;color:var(--text-soft);align-self:center;"><span id="hdot" class="status-dot"></span><span id="hstatus">unknown</span></div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">Total SLAs</div><div class="kpi-value" id="kpiTotal">0</div></div>
+      <div class="kpi"><div class="kpi-label">Active</div><div class="kpi-value" id="kpiActive">0</div></div>
+      <div class="kpi"><div class="kpi-label">Contract Types</div><div class="kpi-value" id="kpiCt">0</div></div>
+      <div class="kpi"><div class="kpi-label">Formula Types</div><div class="kpi-value" id="kpiFt">0</div></div>
+    </div>
+
+    <!-- List card -->
+    <div class="card">
+      <div class="card-title">SLA Definitions</div>
+      <div class="search-row">
+        <input id="searchInput" placeholder="Search by SLA ref or name..." oninput="renderTable()">
+      </div>
+      <div class="filter-shell">
+        <div class="filter-head"><div class="filter-title">Filters</div></div>
+        <div class="filter-body">
+          <div class="field"><label>Contract Type</label>
+            <select id="filterCt" onchange="renderTable()">
+              <option value="">All</option><option>BSP</option><option>MSAP</option><option>MSIP</option><option>PMU</option>
+            </select>
+          </div>
+          <div class="field"><label>Formula Type</label>
+            <select id="filterFt" onchange="renderTable()">
+              <option value="">All</option>
+              <option value="band_accumulation">Band Accumulation</option>
+              <option value="point_accumulation">Point Accumulation</option>
+              <option value="fixed_escalation">Fixed Escalation</option>
+              <option value="wac">WAC</option>
+            </select>
+          </div>
+          <div class="field"><label>Status</label>
+            <select id="filterStatus" onchange="renderTable()">
+              <option value="">All</option><option>ACTIVE</option><option>DRAFT</option><option>RETIRED</option>
+            </select>
+          </div>
+          <div class="field" style="display:flex;align-items:flex-end;"><button class="btn cancel small-btn" onclick="resetFilters()">Clear Filters</button></div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr>
+            <th>SLA Ref</th><th>Name</th><th>Contract</th><th>Formula</th><th>Status</th><th>Updated</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="slaTbody">
+            <tr class="empty-row"><td colspan="7">No SLAs loaded yet. Click <strong>Check</strong> to test the API, then <strong>Refresh</strong>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ─── Onboard / Edit Modal ─── -->
+<div class="modal" id="onboardModal">
+  <div class="modal-box wide">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="onboardTitle">Onboard New SLA</div>
+        <div class="modal-sub">Fill the form below — no YAML required.</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('onboardModal')">×</button>
+    </div>
+
+    <!-- Basics -->
+    <div class="subsection">
+      <div class="subsection-head"><div class="subsection-title">① Basics</div></div>
+      <div class="grid">
+        <div class="field"><label>SLA Ref <span class="required">*</span></label><input id="f_sla_ref" placeholder="MSAP-SLA001"></div>
+        <div class="field"><label>Name <span class="required">*</span></label><input id="f_name" placeholder="Mobilization on time"></div>
+        <div class="field"><label>Contract Type <span class="required">*</span></label>
+          <select id="f_ct"><option>BSP</option><option>MSAP</option><option>MSIP</option><option>PMU</option></select>
+        </div>
+        <div class="field"><label>Formula Type <span class="required">*</span></label>
+          <select id="f_ft" onchange="toggleFormulaSections()">
+            <option value="band_accumulation">Band Accumulation</option>
+            <option value="point_accumulation">Point Accumulation</option>
+            <option value="fixed_escalation">Fixed Escalation</option>
+            <option value="wac">WAC</option>
+          </select>
+        </div>
+        <div class="field full"><label>Description</label><textarea id="f_desc" placeholder="When and how this SLA applies..."></textarea></div>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="subsection">
+      <div class="subsection-head"><div class="subsection-title">② Metrics</div><button class="btn small-btn" onclick="addRow('metricsBody', metricRowTemplate)">+ Add metric</button></div>
+      <div id="metricsBody"></div>
+    </div>
+
+    <!-- Bands (band_accumulation + point_accumulation) -->
+    <div class="subsection" id="secBands">
+      <div class="subsection-head"><div class="subsection-title">③ Severity Bands</div><button class="btn small-btn" onclick="addRow('bandsBody', bandRowTemplate)">+ Add band</button></div>
+      <div id="bandsBody"></div>
+    </div>
+
+    <!-- Lookup tiers (fixed_escalation + point_accumulation extras) -->
+    <div class="subsection" id="secLookup">
+      <div class="subsection-head"><div class="subsection-title">④ Lookup Tiers</div><button class="btn small-btn" onclick="addRow('lookupBody', lookupRowTemplate)">+ Add tier</button></div>
+      <div id="lookupBody"></div>
+    </div>
+
+    <!-- Parameters -->
+    <div class="subsection">
+      <div class="subsection-head"><div class="subsection-title">⑤ Parameters</div><button class="btn small-btn" onclick="addRow('paramsBody', paramRowTemplate)">+ Add parameter</button></div>
+      <div id="paramsBody"></div>
+    </div>
+
+    <!-- Guards -->
+    <div class="subsection">
+      <div class="subsection-head"><div class="subsection-title">⑥ Guards (optional)</div><button class="btn small-btn" onclick="addRow('guardsBody', guardRowTemplate)">+ Add guard</button></div>
+      <div id="guardsBody"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn cancel" onclick="closeModal('onboardModal')">Cancel</button>
+      <button class="btn" id="submitSlaBtn" onclick="submitSla()">Onboard SLA</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── View Modal ─── -->
+<div class="modal" id="viewModal">
+  <div class="modal-box wide">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="viewTitle">SLA Details</div>
+        <div class="modal-sub" id="viewSub"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('viewModal')">×</button>
+    </div>
+    <div id="viewBody"></div>
+    <div class="modal-actions"><button class="btn cancel" onclick="closeModal('viewModal')">Close</button></div>
+  </div>
+</div>
+
+<!-- ─── Delete confirm ─── -->
+<div class="modal" id="confirmModal">
+  <div class="modal-box narrow">
+    <div class="modal-head"><div><div class="modal-title">Delete SLA?</div></div><button class="modal-close" onclick="closeModal('confirmModal')">×</button></div>
+    <div id="confirmMsg" style="margin:10px 0;font-size:13px;color:var(--text-soft);"></div>
+    <div class="modal-actions">
+      <button class="btn cancel" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="btn delete-btn" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Toast ─── -->
+<div class="toast" id="toast"><div class="toast-title" id="toastTitle"></div><div class="toast-msg" id="toastMsg"></div></div>
+
+<!-- ─── Footer ─── -->
+<footer class="site-footer">© 2026 UIDAI <span style="color:var(--cyan);">·</span> PMIS Automation Tool <span style="color:var(--cyan);">·</span> Internal Use Only</footer>
+
+<script>
+/* ====== State ====== */
+let slas = [];
+let editingId = null;
+let pendingDeleteId = null;
+
+const API = () => document.getElementById('apiBase').value.trim().replace(/\/$/, '');
+
+/* ====== Toast ====== */
+function toast(title, msg, kind='success'){
+  const t = document.getElementById('toast');
+  t.className = 'toast open ' + kind;
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastMsg').textContent = msg || '';
+  setTimeout(()=>t.classList.remove('open'), 3500);
+}
+
+/* ====== Health ====== */
+async function checkHealth(){
+  try{
+    const r = await fetch(API() + '/health');
+    if(r.ok){ document.getElementById('hdot').className='status-dot ok'; document.getElementById('hstatus').textContent='healthy'; loadSlas(); }
+    else { document.getElementById('hdot').className='status-dot err'; document.getElementById('hstatus').textContent='HTTP '+r.status; }
+  }catch(e){
+    document.getElementById('hdot').className='status-dot err';
+    document.getElementById('hstatus').textContent='unreachable';
+  }
+}
+
+/* ====== List ====== */
+async function loadSlas(){
+  try{
+    const r = await fetch(API() + '/api/v3/sla-masters?pageSize=200');
+    if(!r.ok){ toast('Load failed', 'HTTP '+r.status, 'error'); return; }
+    const body = await r.json();
+    const els = body?.data?._embedded?.elements || [];
+    slas = els.map(el => el.data || el);
+    renderTable();
+    renderKpis();
+  }catch(e){ toast('Load failed', e.message, 'error'); }
+}
+
+function renderKpis(){
+  document.getElementById('kpiTotal').textContent = slas.length;
+  document.getElementById('kpiActive').textContent = slas.filter(s => (s.status||'ACTIVE')==='ACTIVE').length;
+  document.getElementById('kpiCt').textContent = new Set(slas.map(s=>s.contract_type)).size;
+  document.getElementById('kpiFt').textContent = new Set(slas.map(s=>s.formula_type)).size;
+}
+
+function renderTable(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const ct = document.getElementById('filterCt').value;
+  const ft = document.getElementById('filterFt').value;
+  const st = document.getElementById('filterStatus').value;
+  const filtered = slas.filter(s =>
+    (!q || (s.sla_ref||'').toLowerCase().includes(q) || (s.name||'').toLowerCase().includes(q)) &&
+    (!ct || s.contract_type===ct) &&
+    (!ft || s.formula_type===ft) &&
+    (!st || (s.status||'ACTIVE')===st)
+  );
+  const tbody = document.getElementById('slaTbody');
+  if(filtered.length===0){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No matching SLAs.</td></tr>';
+    return;
+  }
+  const fmtBadge = {band_accumulation:'badge', point_accumulation:'badge purple', fixed_escalation:'badge orange', wac:'badge green'};
+  tbody.innerHTML = filtered.map(s => `
+    <tr>
+      <td><span class="link" onclick='viewSla("${s.id}")'>${esc(s.sla_ref||'-')}</span></td>
+      <td>${esc(s.name||'-')}</td>
+      <td><span class="badge grey">${esc(s.contract_type||'-')}</span></td>
+      <td><span class="${fmtBadge[s.formula_type]||'badge'}">${esc(s.formula_type||'-')}</span></td>
+      <td><span class="badge ${ (s.status||'ACTIVE')==='ACTIVE'?'green':(s.status==='RETIRED'?'red':'orange') }">${esc(s.status||'ACTIVE')}</span></td>
+      <td>${esc((s.updated_at||s.created_at||'').slice(0,10))}</td>
+      <td class="actions-cell">
+        <button class="btn small-btn icon-btn cancel" onclick='viewSla("${s.id}")'>👁 View</button>
+        <button class="btn small-btn icon-btn cancel" onclick='editSla("${s.id}")'>✎ Edit</button>
+        <button class="btn small-btn icon-btn delete-btn" onclick='askDelete("${s.id}","${esc(s.sla_ref||"")}")'>🗑 Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function resetFilters(){
+  ['filterCt','filterFt','filterStatus'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('searchInput').value='';
+  renderTable();
+}
+
+function esc(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ====== Onboard / Edit form ====== */
+const metricRowTemplate = () => ({metric_key:'', metric_label:'', unit:'', is_primary:false, observation_shape:'SINGLE_VALUE'});
+const bandRowTemplate   = () => ({sort_order:'', label:'', range_low:'', range_high:'', severity_level:'', points:'', ld_percent:''});
+const lookupRowTemplate = () => ({sort_order:'', tier_label:'', threshold:'', ld_percent:'', ld_amount:''});
+const paramRowTemplate  = () => ({param_key:'', param_value:'', param_type:'number'});
+const guardRowTemplate  = () => ({guard_key:'', guard_op:'<', threshold:'', message:''});
+
+function openOnboardModal(){
+  editingId = null;
+  document.getElementById('onboardTitle').textContent = 'Onboard New SLA';
+  document.getElementById('submitSlaBtn').textContent = 'Onboard SLA';
+  ['f_sla_ref','f_name','f_desc'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('f_ct').value = 'MSAP';
+  document.getElementById('f_ft').value = 'band_accumulation';
+  ['metricsBody','bandsBody','lookupBody','paramsBody','guardsBody'].forEach(id => document.getElementById(id).innerHTML='');
+  addRow('metricsBody', metricRowTemplate);
+  addRow('bandsBody', bandRowTemplate);
+  toggleFormulaSections();
+  openModal('onboardModal');
+}
+
+function toggleFormulaSections(){
+  const ft = document.getElementById('f_ft').value;
+  document.getElementById('secBands').style.display   = (ft==='band_accumulation' || ft==='point_accumulation' || ft==='wac') ? '' : 'none';
+  document.getElementById('secLookup').style.display  = (ft==='fixed_escalation' || ft==='point_accumulation') ? '' : 'none';
+}
+
+function addRow(containerId, tpl){
+  const c = document.getElementById(containerId);
+  const data = tpl();
+  const idx = c.children.length;
+  const row = document.createElement('div');
+  row.className = 'subrow';
+  row.dataset.section = containerId;
+  let html = '';
+  if(containerId==='metricsBody'){
+    html = `
+      <div class="field"><label>Key</label><input data-k="metric_key" placeholder="rate"></div>
+      <div class="field"><label>Label</label><input data-k="metric_label" placeholder="Failure rate"></div>
+      <div class="field"><label>Unit</label><input data-k="unit" placeholder="%"></div>
+      <div class="field"><label>Shape</label><select data-k="observation_shape"><option>SINGLE_VALUE</option><option>DAILY_VALUES</option><option>BAND_COUNTS</option><option>WAC_BREAKDOWN</option></select></div>
+      <div class="field"><label>Primary</label><select data-k="is_primary"><option value="true">Yes</option><option value="false" selected>No</option></select></div>
+      <div class="field"></div>
+    `;
+  } else if(containerId==='bandsBody'){
+    html = `
+      <div class="field"><label>Order</label><input data-k="sort_order" type="number" placeholder="1"></div>
+      <div class="field"><label>Label</label><input data-k="label" placeholder="L1"></div>
+      <div class="field"><label>Low</label><input data-k="range_low" placeholder="0.10"></div>
+      <div class="field"><label>High</label><input data-k="range_high" placeholder="0.20"></div>
+      <div class="field"><label>Severity</label><input data-k="severity_level" type="number" placeholder="1"></div>
+      <div class="field"><label>LD %</label><input data-k="ld_percent" placeholder="1"></div>
+    `;
+  } else if(containerId==='lookupBody'){
+    html = `
+      <div class="field"><label>Order</label><input data-k="sort_order" type="number" placeholder="1"></div>
+      <div class="field"><label>Tier label</label><input data-k="tier_label" placeholder="Tier-1"></div>
+      <div class="field"><label>Threshold</label><input data-k="threshold" placeholder="2"></div>
+      <div class="field"><label>LD %</label><input data-k="ld_percent" placeholder="0.5"></div>
+      <div class="field"><label>LD ₹</label><input data-k="ld_amount" placeholder=""></div>
+      <div class="field"></div>
+    `;
+  } else if(containerId==='paramsBody'){
+    html = `
+      <div class="field"><label>Key</label><input data-k="param_key" placeholder="weight_blocker"></div>
+      <div class="field"><label>Value</label><input data-k="param_value" placeholder="100"></div>
+      <div class="field"><label>Type</label><select data-k="param_type"><option>number</option><option>string</option><option>boolean</option></select></div>
+      <div class="field"></div>
+      <div class="field"></div>
+      <div class="field"></div>
+    `;
+  } else if(containerId==='guardsBody'){
+    html = `
+      <div class="field"><label>Key</label><input data-k="guard_key" placeholder="min_observation_count"></div>
+      <div class="field"><label>Op</label><select data-k="guard_op"><option>&lt;</option><option>&lt;=</option><option>&gt;</option><option>&gt;=</option><option>=</option><option>!=</option></select></div>
+      <div class="field"><label>Threshold</label><input data-k="threshold" placeholder="10"></div>
+      <div class="field" style="grid-column:span 3"><label>Message</label><input data-k="message" placeholder="Not enough samples"></div>
+    `;
+  }
+  row.innerHTML = html + '<button class="remove-btn" onclick="this.parentElement.remove()" title="Remove">✕</button>';
+  c.appendChild(row);
+}
+
+function collectRows(containerId){
+  return Array.from(document.querySelectorAll(`#${containerId} .subrow`)).map(r => {
+    const obj = {};
+    r.querySelectorAll('[data-k]').forEach(el => {
+      let v = el.value;
+      if(v==='true') v = true;
+      else if(v==='false') v = false;
+      obj[el.dataset.k] = v;
+    });
+    return obj;
+  }).filter(r => Object.values(r).some(v => v !== '' && v !== null));
+}
+
+async function submitSla(){
+  const payload = {
+    sla_ref: document.getElementById('f_sla_ref').value.trim(),
+    name: document.getElementById('f_name').value.trim(),
+    contract_type: document.getElementById('f_ct').value,
+    formula_type: document.getElementById('f_ft').value,
+    description: document.getElementById('f_desc').value.trim() || null,
+    metrics: collectRows('metricsBody'),
+    bands: collectRows('bandsBody'),
+    lookup_rows: collectRows('lookupBody'),
+    parameters: collectRows('paramsBody'),
+    guards: collectRows('guardsBody'),
+  };
+  if(!payload.sla_ref || !payload.name){ toast('Missing fields', 'SLA Ref and Name are required', 'error'); return; }
+  try{
+    const url = editingId ? API()+'/api/v3/sla-masters/'+editingId : API()+'/api/v3/sla-masters';
+    const r = await fetch(url, {
+      method: editingId ? 'PATCH' : 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if(!r.ok){
+      const t = await r.text();
+      toast('Save failed', 'HTTP '+r.status+' '+t.slice(0,200), 'error');
+      return;
+    }
+    toast('Saved', editingId ? 'SLA updated.' : 'SLA onboarded.', 'success');
+    closeModal('onboardModal');
+    loadSlas();
+  }catch(e){ toast('Network error', e.message, 'error'); }
+}
+
+/* ====== View ====== */
+async function viewSla(id){
+  try{
+    const r = await fetch(API() + '/api/v3/sla-masters/' + id);
+    if(!r.ok){ toast('Load failed', 'HTTP '+r.status, 'error'); return; }
+    const body = await r.json();
+    const d = body.data || body;
+    document.getElementById('viewTitle').textContent = d.name || d.sla_ref || 'SLA';
+    document.getElementById('viewSub').textContent = `${d.sla_ref||''} · ${d.contract_type||''} · ${d.formula_type||''}`;
+    const mappings = await loadSlaMappings(id);
+    document.getElementById('viewBody').innerHTML = renderViewBody(d, mappings);
+    openModal('viewModal');
+  }catch(e){ toast('Load failed', e.message, 'error'); }
+}
+
+async function loadSlaMappings(slaId){
+  try{
+    const r = await fetch(API() + '/api/v3/sla-activity-mappings?sla_id=' + encodeURIComponent(slaId) + '&pageSize=200');
+    if(!r.ok) return [];
+    const body = await r.json();
+    return (body?.data?._embedded?.elements || []).map(el => el.data || el);
+  }catch(e){ return []; }
+}
+
+function renderViewBody(d, mappings){
+  const part = (title, rows, cols) => `
+    <div class="subsection"><div class="subsection-title">${title}</div>
+    ${(rows && rows.length) ? `<div class="table-wrap"><table class="table"><thead><tr>${cols.map(c=>`<th>${c.h}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(r=>`<tr>${cols.map(c=>`<td>${esc(r[c.k] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
+      : `<div style="color:var(--text-muted);font-style:italic;font-size:12px;">None defined.</div>`}
+    </div>`;
+  let html = `
+    <div class="grid">
+      <div class="field"><label>SLA Ref</label><div>${esc(d.sla_ref||'-')}</div></div>
+      <div class="field"><label>Name</label><div>${esc(d.name||'-')}</div></div>
+      <div class="field"><label>Contract</label><div>${esc(d.contract_type||'-')}</div></div>
+      <div class="field"><label>Formula</label><div>${esc(d.formula_type||'-')}</div></div>
+      <div class="field full"><label>Description</label><div>${esc(d.description||'-')}</div></div>
+    </div>
+  `;
+  html += part('Metrics', d.metrics, [{h:'Key',k:'metric_key'},{h:'Label',k:'metric_label'},{h:'Unit',k:'unit'},{h:'Shape',k:'observation_shape'},{h:'Primary',k:'is_primary'}]);
+  html += part('Severity Bands', d.bands, [{h:'Order',k:'sort_order'},{h:'Label',k:'label'},{h:'Low',k:'range_low'},{h:'High',k:'range_high'},{h:'Severity',k:'severity_level'},{h:'LD %',k:'ld_percent'}]);
+  html += part('Lookup Tiers', d.lookup_rows, [{h:'Order',k:'sort_order'},{h:'Label',k:'tier_label'},{h:'Threshold',k:'threshold'},{h:'LD %',k:'ld_percent'},{h:'LD ₹',k:'ld_amount'}]);
+  html += part('Parameters', d.parameters, [{h:'Key',k:'param_key'},{h:'Value',k:'param_value'},{h:'Type',k:'param_type'}]);
+  html += part('Guards', d.guards, [{h:'Key',k:'guard_key'},{h:'Op',k:'guard_op'},{h:'Threshold',k:'threshold'},{h:'Message',k:'message'}]);
+  // Mapped activities / projects
+  html += `<div class="subsection"><div class="subsection-head"><div class="subsection-title">Mapped Activities & Projects</div></div>
+    ${mappings.length===0 ? '<div style="color:var(--text-muted);font-style:italic;font-size:12px;">Not mapped to any activity yet.</div>' :
+    `<div class="table-wrap"><table class="table"><thead><tr>
+      <th>Activity ID</th><th>Project</th><th>Status</th><th>Effective From</th><th>Effective Until</th><th>Action</th>
+    </tr></thead><tbody>${mappings.map(m=>`
+      <tr><td>${esc(m.activity_id||'-')}</td><td>${esc(m.project_id||m.project_name||'—')}</td>
+      <td><span class="badge ${m.status==='ACTIVE'?'green':(m.status==='RETIRED'?'red':'orange')}">${esc(m.status||'-')}</span></td>
+      <td>${esc((m.effective_from||'').slice(0,10))}</td><td>${esc((m.effective_until||'').slice(0,10))}</td>
+      <td><a class="link" href="Activity SLAs.html?activity_id=${encodeURIComponent(m.activity_id||'')}">Open Activity →</a></td></tr>`).join('')}</tbody></table></div>`}
+  </div>`;
+  return html;
+}
+
+/* ====== Edit ====== */
+async function editSla(id){
+  try{
+    const r = await fetch(API() + '/api/v3/sla-masters/' + id);
+    if(!r.ok){ toast('Load failed', 'HTTP '+r.status, 'error'); return; }
+    const body = await r.json();
+    const d = body.data || body;
+    editingId = id;
+    document.getElementById('onboardTitle').textContent = 'Edit SLA — ' + (d.sla_ref||'');
+    document.getElementById('submitSlaBtn').textContent = 'Save Changes';
+    document.getElementById('f_sla_ref').value = d.sla_ref||'';
+    document.getElementById('f_name').value = d.name||'';
+    document.getElementById('f_ct').value = d.contract_type||'MSAP';
+    document.getElementById('f_ft').value = d.formula_type||'band_accumulation';
+    document.getElementById('f_desc').value = d.description||'';
+    ['metricsBody','bandsBody','lookupBody','paramsBody','guardsBody'].forEach(id => document.getElementById(id).innerHTML='');
+    (d.metrics||[]).forEach(m => fillRow('metricsBody', metricRowTemplate, m));
+    (d.bands||[]).forEach(b => fillRow('bandsBody', bandRowTemplate, b));
+    (d.lookup_rows||[]).forEach(l => fillRow('lookupBody', lookupRowTemplate, l));
+    (d.parameters||[]).forEach(p => fillRow('paramsBody', paramRowTemplate, p));
+    (d.guards||[]).forEach(g => fillRow('guardsBody', guardRowTemplate, g));
+    toggleFormulaSections();
+    openModal('onboardModal');
+  }catch(e){ toast('Load failed', e.message, 'error'); }
+}
+
+function fillRow(containerId, tpl, data){
+  addRow(containerId, tpl);
+  const c = document.getElementById(containerId);
+  const row = c.lastElementChild;
+  row.querySelectorAll('[data-k]').forEach(el => {
+    const v = data[el.dataset.k];
+    if(v !== undefined && v !== null) el.value = typeof v === 'boolean' ? String(v) : v;
+  });
+}
+
+/* ====== Delete ====== */
+function askDelete(id, ref){
+  pendingDeleteId = id;
+  document.getElementById('confirmMsg').innerHTML = `Are you sure you want to delete <strong>${esc(ref)}</strong>? This action cannot be undone.`;
+  openModal('confirmModal');
+}
+
+async function confirmDelete(){
+  if(!pendingDeleteId) return;
+  try{
+    const r = await fetch(API() + '/api/v3/sla-masters/' + pendingDeleteId, {method:'DELETE'});
+    if(!r.ok){ toast('Delete failed', 'HTTP '+r.status, 'error'); return; }
+    toast('Deleted', 'SLA removed.', 'success');
+    closeModal('confirmModal');
+    pendingDeleteId = null;
+    loadSlas();
+  }catch(e){ toast('Network error', e.message, 'error'); }
+}
+
+/* ====== Modal helpers ====== */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+/* Init */
+checkHealth();
+</script>
+</body>
+</html>
