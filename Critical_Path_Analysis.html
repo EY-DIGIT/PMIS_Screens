@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>UIDAI PMIS - Critical Path Analysis</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --navy:#0b3c88;
+  --navy-deep:#062a63;
+  --cyan:#0aa1c0;
+  --cyan-light:#3cb8d4;
+  --green:#1a8a3d;
+  --green-soft:#e7f7ec;
+  --saffron:#d4440e;
+  --light:#f4f7fb;
+  --light-cool:#eef3f9;
+  --border:#dbe5f1;
+  --border-soft:#e9eef6;
+  --red:#d32f2f;
+  --red-deep:#b71c1c;
+  --amber:#b25900;
+  --text:#1e2a3a;
+  --text-soft:#5a6680;
+  --text-muted:#7a869a;
+  --row-hover:#e7f1ff;
+  --uidai-stripe:linear-gradient(90deg, var(--navy) 0%, var(--cyan) 100%);
+  --critical-bar:linear-gradient(180deg,#e8593a,#c33a1a);
+  --normal-bar:linear-gradient(180deg,#3ec3dd,#1a8aaa);
+  --float-bar:repeating-linear-gradient(45deg,#fde5d9,#fde5d9 4px,#fad0bd 4px,#fad0bd 8px);
+}
+
+*{margin:0; padding:0; box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  font-family:'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background:var(--light);
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* ─── Accessibility helpers ─── */
+.sr-only{
+  position:absolute !important; width:1px; height:1px;
+  padding:0; margin:-1px; overflow:hidden;
+  clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
+.skip-link{
+  position:absolute; top:-40px; left:0;
+  background:var(--navy); color:#fff;
+  padding:8px 16px; z-index:9999;
+  text-decoration:none; font-weight:700;
+  border-radius:0 0 6px 0;
+}
+.skip-link:focus{top:0;}
+*:focus-visible{
+  outline:3px solid #ffb300;
+  outline-offset:2px;
+  border-radius:3px;
+}
+
+/* ─── UIDAI-style Header ─── */
+.site-header{
+  width:100%; background:#fff;
+  box-shadow:0 2px 8px rgba(11,60,136,.08);
+  position:relative; z-index:50;
+}
+.site-header::after{
+  content:""; display:block; height:4px;
+  background:var(--uidai-stripe);
+}
+.header-accessibility-strip{
+  background:#f5f8fd; border-bottom:1px solid var(--border);
+  display:flex; justify-content:flex-end; align-items:center;
+  padding:3px 20px; gap:12px; min-height:28px;
+  font-size:13px; color:#1e2a3a;
+  max-height:40px; overflow:hidden;
+  transition:max-height .28s ease, opacity .22s ease, padding .28s ease, border-bottom-width .28s ease;
+}
+.header-accessibility-strip.collapsed{
+  max-height:0; min-height:0; opacity:0;
+  padding-top:0; padding-bottom:0;
+  border-bottom-width:0; pointer-events:none;
+}
+.a11y-label{
+  font-weight:600; color:#4b5870;
+  font-size:12px; user-select:none;
+}
+.font-resizer{
+  display:inline-flex; align-items:center; gap:4px;
+  border:1px solid var(--border); border-radius:6px;
+  padding:1px; background:#fff;
+}
+.font-resizer button{
+  background:transparent; border:none; cursor:pointer;
+  padding:3px 9px; font-weight:700; color:var(--navy);
+  border-radius:4px; font-family:inherit;
+  font-size:13px; line-height:1; transition:background .12s;
+}
+.font-resizer button:hover{background:#eef6fb;}
+.font-resizer button[aria-pressed="true"]{background:var(--navy); color:#fff;}
+.font-resizer .fr-plus{font-size:15px;}
+.font-resizer .fr-reset{font-size:13px;}
+.font-resizer .fr-minus{font-size:11px;}
+
+.header-main{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center; gap:14px;
+  padding:8px 20px;
+  background:linear-gradient(90deg,#ffebc7 0%, #ffffff 45%, #ffffff 55%, #d7efd9 100%);
+}
+.header-brand{display:flex; align-items:center; gap:12px; min-width:0;}
+.header-brand img{height:52px; width:auto; flex:0 0 auto;}
+.header-brand-text{display:flex; flex-direction:column; line-height:1.15; min-width:0; gap:2px;}
+.header-brand-hi-1, .header-brand-hi-2{font-weight:800; font-size:16px; white-space:nowrap; letter-spacing:0.2px;}
+.header-brand-hi-1{color:#D4440E;}
+.header-brand-hi-2{color:#1a8a3d;}
+.header-title{
+  text-align:center; font-size:20px; font-weight:800;
+  line-height:1.2; color:var(--navy);
+  background:linear-gradient(90deg,var(--navy),var(--cyan));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  padding:0 8px; margin:0;
+}
+.header-authority{
+  justify-self:end; text-align:left;
+  font-weight:700; font-size:16px; line-height:1.2;
+  color:#1a2a3f; min-width:0;
+}
+
+.navbar{
+  display:flex; justify-content:space-between; align-items:center;
+  background:#fafcfe; border-bottom:1px solid var(--border);
+  min-height:42px; position:relative; z-index:30;
+}
+.menu-home-block{
+  width:240px; display:flex; justify-content:space-between;
+  padding:6px 14px; border-right:1px solid var(--border); gap:10px;
+}
+.menu-home-block span{
+  cursor:pointer; padding:5px 10px; border-radius:6px;
+  user-select:none; white-space:nowrap; font-size:14px;
+  font-weight:500; color:var(--navy);
+  transition:background .15s, color .15s;
+}
+.menu-home-block span:hover{background:#eaf2fb; color:var(--navy-deep);}
+
+.profile{padding:0 20px; cursor:pointer; position:relative; font-size:18px; user-select:none;}
+.profile-menu{
+  position:absolute; right:0; top:40px; background:#fff;
+  border:1px solid var(--border); border-radius:8px; display:none;
+  min-width:120px; box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  z-index:40; overflow:hidden;
+}
+.profile-menu div{padding:10px 12px; cursor:pointer;}
+.profile-menu div:hover{background:#eef6fb;}
+
+.layout{display:flex; flex:1; min-height:0;}
+.sidebar{
+  width:240px; background:#fff; border-right:1px solid var(--border);
+  display:flex; flex-direction:column;
+  transition:width .25s ease; min-height:0;
+}
+.sidebar.collapsed{width:70px;}
+.sidebar.collapsed .text,
+.sidebar.collapsed .submenu-arrow,
+.sidebar.collapsed .submenu{display:none !important;}
+
+.menu{padding:12px;}
+.menu a, .submenu div{
+  display:flex; gap:10px; padding:9px 10px; margin-bottom:4px;
+  cursor:pointer; border-radius:6px; align-items:center;
+  user-select:none; line-height:1.2;
+  text-decoration:none; color:var(--text); font-size:14px;
+}
+.menu a:hover, .submenu div:hover{background:#eef6fb;}
+.menu a.active, .submenu div.active{background:linear-gradient(90deg,var(--navy),var(--cyan)); color:#fff;}
+.menu a.active:hover, .submenu div.active:hover{background:linear-gradient(90deg,var(--navy),var(--cyan));}
+.submenu{display:none; padding-left:20px;}
+.submenu div{font-size:13px;}
+.submenu-arrow{margin-left:auto; font-size:10px; color:var(--text-muted);}
+
+.content{flex:1; padding:14px 20px 22px; overflow:auto; min-width:0;}
+
+/* ─── Page header (title + tagline + description + actions) ─── */
+.pm-title{
+  font-size:22px; font-weight:700; margin-bottom:4px;
+  color:var(--navy); line-height:1.2;
+  position:relative; padding-left:14px;
+  letter-spacing:-0.1px;
+}
+.pm-title::before{
+  content:""; position:absolute;
+  left:0; top:6px; bottom:6px; width:5px;
+  background:var(--uidai-stripe); border-radius:3px;
+}
+.pm-subtitle{
+  color:var(--green); font-weight:700; font-size:14px;
+  margin:0 0 6px 14px; line-height:1.4;
+}
+.pm-description{
+  color:var(--text-soft); font-size:13.5px;
+  margin:0 0 12px 14px; line-height:1.5;
+  max-width:880px;
+}
+.page-header{
+  display:flex; flex-wrap:wrap;
+  align-items:flex-end; justify-content:space-between;
+  gap:8px 14px; margin-bottom:12px;
+}
+.page-header-actions{
+  display:flex; gap:8px; flex-wrap:wrap;
+  justify-content:flex-end; align-items:center;
+}
+
+/* ─── Cards with UIDAI stripe ─── */
+.card{
+  background:#fff; padding:16px 20px 14px;
+  border-radius:10px; border:1px solid var(--border-soft);
+  box-shadow:0 2px 8px rgba(11,60,136,.06);
+  margin-bottom:14px; position:relative;
+}
+.card::before{
+  content:""; position:absolute;
+  top:0; left:0; right:0; height:4px;
+  background:var(--uidai-stripe);
+  border-radius:10px 10px 0 0;
+}
+.card.no-stripe::before{display:none;}
+.card.no-stripe{padding-top:14px;}
+.card > h3:first-child, .card > h4:first-child{margin-top:0;}
+.card-section-title{
+  font-size:15px; font-weight:800; color:var(--navy);
+  margin:0 0 10px; display:flex; align-items:center; gap:8px;
+  flex-wrap:wrap;
+}
+.card-section-title .badge-count{
+  background:#eef4fc; color:var(--navy); font-weight:700;
+  padding:2px 10px; border-radius:999px; font-size:12px;
+}
+
+/* ─── Filter bar ─── */
+.filter-bar{
+  display:grid;
+  grid-template-columns:minmax(260px,2fr) minmax(180px,1fr) auto;
+  gap:12px; align-items:end;
+}
+.filter-bar .field label{
+  font-weight:600; font-size:12px;
+  color:#4b5870; text-transform:uppercase;
+  letter-spacing:0.4px; display:block; margin-bottom:4px;
+}
+.filter-bar select, .filter-bar input{
+  width:100%; padding:9px 10px; border-radius:6px;
+  border:1px solid var(--border); background:#fff;
+  color:var(--text); font:inherit; font-size:14px;
+}
+.filter-bar select:focus, .filter-bar input:focus{
+  outline:none; border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(10,161,192,.12);
+}
+.filter-bar .filter-actions{
+  display:flex; gap:8px; flex-wrap:wrap;
+}
+
+.btn{
+  background:linear-gradient(90deg,var(--navy),var(--cyan));
+  color:#fff; padding:10px 18px; border:none; border-radius:6px;
+  cursor:pointer; font-weight:600; letter-spacing:.2px;
+  box-shadow:0 1px 3px rgba(11,60,136,.15);
+  transition:transform .15s ease, opacity .15s ease, box-shadow .15s ease;
+  font-family:inherit; font-size:14px;
+}
+.btn:hover{transform:translateY(-1px); box-shadow:0 4px 10px rgba(11,60,136,.22);}
+.btn:active{transform:translateY(0);}
+.btn.cancel{background:#fff; color:var(--navy); border:1px solid var(--border); box-shadow:none;}
+.btn.cancel:hover{background:#f4f8fd; border-color:#c4d3e8;}
+.btn.small-btn{padding:7px 13px; font-size:13px;}
+.btn:disabled{opacity:.55; cursor:not-allowed; transform:none; box-shadow:none;}
+
+/* ─── KPI tiles ─── */
+.kpi-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px; margin-bottom:14px;
+}
+.kpi-card{
+  background:#fff; border:1px solid var(--border);
+  border-radius:10px; padding:14px 16px;
+  box-shadow:0 2px 6px rgba(23,62,119,.05);
+  position:relative; overflow:hidden;
+}
+.kpi-card::before{
+  content:""; position:absolute; top:0; left:0; right:0;
+  height:3px; background:var(--uidai-stripe);
+}
+.kpi-card.kpi-critical::before{background:linear-gradient(90deg,var(--red),#e8593a);}
+.kpi-card.kpi-float::before{background:linear-gradient(90deg,var(--green),#2ba865);}
+.kpi-card.kpi-risk::before{background:linear-gradient(90deg,#b25900,#e8a83a);}
+
+.kpi-label{
+  font-size:11px; text-transform:uppercase; letter-spacing:.4px;
+  color:#66788f; font-weight:700; margin-bottom:6px;
+  display:flex; align-items:center; gap:6px;
+}
+.kpi-label .kpi-icon{font-size:14px;}
+.kpi-value{
+  font-size:26px; font-weight:800; color:#173e77;
+  line-height:1.1;
+}
+.kpi-card.kpi-critical .kpi-value{color:var(--red-deep);}
+.kpi-card.kpi-float .kpi-value{color:#1b7a42;}
+.kpi-card.kpi-risk .kpi-value{color:var(--amber);}
+.kpi-sub{
+  font-size:12px; color:#4b5870; margin-top:4px;
+  line-height:1.4;
+}
+.kpi-trend{
+  display:inline-flex; align-items:center; gap:3px;
+  font-size:11px; font-weight:700;
+  padding:2px 8px; border-radius:999px;
+  margin-top:6px;
+}
+.kpi-trend.good{background:#e7f8ee; color:#1b7a42;}
+.kpi-trend.warn{background:#fff3e0; color:var(--amber);}
+.kpi-trend.bad{background:#fdecec; color:var(--red-deep);}
+
+/* ─── View tabs ─── */
+.view-tabs{
+  display:flex; gap:4px; flex-wrap:wrap;
+  border-bottom:2px solid var(--border);
+  margin-bottom:14px; padding-bottom:0;
+}
+.view-tab{
+  background:transparent; border:none; cursor:pointer;
+  padding:10px 18px; font-family:inherit;
+  font-size:14px; font-weight:600; color:var(--text-soft);
+  border-bottom:3px solid transparent;
+  margin-bottom:-2px; transition:color .15s, border-color .15s, background .15s;
+  display:inline-flex; align-items:center; gap:7px;
+  border-radius:6px 6px 0 0;
+}
+.view-tab:hover{color:var(--navy); background:#eef6fb;}
+.view-tab.active{
+  color:var(--navy);
+  border-bottom-color:var(--cyan);
+  background:#fff;
+}
+.view-tab .tab-icon{font-size:15px;}
+
+/* ─── Critical path table ─── */
+.cpa-grid-wrap{
+  width:100%; overflow:auto;
+  border:1px solid #c9d3e4; border-radius:8px;
+  box-shadow:0 2px 8px rgba(23,62,119,.06);
+  background:#fff;
+}
+.cpa-grid{
+  width:100%; border-collapse:collapse;
+  font-size:13.5px; table-layout:auto;
+}
+.cpa-grid thead tr{
+  background:linear-gradient(180deg,#3a6cb5,#2d5ba0);
+}
+.cpa-grid thead th{
+  color:#fff; font-weight:700; font-size:11.5px;
+  text-transform:uppercase; letter-spacing:0.3px;
+  padding:12px 14px;
+  border-right:1px solid rgba(255,255,255,0.15);
+  text-align:left; white-space:nowrap;
+  position:sticky; top:0; z-index:2;
+}
+.cpa-grid tbody td{
+  padding:11px 14px;
+  border-bottom:1px solid #e9eff8;
+  border-right:1px solid #eef2f8;
+  vertical-align:middle;
+  background:#fff;
+}
+.cpa-grid tbody tr:hover td{background:var(--row-hover);}
+.cpa-grid tbody tr.critical td{background:#fdf3f0;}
+.cpa-grid tbody tr.critical:hover td{background:#fae8e2;}
+.cpa-grid .col-wbs{font-weight:700; color:var(--navy); white-space:nowrap;}
+.cpa-grid tr.critical .col-wbs{color:var(--red-deep);}
+.cpa-grid .col-num{
+  font-variant-numeric:tabular-nums;
+  text-align:right; white-space:nowrap;
+}
+.cpa-grid .col-date{white-space:nowrap; font-variant-numeric:tabular-nums; color:#3d4c6b; font-size:12.5px;}
+.cpa-grid .col-name{min-width:200px;}
+.cpa-grid .col-owner{font-size:12.5px; color:#3d4c6b;}
+
+.cell-dep-list{
+  display:flex; flex-wrap:wrap; gap:3px;
+}
+.dep-chip{
+  display:inline-block; padding:2px 8px;
+  border-radius:999px; background:#edf3fd;
+  color:#173e77; font-size:11.5px; font-weight:700;
+  white-space:nowrap;
+}
+.dep-chip.critical-link{background:#fde5d9; color:var(--red-deep);}
+.dep-chip-empty{color:#aab2bf; font-size:12px; font-style:italic;}
+
+.critical-flag{
+  display:inline-flex; align-items:center; gap:4px;
+  padding:3px 10px; border-radius:999px;
+  font-size:11px; font-weight:800; letter-spacing:.3px;
+  text-transform:uppercase;
+}
+.critical-flag.yes{background:#fdecec; color:var(--red-deep); border:1px solid #f4b8b8;}
+.critical-flag.no{background:#eaf6ec; color:#1b7a42; border:1px solid #b6e7c7;}
+
+.float-badge{
+  display:inline-block; padding:3px 9px;
+  border-radius:6px; font-size:12px; font-weight:700;
+  font-variant-numeric:tabular-nums;
+}
+.float-badge.zero{background:#fdecec; color:var(--red-deep);}
+.float-badge.low{background:#fff3e0; color:var(--amber);}
+.float-badge.ok{background:#eaf6ec; color:#1b7a42;}
+
+.status-pill{
+  display:inline-block; padding:4px 11px;
+  border-radius:999px; font-size:11px;
+  font-weight:700; letter-spacing:.3px;
+  white-space:nowrap; text-transform:uppercase;
+}
+.status-pill.s-completed{background:#e7f8ee; color:#1b7a42; border:1px solid #b6e7c7;}
+.status-pill.s-ontrack{background:#e3eefc; color:#1a56db; border:1px solid #b9d0f1;}
+.status-pill.s-delayed{background:#fde5d9; color:#c33a1a; border:1px solid #f5bfa5;}
+.status-pill.s-notstarted{background:#f0f2f7; color:#66788f; border:1px solid #d7dde8;}
+
+/* ─── Gantt view ─── */
+.gantt-wrap{
+  position:relative; background:#fff;
+  border:1px solid var(--border); border-radius:8px;
+  overflow:auto; box-shadow:0 2px 8px rgba(23,62,119,.06);
+}
+.gantt-table{
+  width:100%; border-collapse:collapse;
+  font-size:13px; min-width:880px;
+}
+.gantt-table thead th{
+  background:linear-gradient(180deg,#3a6cb5,#2d5ba0);
+  color:#fff; font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.3px;
+  padding:10px 12px;
+  border-right:1px solid rgba(255,255,255,0.15);
+  text-align:left;
+}
+.gantt-table thead th.col-label{width:36%; min-width:240px;}
+.gantt-table thead th.col-track{width:64%; padding:0;}
+.gantt-track-axis{
+  display:flex; height:32px;
+  background:linear-gradient(180deg,#3a6cb5,#2d5ba0);
+  position:relative;
+}
+.gantt-axis-tick{
+  flex:1 1 0; padding:8px 0 0;
+  font-size:10.5px; color:#fff; font-weight:700;
+  text-align:center;
+  border-right:1px solid rgba(255,255,255,0.15);
+  position:relative;
+}
+.gantt-axis-tick:last-child{border-right:none;}
+.gantt-table tbody td{
+  padding:0; border-bottom:1px solid #eef2f8;
+  vertical-align:middle; background:#fff;
+}
+.gantt-table tbody td.cell-label{
+  padding:10px 14px;
+  border-right:1px solid #e9eff8;
+  font-size:13px;
+}
+.gantt-table tbody td.cell-track{
+  position:relative; height:44px;
+  background-image:linear-gradient(90deg, transparent calc(100% - 1px), #eef2f8 100%);
+  background-size:calc(100% / var(--days, 20)) 100%;
+}
+.gantt-table tbody tr:hover td{background:#f5fafe;}
+.gantt-table tbody tr.critical-row td.cell-label{
+  background:#fdf3f0;
+}
+.gantt-bar{
+  position:absolute; top:50%; transform:translateY(-50%);
+  height:20px; border-radius:5px;
+  display:flex; align-items:center; justify-content:flex-start;
+  padding:0 8px; color:#fff;
+  font-size:11px; font-weight:700; white-space:nowrap;
+  box-shadow:0 1px 3px rgba(0,0,0,.15);
+  background:var(--normal-bar);
+  overflow:hidden;
+}
+.gantt-bar.critical{
+  background:var(--critical-bar);
+  box-shadow:0 1px 4px rgba(195,58,26,.3);
+}
+.gantt-bar .bar-label{
+  text-overflow:ellipsis; overflow:hidden;
+}
+.gantt-float{
+  position:absolute; top:50%; transform:translateY(-50%);
+  height:12px; border-radius:3px;
+  background:var(--float-bar);
+  border:1px dashed #f4a988;
+  opacity:.9;
+}
+.gantt-today-line{
+  position:absolute; top:0; bottom:0;
+  width:2px; background:var(--saffron);
+  z-index:3;
+}
+.gantt-today-line::before{
+  content:"TODAY"; position:absolute;
+  top:-18px; left:50%; transform:translateX(-50%);
+  background:var(--saffron); color:#fff;
+  font-size:9px; font-weight:800; padding:1px 6px;
+  border-radius:3px; letter-spacing:.5px;
+  white-space:nowrap;
+}
+.cell-label .row-meta{
+  font-size:11px; color:var(--text-muted);
+  margin-top:2px;
+}
+.cell-label .row-meta .crit-marker{
+  display:inline-block; padding:1px 6px;
+  background:#fdecec; color:var(--red-deep);
+  border-radius:3px; font-weight:700;
+  font-size:10px; letter-spacing:.3px;
+  margin-right:4px;
+}
+
+/* ─── Network diagram ─── */
+.network-wrap{
+  width:100%; overflow:auto;
+  background:linear-gradient(180deg,#fafcfe 0%,#f4f7fb 100%);
+  border:1px solid var(--border); border-radius:8px;
+  box-shadow:0 2px 8px rgba(23,62,119,.06);
+  padding:14px;
+}
+.network-svg{
+  display:block; min-width:760px;
+  background:#fff; border-radius:6px;
+  border:1px solid var(--border-soft);
+}
+.network-node-bg{fill:#fff; stroke:#9fb7df; stroke-width:1.5;}
+.network-node-bg.critical{fill:#fff5f3; stroke:var(--red); stroke-width:2;}
+.network-node-bg.start, .network-node-bg.end{fill:#eef4fc; stroke:var(--navy); stroke-width:2;}
+.network-node-title{
+  font-size:11px; font-weight:800; fill:var(--navy);
+  font-family:inherit;
+}
+.network-node-title.critical{fill:var(--red-deep);}
+.network-node-name{
+  font-size:10px; fill:#3d4c6b;
+  font-family:inherit; font-weight:500;
+}
+.network-node-meta{
+  font-size:9px; fill:var(--text-muted);
+  font-family:inherit; font-weight:600;
+}
+.network-node-stat{
+  font-size:9px; font-weight:700; fill:#3d4c6b;
+  font-family:inherit;
+}
+.network-edge{
+  fill:none; stroke:#9fb7df; stroke-width:1.5;
+}
+.network-edge.critical{
+  stroke:var(--red); stroke-width:2.5;
+}
+.network-edge-arrow{fill:#9fb7df;}
+.network-edge-arrow.critical{fill:var(--red);}
+
+/* ─── Legend ─── */
+.legend-row{
+  display:flex; flex-wrap:wrap; gap:14px 22px;
+  padding:12px 14px;
+  background:#f8fbff; border:1px solid var(--border);
+  border-radius:8px; margin-top:12px;
+}
+.legend-item{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:12.5px; font-weight:600; color:#4b5870;
+}
+.legend-swatch{
+  width:22px; height:14px; border-radius:3px;
+  flex:0 0 22px;
+}
+.legend-swatch.critical{background:var(--critical-bar);}
+.legend-swatch.normal{background:var(--normal-bar);}
+.legend-swatch.float{background:var(--float-bar); border:1px dashed #f4a988;}
+.legend-swatch.today{background:var(--saffron);}
+.legend-swatch.start-end{background:#eef4fc; border:2px solid var(--navy);}
+
+/* ─── Critical Path summary chip strip ─── */
+.cp-strip{
+  display:flex; flex-wrap:wrap; align-items:center;
+  gap:6px; padding:12px 14px;
+  background:linear-gradient(135deg,#fdf3f0,#fff7f5);
+  border:1px solid #f5bfa5; border-left:5px solid var(--red);
+  border-radius:8px; margin-bottom:14px;
+}
+.cp-strip-label{
+  font-size:12px; font-weight:800; color:var(--red-deep);
+  text-transform:uppercase; letter-spacing:.4px;
+  margin-right:6px;
+}
+.cp-chip{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 11px; border-radius:6px;
+  background:#fff; border:1px solid #f4b8b8;
+  font-size:12.5px; font-weight:700; color:var(--red-deep);
+  white-space:nowrap;
+}
+.cp-chip .cp-chip-id{font-size:10.5px; color:#9b2c1f; opacity:.8;}
+.cp-arrow{color:var(--red); font-weight:800;}
+
+/* ─── Footer ─── */
+.site-footer{
+  background:linear-gradient(90deg, #eaf1fb 0%, #f5f9fe 50%, #eaf1fb 100%);
+  color:var(--navy); text-align:center;
+  padding:10px 16px; font-size:12.5px; font-weight:600;
+  letter-spacing:0.2px; margin-top:auto; position:relative;
+}
+.site-footer::before{
+  content:""; position:absolute;
+  top:0; left:0; right:0; height:3px;
+  background:var(--uidai-stripe);
+}
+.site-footer .sep{color:var(--cyan); margin:0 8px; font-weight:700;}
+
+/* ─── Empty state ─── */
+.empty-state{
+  padding:32px 20px; text-align:center;
+  color:var(--text-muted); font-size:14px;
+}
+.empty-state .empty-icon{
+  font-size:42px; margin-bottom:8px; opacity:.55;
+}
+.empty-state .empty-title{
+  color:var(--navy); font-weight:700; font-size:16px;
+  margin-bottom:4px;
+}
+
+/* ─── Hidden helper ─── */
+.hidden{display:none !important;}
+
+/* ─── Responsive ─── */
+@media (max-width: 1180px){
+  .content{padding:12px 14px;}
+  .card{padding:14px 16px;}
+  .header-title{font-size:18px;}
+  .header-authority{font-size:13px;}
+  .filter-bar{grid-template-columns:1fr 1fr; }
+  .filter-bar .filter-actions{grid-column:1 / -1;}
+}
+@media (max-width: 960px){
+  .header-main{grid-template-columns:1fr; text-align:center; gap:8px; padding:8px 14px;}
+  .header-brand{justify-content:center;}
+  .header-authority{text-align:center;}
+  .layout{flex-direction:column;}
+  .sidebar{width:100%; border-right:none; border-bottom:1px solid var(--border);}
+  .sidebar.collapsed{width:100%;}
+  .sidebar.collapsed .text, .sidebar.collapsed .submenu-arrow{display:inline !important;}
+  .menu{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:6px; padding:8px;}
+  .menu a, .submenu div{margin-bottom:0;}
+  .submenu{padding-left:0;}
+  .filter-bar{grid-template-columns:1fr;}
+}
+@media (max-width: 720px){
+  .menu-home-block{padding:6px 10px; gap:8px;}
+  .header-accessibility-strip{padding:3px 10px; flex-wrap:wrap; justify-content:center; gap:8px;}
+  .header-main{padding:8px 10px;}
+  .header-brand img{height:38px;}
+  .header-title{font-size:16px;}
+  .header-authority{font-size:12px;}
+  .pm-title{font-size:18px;}
+  .kpi-row{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .kpi-value{font-size:22px;}
+  .view-tab{padding:9px 11px; font-size:13px;}
+}
+@media (max-width: 520px){
+  .kpi-row{grid-template-columns:1fr;}
+  .menu{grid-template-columns:1fr;}
+  .menu-home-block{flex-direction:column; width:100%;}
+  .menu-home-block span{width:100%; text-align:center;}
+  .a11y-label{display:none;}
+}
+</style>
+</head>
+
+<body>
+<a href="#mainContent" class="skip-link">Skip to main content</a>
+
+<header class="site-header" role="banner">
+  <div class="header-accessibility-strip">
+    <span class="a11y-label" aria-hidden="true">Text Size:</span>
+    <div class="font-resizer" role="group" aria-label="Adjust text size">
+      <button type="button" class="fr-plus" id="frIncrease" aria-label="Increase text size" title="Increase text size">+A</button>
+      <button type="button" class="fr-reset" id="frReset" aria-label="Reset text size to default" title="Reset text size">A</button>
+      <button type="button" class="fr-minus" id="frDecrease" aria-label="Decrease text size" title="Decrease text size">-A</button>
+    </div>
+  </div>
+  <div class="header-main">
+    <div class="header-brand">
+      <img src="Aadhaar.png" alt="Aadhaar logo" onerror="this.style.display='none'">
+      <div class="header-brand-text">
+        <span class="header-brand-hi-1" lang="hi">मेरा आधार</span>
+        <span class="header-brand-hi-2" lang="hi">मेरी पहचान</span>
+      </div>
+    </div>
+    <h1 class="header-title">UIDAI Automation Governance Tool</h1>
+    <div class="header-authority">
+      Unique Identification<br>Authority of India
+    </div>
+  </div>
+</header>
+
+<nav class="navbar" role="navigation" aria-label="Top navigation">
+  <div class="menu-home-block">
+    <span id="toggleBtn" role="button" tabindex="0" aria-label="Toggle side menu" aria-expanded="true">☰ Menu</span>
+    <span id="homeBtn" role="button" tabindex="0" aria-label="Go to home">🏠 Home</span>
+  </div>
+  <div class="profile" id="profileBtn" role="button" tabindex="0" aria-label="User profile menu" aria-haspopup="true" aria-expanded="false">
+    <span aria-hidden="true">👤</span>
+    <span class="sr-only">User profile</span>
+    <div class="profile-menu" id="profileMenu" role="menu">
+      <div role="menuitem" tabindex="-1">Profile</div>
+      <div role="menuitem" tabindex="-1">Sign Out</div>
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar" role="complementary" aria-label="Primary navigation">
+    <nav class="menu" aria-label="Application sections">
+      <a href="#" role="button" tabindex="0">📊 <span class="text">Dashboard</span></a>
+      <a href="#" class="" id="pmToggle" role="button" tabindex="0" aria-expanded="true">
+        📁 <span class="text">Project Management</span>
+        <span class="submenu-arrow" id="arrow" aria-hidden="true">▼</span>
+      </a>
+      <div class="submenu" id="pmSub" role="menu" style="display:block;">
+        <div role="menuitem" tabindex="0">➕ Add Project</div>
+        <div role="menuitem" tabindex="0">🔍 Search Project</div>
+        <div role="menuitem" tabindex="0">📈 Track Progress</div>
+        <div role="menuitem" tabindex="0" class="active">🛤️ Critical Path Analysis</div>
+      </div>
+      <a href="#" role="button" tabindex="0">🗂️ <span class="text">Master Data</span></a>
+      <a href="#" role="button" tabindex="0">🏢 <span class="text">Vendor Management</span></a>
+      <a href="#" role="button" tabindex="0">👤 <span class="text">User Management</span></a>
+    </nav>
+  </aside>
+
+  <main class="content" id="mainContent" role="main" tabindex="-1">
+
+    <!-- ── Page header ── -->
+    <div class="page-header">
+      <div>
+        <div class="pm-title">Critical Path Analysis</div>
+        <div class="pm-subtitle">See the path that drives your delivery date.</div>
+        <p class="pm-description">
+          Identify activities whose slip will delay the project, view the longest dependency chain (Critical Path),
+          and compare each activity's float (slack) to plan acceleration, contingency, and resource reallocation.
+        </p>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn cancel small-btn" id="exportCsvBtn" type="button">⬇ Export CSV</button>
+        <button class="btn small-btn" id="recalcBtn" type="button">⟳ Recalculate</button>
+      </div>
+    </div>
+
+    <!-- ── Filter card ── -->
+    <div class="card" aria-label="Project selector">
+      <div class="filter-bar">
+        <div class="field">
+          <label for="projectSelect">Project</label>
+          <select id="projectSelect" aria-label="Select project for critical path analysis"></select>
+        </div>
+        <div class="field">
+          <label for="baselineSelect">Baseline / Snapshot</label>
+          <select id="baselineSelect" aria-label="Baseline snapshot">
+            <option value="current" selected>Current Plan (Live)</option>
+            <option value="baseline">Approved Baseline v1.0</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn cancel small-btn" id="showFloatBtn" type="button" aria-pressed="true">📐 Show Float</button>
+          <button class="btn cancel small-btn" id="showTodayBtn" type="button" aria-pressed="true">📍 Show Today</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── KPI tiles ── -->
+    <div class="kpi-row" id="kpiRow">
+      <!-- populated by JS -->
+    </div>
+
+    <!-- ── Critical Path summary strip ── -->
+    <div class="cp-strip" id="cpStrip" role="region" aria-label="Critical path">
+      <!-- populated by JS -->
+    </div>
+
+    <!-- ── View tabs ── -->
+    <div class="card no-stripe">
+      <div class="view-tabs" role="tablist" aria-label="Critical path views">
+        <button class="view-tab active" role="tab" aria-selected="true" aria-controls="tablePanel" id="tabTable" data-view="table">
+          <span class="tab-icon" aria-hidden="true">📋</span> Table View
+        </button>
+        <button class="view-tab" role="tab" aria-selected="false" aria-controls="ganttPanel" id="tabGantt" data-view="gantt">
+          <span class="tab-icon" aria-hidden="true">📊</span> Gantt View
+        </button>
+        <button class="view-tab" role="tab" aria-selected="false" aria-controls="networkPanel" id="tabNetwork" data-view="network">
+          <span class="tab-icon" aria-hidden="true">🕸️</span> Network Diagram
+        </button>
+      </div>
+
+      <!-- Table View -->
+      <div id="tablePanel" role="tabpanel" aria-labelledby="tabTable">
+        <h3 class="card-section-title">
+          Activities &amp; Float
+          <span class="badge-count" id="tableCount">0 activities</span>
+        </h3>
+        <div class="cpa-grid-wrap">
+          <table class="cpa-grid" aria-label="Critical path table">
+            <thead>
+              <tr>
+                <th>WBS</th>
+                <th class="col-name">Activity</th>
+                <th>Owner / Vendor</th>
+                <th>Predecessors</th>
+                <th>Dur (d)</th>
+                <th>ES</th>
+                <th>EF</th>
+                <th>LS</th>
+                <th>LF</th>
+                <th>Float</th>
+                <th>Critical</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div class="legend-row" aria-label="Field abbreviations">
+          <span class="legend-item"><strong>ES</strong>: Early Start (day)</span>
+          <span class="legend-item"><strong>EF</strong>: Early Finish (day)</span>
+          <span class="legend-item"><strong>LS</strong>: Late Start (day)</span>
+          <span class="legend-item"><strong>LF</strong>: Late Finish (day)</span>
+          <span class="legend-item"><strong>Float</strong>: Total Slack = LS − ES</span>
+        </div>
+      </div>
+
+      <!-- Gantt View -->
+      <div id="ganttPanel" role="tabpanel" aria-labelledby="tabGantt" class="hidden">
+        <h3 class="card-section-title">
+          Schedule Gantt
+          <span class="badge-count" id="ganttDurationLabel">0 days</span>
+        </h3>
+        <div class="gantt-wrap">
+          <table class="gantt-table" id="ganttTable">
+            <thead>
+              <tr>
+                <th class="col-label">Activity</th>
+                <th class="col-track">
+                  <div class="gantt-track-axis" id="ganttAxis"></div>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="ganttBody"></tbody>
+          </table>
+        </div>
+        <div class="legend-row">
+          <span class="legend-item"><span class="legend-swatch critical"></span> Critical activity (zero float)</span>
+          <span class="legend-item"><span class="legend-swatch normal"></span> Non-critical activity</span>
+          <span class="legend-item"><span class="legend-swatch float"></span> Free / total float</span>
+          <span class="legend-item"><span class="legend-swatch today"></span> Today marker</span>
+        </div>
+      </div>
+
+      <!-- Network View -->
+      <div id="networkPanel" role="tabpanel" aria-labelledby="tabNetwork" class="hidden">
+        <h3 class="card-section-title">
+          Dependency Network
+          <span class="badge-count" id="networkCount">0 nodes</span>
+        </h3>
+        <div class="network-wrap">
+          <div id="networkContainer"></div>
+        </div>
+        <div class="legend-row">
+          <span class="legend-item"><span class="legend-swatch critical"></span> Critical edge</span>
+          <span class="legend-item"><span class="legend-swatch normal"></span> Non-critical edge</span>
+          <span class="legend-item"><span class="legend-swatch start-end"></span> Start / End milestone</span>
+          <span class="legend-item">Each node shows <strong>ID</strong>, <strong>name</strong>, <strong>duration</strong>, and <strong>ES&nbsp;|&nbsp;LF&nbsp;|&nbsp;TF</strong>.</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<footer class="site-footer" role="contentinfo">
+  © 2026 UIDAI <span class="sep">·</span> PMIS Automation Tool <span class="sep">·</span> Internal Use Only
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Seed data — flattened activity lists with `dependsOn` so the
+   CPM engine can run directly. Mirrors the data model used in
+   the Project Management module (Project → Activities w/ deps).
+   ═══════════════════════════════════════════════════════════════ */
+const SEED_PROJECTS = [
+  {
+    id:'PRJ001', name:'Aadhaar Service Migration',
+    startDate:'2026-04-01',
+    activities:[
+      {id:'A01', wbs:'1.1',   name:'Requirement Gathering',   duration:5, owner:'TMD1', vendor:'Vendor A', status:'Completed',  dependsOn:[]},
+      {id:'A02', wbs:'1.2',   name:'Stakeholder Approvals',   duration:3, owner:'PMO',  vendor:'—',        status:'Completed',  dependsOn:['A01']},
+      {id:'A03', wbs:'1.3',   name:'Architecture Design',     duration:6, owner:'TMD2', vendor:'Vendor A', status:'On Track',   dependsOn:['A01']},
+      {id:'A04', wbs:'2.1',   name:'Vendor Onboarding',       duration:4, owner:'PMO',  vendor:'Vendor B', status:'On Track',   dependsOn:['A02']},
+      {id:'A05', wbs:'2.2',   name:'Infra Provisioning',      duration:5, owner:'TMD2', vendor:'Vendor B', status:'On Track',   dependsOn:['A03']},
+      {id:'A06', wbs:'2.3',   name:'Code Migration',          duration:8, owner:'TMD1', vendor:'Vendor A', status:'Not Started',dependsOn:['A03','A04']},
+      {id:'A07', wbs:'3.1',   name:'Database Migration',      duration:6, owner:'TMD2', vendor:'Vendor B', status:'Not Started',dependsOn:['A05']},
+      {id:'A08', wbs:'3.2',   name:'Integration Testing',     duration:5, owner:'TMD1', vendor:'Vendor A', status:'Not Started',dependsOn:['A06','A07']},
+      {id:'A09', wbs:'3.3',   name:'Security Audit',          duration:4, owner:'PMO',  vendor:'—',        status:'Not Started',dependsOn:['A06']},
+      {id:'A10', wbs:'4.1',   name:'User Acceptance Testing', duration:5, owner:'TMD1', vendor:'Vendor B', status:'Not Started',dependsOn:['A08','A09']},
+      {id:'A11', wbs:'4.2',   name:'Deployment Plan',         duration:2, owner:'PMO',  vendor:'—',        status:'Not Started',dependsOn:['A10']},
+      {id:'A12', wbs:'5.1',   name:'Go-Live Cutover',         duration:1, owner:'TMD2', vendor:'Vendor B', status:'Not Started',dependsOn:['A11']}
+    ]
+  },
+  {
+    id:'PRJ002', name:'Authentication Module Upgrade',
+    startDate:'2026-05-01',
+    activities:[
+      {id:'B01', wbs:'1.1', name:'Scope Finalization',    duration:3, owner:'PMO',  vendor:'—',        status:'Completed',  dependsOn:[]},
+      {id:'B02', wbs:'1.2', name:'Resource Allocation',   duration:2, owner:'TMD1', vendor:'—',        status:'On Track',   dependsOn:['B01']},
+      {id:'B03', wbs:'2.1', name:'Procurement & Licensing', duration:4, owner:'PMO', vendor:'Vendor A', status:'On Track',   dependsOn:['B01']},
+      {id:'B04', wbs:'2.2', name:'Setup & Configuration', duration:5, owner:'TMD2', vendor:'Vendor A', status:'Not Started',dependsOn:['B02','B03']},
+      {id:'B05', wbs:'3.1', name:'Pilot Testing',         duration:3, owner:'TMD1', vendor:'Vendor B', status:'Not Started',dependsOn:['B04']},
+      {id:'B06', wbs:'3.2', name:'Phased Rollout',        duration:2, owner:'TMD2', vendor:'Vendor B', status:'Not Started',dependsOn:['B05']}
+    ]
+  },
+  {
+    id:'PRJ003', name:'Resident Self-Service Portal',
+    startDate:'2026-06-01',
+    activities:[
+      {id:'G01', wbs:'1.1', name:'Discovery & Research', duration:4, owner:'TMD1', vendor:'—',        status:'On Track',   dependsOn:[]},
+      {id:'G02', wbs:'2.1', name:'UX Design Review',     duration:3, owner:'TMD2', vendor:'Vendor A', status:'Not Started',dependsOn:['G01']},
+      {id:'G03', wbs:'3.1', name:'Implementation',       duration:7, owner:'TMD1', vendor:'Vendor A', status:'Not Started',dependsOn:['G02']},
+      {id:'G04', wbs:'4.1', name:'QA Cycle',             duration:4, owner:'PMO',  vendor:'Vendor B', status:'Not Started',dependsOn:['G03']},
+      {id:'G05', wbs:'5.1', name:'Closure & Handover',   duration:2, owner:'PMO',  vendor:'—',        status:'Not Started',dependsOn:['G04']}
+    ]
+  }
+];
+
+/* Current state */
+let currentProjectId = SEED_PROJECTS[0].id;
+let currentCpm = null;          /* {activities, projectDuration, criticalPath, totals} */
+let currentView = 'table';
+let showFloat = true;
+let showToday = true;
+
+/* ═══════════════════════════════════════════════════════════════
+   CPM engine
+   ═══════════════════════════════════════════════════════════════ */
+function computeCPM(project){
+  /* Defensive copy so we don't mutate seed data */
+  const acts = project.activities.map(a => ({...a, ES:0, EF:0, LS:0, LF:0, TF:0, critical:false}));
+  const map = Object.fromEntries(acts.map(a => [a.id, a]));
+
+  /* ─── Forward pass (ES, EF) using Kahn's topological order ─── */
+  const indeg = Object.fromEntries(acts.map(a => [a.id, a.dependsOn.length]));
+  const queue = acts.filter(a => indeg[a.id] === 0).map(a => a.id);
+  const topo = [];
+  /* Build adjacency: a → successors */
+  const succ = Object.fromEntries(acts.map(a => [a.id, []]));
+  acts.forEach(a => a.dependsOn.forEach(p => { if(succ[p]) succ[p].push(a.id); }));
+
+  while(queue.length){
+    const id = queue.shift();
+    topo.push(id);
+    const cur = map[id];
+    cur.ES = cur.dependsOn.length === 0 ? 0
+      : Math.max(...cur.dependsOn.map(p => map[p] ? map[p].EF : 0));
+    cur.EF = cur.ES + cur.duration;
+    succ[id].forEach(s => {
+      indeg[s]--;
+      if(indeg[s] === 0) queue.push(s);
+    });
+  }
+
+  const projectDuration = Math.max(...acts.map(a => a.EF), 0);
+
+  /* ─── Backward pass (LF, LS, TF) in reverse topo order ─── */
+  for(let i = topo.length - 1; i >= 0; i--){
+    const cur = map[topo[i]];
+    const successors = succ[cur.id];
+    cur.LF = successors.length === 0
+      ? projectDuration
+      : Math.min(...successors.map(s => map[s].LS));
+    cur.LS = cur.LF - cur.duration;
+    cur.TF = cur.LS - cur.ES;
+    cur.critical = cur.TF === 0;
+  }
+
+  /* ─── Compute critical path (longest chain of critical activities) ─── */
+  const criticals = topo.filter(id => map[id].critical);
+  /* Start from criticals with no critical predecessor; greedily follow the
+     critical successor with the latest finish — guaranteed correct here
+     since critical nodes form a chain (or chains) along the longest path. */
+  const startCrit = criticals.find(id => {
+    const cur = map[id];
+    return cur.dependsOn.every(p => !map[p] || !map[p].critical);
+  });
+  const path = [];
+  if(startCrit){
+    let cur = startCrit;
+    while(cur){
+      path.push(cur);
+      const nexts = succ[cur].filter(s => map[s].critical);
+      cur = nexts.length ? nexts.reduce((a,b) => map[a].EF >= map[b].EF ? a : b) : null;
+    }
+  }
+
+  /* ─── Aggregate totals for KPI tiles ─── */
+  const totals = {
+    totalActivities:acts.length,
+    criticalCount:criticals.length,
+    totalFloat:acts.reduce((s,a) => s + Math.max(a.TF, 0), 0),
+    avgFloat:acts.length ? (acts.reduce((s,a) => s + Math.max(a.TF,0), 0) / acts.length).toFixed(1) : '0',
+    maxFloat:acts.length ? Math.max(...acts.map(a => a.TF)) : 0
+  };
+
+  return {
+    project,
+    activities:acts,
+    map,
+    succ,
+    topo,
+    projectDuration,
+    criticalPath:path,
+    totals
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Date helpers
+   ═══════════════════════════════════════════════════════════════ */
+function addDays(isoDate, days){
+  const d = new Date(isoDate + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return d;
+}
+function fmtDate(d){
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${String(d.getDate()).padStart(2,'0')} ${months[d.getMonth()]}`;
+}
+function fmtDateLong(d){
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${String(d.getDate()).padStart(2,'0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+function statusKey(s){
+  const k = (s || '').toLowerCase();
+  if(k.includes('complete')) return 'completed';
+  if(k.includes('track'))    return 'ontrack';
+  if(k.includes('delay'))    return 'delayed';
+  return 'notstarted';
+}
+function escapeHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[c]);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Render: project selector
+   ═══════════════════════════════════════════════════════════════ */
+function renderProjectSelector(){
+  const sel = document.getElementById('projectSelect');
+  sel.innerHTML = SEED_PROJECTS.map(p =>
+    `<option value="${p.id}" ${p.id===currentProjectId?'selected':''}>${escapeHtml(p.id)} — ${escapeHtml(p.name)}</option>`
+  ).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Render: KPI tiles
+   ═══════════════════════════════════════════════════════════════ */
+function renderKpis(){
+  const cpm = currentCpm;
+  const start = cpm.project.startDate;
+  const endDate = addDays(start, cpm.projectDuration);
+  const startDate = new Date(start + 'T00:00:00');
+
+  const criticalShare = cpm.totals.totalActivities
+    ? Math.round(cpm.totals.criticalCount / cpm.totals.totalActivities * 100)
+    : 0;
+
+  let riskLevel = 'good', riskLabel = 'Healthy slack';
+  if(criticalShare >= 70){ riskLevel = 'bad';  riskLabel = 'Highly constrained'; }
+  else if(criticalShare >= 40){ riskLevel = 'warn'; riskLabel = 'Moderate risk'; }
+
+  const html = `
+    <div class="kpi-card">
+      <div class="kpi-label"><span class="kpi-icon" aria-hidden="true">📅</span>Project Duration</div>
+      <div class="kpi-value">${cpm.projectDuration}<span style="font-size:14px; font-weight:600; color:#5a6680;"> days</span></div>
+      <div class="kpi-sub">${fmtDate(startDate)} → ${fmtDate(endDate)}</div>
+    </div>
+    <div class="kpi-card kpi-critical">
+      <div class="kpi-label"><span class="kpi-icon" aria-hidden="true">🛤️</span>Critical Path</div>
+      <div class="kpi-value">${cpm.criticalPath.length}<span style="font-size:14px; font-weight:600; color:#5a6680;"> activities</span></div>
+      <div class="kpi-sub">${cpm.projectDuration} days, no float</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label"><span class="kpi-icon" aria-hidden="true">📦</span>Total Activities</div>
+      <div class="kpi-value">${cpm.totals.totalActivities}</div>
+      <div class="kpi-sub">${cpm.totals.criticalCount} critical (${criticalShare}%)</div>
+    </div>
+    <div class="kpi-card kpi-float">
+      <div class="kpi-label"><span class="kpi-icon" aria-hidden="true">📐</span>Total Float</div>
+      <div class="kpi-value">${cpm.totals.totalFloat}<span style="font-size:14px; font-weight:600; color:#5a6680;"> days</span></div>
+      <div class="kpi-sub">Max single-task float: ${cpm.totals.maxFloat} d</div>
+    </div>
+    <div class="kpi-card kpi-risk">
+      <div class="kpi-label"><span class="kpi-icon" aria-hidden="true">⚠️</span>Schedule Risk</div>
+      <div class="kpi-value" style="font-size:18px;">${riskLabel}</div>
+      <div class="kpi-trend ${riskLevel}">${criticalShare}% on critical path</div>
+    </div>
+  `;
+  document.getElementById('kpiRow').innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Render: critical path summary strip
+   ═══════════════════════════════════════════════════════════════ */
+function renderCpStrip(){
+  const path = currentCpm.criticalPath;
+  if(!path.length){
+    document.getElementById('cpStrip').innerHTML = `
+      <span class="cp-strip-label">Critical Path:</span>
+      <span class="cp-chip-empty" style="color:#9b2c1f; font-size:13px;">No critical activities found.</span>`;
+    return;
+  }
+  const chips = path.map((id, idx) => {
+    const a = currentCpm.map[id];
+    return `${idx > 0 ? '<span class="cp-arrow" aria-hidden="true">→</span>' : ''}
+            <span class="cp-chip" title="${escapeHtml(a.name)} • ${a.duration}d">
+              <span class="cp-chip-id">${escapeHtml(a.id)}</span>
+              ${escapeHtml(a.name)}
+              <span style="opacity:.7; font-weight:600;">(${a.duration}d)</span>
+            </span>`;
+  }).join('');
+  document.getElementById('cpStrip').innerHTML = `
+    <span class="cp-strip-label">Critical Path · ${currentCpm.projectDuration}d:</span>
+    ${chips}
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Render: table view
+   ═══════════════════════════════════════════════════════════════ */
+function floatBadgeClass(tf){
+  if(tf === 0) return 'zero';
+  if(tf <= 2)  return 'low';
+  return 'ok';
+}
+function renderTable(){
+  const tbody = document.getElementById('tableBody');
+  const rows = currentCpm.activities.map(a => {
+    const sKey = statusKey(a.status);
+    const depCells = a.dependsOn.length
+      ? a.dependsOn.map(p => {
+          const pred = currentCpm.map[p];
+          const isCritLink = pred && pred.critical && a.critical;
+          return `<span class="dep-chip ${isCritLink?'critical-link':''}" title="${escapeHtml(pred?pred.name:p)}">${escapeHtml(p)}</span>`;
+        }).join('')
+      : '<span class="dep-chip-empty">—</span>';
+    return `
+      <tr class="${a.critical?'critical':''}">
+        <td class="col-wbs">${escapeHtml(a.wbs)} <span style="color:#9aa5b8; font-weight:400; font-size:11px;">(${escapeHtml(a.id)})</span></td>
+        <td class="col-name">${escapeHtml(a.name)}</td>
+        <td class="col-owner">${escapeHtml(a.owner)} ${a.vendor && a.vendor!=='—' ? '• <span style="color:#1b7a42;">'+escapeHtml(a.vendor)+'</span>' : ''}</td>
+        <td><div class="cell-dep-list">${depCells}</div></td>
+        <td class="col-num">${a.duration}</td>
+        <td class="col-num">${a.ES}</td>
+        <td class="col-num">${a.EF}</td>
+        <td class="col-num">${a.LS}</td>
+        <td class="col-num">${a.LF}</td>
+        <td class="col-num"><span class="float-badge ${floatBadgeClass(a.TF)}">${a.TF}</span></td>
+        <td><span class="critical-flag ${a.critical?'yes':'no'}">${a.critical?'● Yes':'No'}</span></td>
+        <td><span class="status-pill s-${sKey}">${escapeHtml(a.status)}</span></td>
+      </tr>`;
+  }).join('');
+  tbody.innerHTML = rows;
+  document.getElementById('tableCount').textContent =
+    `${currentCpm.activities.length} activities · ${currentCpm.totals.criticalCount} critical`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Render: Gantt view
+   ═══════════════════════════════════════════════════════════════ */
+function renderGantt(){
+  const cpm = currentCpm;
+  const totalDays = cpm.projectDuration;
+  const start = cpm.project.startDate;
+
+  /* Choose a sensible tick count: ~10 ticks max */
+  const tickStep = totalDays <= 12 ? 1 : totalDays <= 25 ? 2 : Math.ceil(totalDays / 12);
+  let ticks = [];
+  for(let d = 0; d <= totalDays; d += tickStep){
+    ticks.push(d);
+  }
+  if(ticks[ticks.length-1] !== totalDays) ticks.push(totalDays);
+
+  const axisHtml = ticks.map((d, i) => {
+    const date = addDays(start, d);
+    const isLast = i === ticks.length - 1;
+    return `<div class="gantt-axis-tick" style="${isLast?'flex:0 0 auto; padding-right:8px;':''}">
+              D${d}<br><span style="opacity:.85; font-weight:500;">${fmtDate(date)}</span>
+            </div>`;
+  }).join('');
+  document.getElementById('ganttAxis').innerHTML = axisHtml;
+
+  const rows = cpm.activities.map(a => {
+    const left = totalDays ? (a.ES / totalDays * 100) : 0;
+    const width = totalDays ? (a.duration / totalDays * 100) : 0;
+    const floatLeft = left + width;
+    const floatWidth = totalDays ? (a.TF / totalDays * 100) : 0;
+    const sKey = statusKey(a.status);
+
+    const floatHtml = (showFloat && a.TF > 0)
+      ? `<div class="gantt-float" style="left:${floatLeft}%; width:${floatWidth}%;" title="Float: ${a.TF} day${a.TF===1?'':'s'}"></div>`
+      : '';
+
+    const startDate = addDays(start, a.ES);
+    const endDate = addDays(start, a.EF);
+
+    return `
+      <tr class="${a.critical?'critical-row':''}">
+        <td class="cell-label">
+          <div style="font-weight:700; color:${a.critical?'var(--red-deep)':'var(--navy)'};">
+            ${a.critical?'<span class="crit-marker">CRIT</span>':''}
+            <span style="color:#9aa5b8; font-size:11px; font-weight:600; margin-right:4px;">${escapeHtml(a.wbs)}</span>
+            ${escapeHtml(a.name)}
+          </div>
+          <div class="row-meta">
+            ${fmtDate(startDate)} – ${fmtDate(endDate)} · ${a.duration}d ·
+            <span class="status-pill s-${sKey}" style="font-size:10px; padding:1px 7px;">${escapeHtml(a.status)}</span>
+            ${a.TF > 0 ? ` · <span style="color:#1b7a42;">Float ${a.TF}d</span>` : ''}
+          </div>
+        </td>
+        <td class="cell-track" style="--days:${totalDays || 1};">
+          <div class="gantt-bar ${a.critical?'critical':''}"
+               style="left:${left}%; width:${width}%;"
+               title="${escapeHtml(a.name)}: ${a.duration}d (ES ${a.ES}, EF ${a.EF})">
+            <span class="bar-label">${escapeHtml(a.id)} · ${a.duration}d</span>
+          </div>
+          ${floatHtml}
+        </td>
+      </tr>`;
+  }).join('');
+  document.getElementById('ganttBody').innerHTML = rows;
+  document.getElementById('ganttDurationLabel').textContent = `${totalDays} days · ${cpm.activities.length} activities`;
+
+  /* Today line — placed at a synthetic "day 4" so the demo shows it
+     inside the schedule. In a live system this would be `(today - startDate)`. */
+  if(showToday){
+    const todayDay = Math.min(Math.max(4, 0), totalDays);
+    const pct = totalDays ? (todayDay / totalDays * 100) : 0;
+    /* Insert today lines into each track cell */
+    document.querySelectorAll('#ganttBody td.cell-track').forEach(td => {
+      const line = document.createElement('div');
+      line.className = 'gantt-today-line';
+      line.style.left = `calc(${pct}% - 1px)`;
+      td.appendChild(line);
+    });
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Render: Network diagram (SVG)
+   ═══════════════════════════════════════════════════════════════ */
+function renderNetwork(){
+  const cpm = currentCpm;
+  const acts = cpm.activities;
+
+  /* Compute topological levels (longest path from any source) */
+  const level = {};
+  cpm.topo.forEach(id => {
+    const cur = cpm.map[id];
+    level[id] = cur.dependsOn.length === 0
+      ? 0
+      : Math.max(...cur.dependsOn.map(p => (level[p] ?? 0) + 1));
+  });
+
+  /* Group by level */
+  const byLevel = {};
+  acts.forEach(a => {
+    const lv = level[a.id] || 0;
+    (byLevel[lv] = byLevel[lv] || []).push(a);
+  });
+  const levels = Object.keys(byLevel).map(Number).sort((a,b) => a-b);
+
+  /* Layout constants */
+  const nodeW = 150;
+  const nodeH = 78;
+  const hGap = 60;
+  const vGap = 22;
+  const padX = 60;   /* extra room for START / END */
+  const padY = 20;
+
+  /* Add synthetic START and END columns */
+  const colXs = [];
+  let x = padX;
+  /* START column */
+  colXs.push(x);
+  x += nodeW + hGap;
+  levels.forEach(() => {
+    colXs.push(x);
+    x += nodeW + hGap;
+  });
+  /* END column */
+  colXs.push(x);
+  const svgWidth = x + nodeW + padX;
+
+  /* Determine y positions per column (centered) */
+  const maxPerCol = Math.max(...levels.map(l => byLevel[l].length), 1);
+  const colHeight = maxPerCol * nodeH + (maxPerCol - 1) * vGap;
+  const svgHeight = colHeight + padY * 2 + 40;
+
+  /* Position each activity */
+  const pos = {};
+  levels.forEach((lv, i) => {
+    const colItems = byLevel[lv];
+    const totalH = colItems.length * nodeH + (colItems.length - 1) * vGap;
+    let y = padY + (colHeight - totalH) / 2;
+    colItems.forEach(a => {
+      pos[a.id] = { x: colXs[i + 1], y };  /* +1 because index 0 is START col */
+      y += nodeH + vGap;
+    });
+  });
+
+  /* START and END positions */
+  const startPos = { x: colXs[0], y: padY + (colHeight - nodeH) / 2 };
+  const endPos   = { x: colXs[colXs.length - 1], y: padY + (colHeight - nodeH) / 2 };
+
+  /* Determine if a node has no predecessors (link from START) and
+     whether it has no successors (link to END) */
+  const hasSucc = Object.fromEntries(acts.map(a => [a.id, cpm.succ[a.id].length > 0]));
+
+  /* ─── Build SVG ─── */
+  const edges = [];
+
+  /* START → roots */
+  acts.filter(a => a.dependsOn.length === 0).forEach(a => {
+    const isCrit = a.critical;
+    edges.push(edgePath(startPos, pos[a.id], isCrit));
+  });
+
+  /* Dependency edges */
+  acts.forEach(a => {
+    a.dependsOn.forEach(pId => {
+      const p = cpm.map[pId];
+      if(!p) return;
+      const isCrit = a.critical && p.critical;
+      edges.push(edgePath(pos[pId], pos[a.id], isCrit));
+    });
+  });
+
+  /* leaves → END */
+  acts.filter(a => !hasSucc[a.id]).forEach(a => {
+    const isCrit = a.critical;
+    edges.push(edgePath(pos[a.id], endPos, isCrit));
+  });
+
+  /* Helper: edge path from one node's right side to another's left side */
+  function edgePath(from, to, critical){
+    const x1 = from.x + nodeW;
+    const y1 = from.y + nodeH / 2;
+    const x2 = to.x;
+    const y2 = to.y + nodeH / 2;
+    const dx = (x2 - x1) * 0.45;
+    const d = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+    const cls = critical ? 'network-edge critical' : 'network-edge';
+    const arrowCls = critical ? 'network-edge-arrow critical' : 'network-edge-arrow';
+    /* Arrow head as a triangle pointing right at the target */
+    const ax = x2 - 6, ay = y2;
+    const arrowPath = `M ${x2} ${y2} L ${ax} ${ay - 4} L ${ax} ${ay + 4} Z`;
+    return `<path d="${d}" class="${cls}"></path>
+            <path d="${arrowPath}" class="${arrowCls}"></path>`;
+  }
+
+  /* Helper: node rendering */
+  function renderNode(a){
+    const {x, y} = pos[a.id];
+    const cls = a.critical ? 'network-node-bg critical' : 'network-node-bg';
+    const titleCls = a.critical ? 'network-node-title critical' : 'network-node-title';
+    const name = a.name.length > 22 ? a.name.substring(0, 21) + '…' : a.name;
+    return `
+      <g transform="translate(${x},${y})">
+        <rect class="${cls}" width="${nodeW}" height="${nodeH}" rx="6" ry="6"></rect>
+        <text class="${titleCls}" x="10" y="16">${escapeHtml(a.id)} · ${escapeHtml(a.wbs)}</text>
+        <text class="network-node-name" x="10" y="32">${escapeHtml(name)}</text>
+        <text class="network-node-meta" x="10" y="48">Duration: ${a.duration}d</text>
+        <line x1="0" y1="56" x2="${nodeW}" y2="56" stroke="#dbe5f1" stroke-width="1"></line>
+        <text class="network-node-stat" x="10"  y="70">ES: ${a.ES}</text>
+        <text class="network-node-stat" x="62"  y="70">LF: ${a.LF}</text>
+        <text class="network-node-stat" x="110" y="70" style="${a.critical?'fill:#c33a1a;':''}">TF: ${a.TF}</text>
+      </g>`;
+  }
+
+  function renderTerminal(pt, label, isCritEdge){
+    return `
+      <g transform="translate(${pt.x},${pt.y})">
+        <rect class="network-node-bg start" width="${nodeW}" height="${nodeH}" rx="6" ry="6"
+              style="${isCritEdge?'stroke:var(--red); stroke-width:2.5;':''}"></rect>
+        <text class="network-node-title" x="${nodeW/2}" y="${nodeH/2 + 5}"
+              text-anchor="middle" style="font-size:14px;">${label}</text>
+      </g>`;
+  }
+
+  const svg = `
+    <svg class="network-svg" viewBox="0 0 ${svgWidth} ${svgHeight}"
+         width="${svgWidth}" height="${svgHeight}"
+         xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Critical path network diagram">
+      ${edges.join('')}
+      ${renderTerminal(startPos, '▶ START', true)}
+      ${acts.map(renderNode).join('')}
+      ${renderTerminal(endPos, 'END ◼', true)}
+    </svg>
+  `;
+  document.getElementById('networkContainer').innerHTML = svg;
+  document.getElementById('networkCount').textContent =
+    `${acts.length} nodes · ${cpm.criticalPath.length} on critical path`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Render orchestrator
+   ═══════════════════════════════════════════════════════════════ */
+function renderAll(){
+  const project = SEED_PROJECTS.find(p => p.id === currentProjectId);
+  currentCpm = computeCPM(project);
+  renderKpis();
+  renderCpStrip();
+  if(currentView === 'table')   renderTable();
+  if(currentView === 'gantt')   renderGantt();
+  if(currentView === 'network') renderNetwork();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   View switching
+   ═══════════════════════════════════════════════════════════════ */
+function setView(v){
+  currentView = v;
+  document.querySelectorAll('.view-tab').forEach(t => {
+    const isActive = t.dataset.view === v;
+    t.classList.toggle('active', isActive);
+    t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+  document.getElementById('tablePanel').classList.toggle('hidden', v !== 'table');
+  document.getElementById('ganttPanel').classList.toggle('hidden', v !== 'gantt');
+  document.getElementById('networkPanel').classList.toggle('hidden', v !== 'network');
+  /* Render on demand (panels for views not yet rendered need building) */
+  if(v === 'table')   renderTable();
+  if(v === 'gantt')   renderGantt();
+  if(v === 'network') renderNetwork();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CSV export
+   ═══════════════════════════════════════════════════════════════ */
+function exportCsv(){
+  const headers = ['WBS','ID','Activity','Owner','Vendor','Predecessors','Duration','ES','EF','LS','LF','Float','Critical','Status'];
+  const lines = [headers.join(',')];
+  currentCpm.activities.forEach(a => {
+    const row = [
+      a.wbs, a.id, `"${a.name.replace(/"/g,'""')}"`,
+      a.owner, a.vendor,
+      `"${a.dependsOn.join('; ')}"`,
+      a.duration, a.ES, a.EF, a.LS, a.LF, a.TF,
+      a.critical ? 'Yes' : 'No',
+      a.status
+    ];
+    lines.push(row.join(','));
+  });
+  const csv = lines.join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${currentProjectId}_critical_path.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Shell wiring (sidebar, profile, font resizer)
+   ═══════════════════════════════════════════════════════════════ */
+function wireShell(){
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('toggleBtn');
+  const profileBtn = document.getElementById('profileBtn');
+  const profileMenu = document.getElementById('profileMenu');
+  const pmToggle = document.getElementById('pmToggle');
+  const pmSub = document.getElementById('pmSub');
+  const arrow = document.getElementById('arrow');
+
+  function toggleSidebar(){
+    sidebar.classList.toggle('collapsed');
+    const expanded = !sidebar.classList.contains('collapsed');
+    toggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  }
+  toggleBtn.onclick = toggleSidebar;
+  toggleBtn.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleSidebar(); }
+  });
+
+  function toggleProfile(e){
+    if(e) e.stopPropagation();
+    const isOpen = profileMenu.style.display === 'block';
+    profileMenu.style.display = isOpen ? 'none' : 'block';
+    profileBtn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+  }
+  profileBtn.onclick = toggleProfile;
+  profileBtn.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleProfile(e); }
+    else if(e.key === 'Escape'){
+      profileMenu.style.display = 'none';
+      profileBtn.setAttribute('aria-expanded','false');
+    }
+  });
+  document.addEventListener('click', () => {
+    profileMenu.style.display = 'none';
+    profileBtn.setAttribute('aria-expanded','false');
+  });
+
+  function togglePmSub(){
+    const open = pmSub.style.display === 'block';
+    pmSub.style.display = open ? 'none' : 'block';
+    arrow.innerText = open ? '▶' : '▼';
+    pmToggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+  }
+  pmToggle.onclick = (e) => { e.preventDefault(); togglePmSub(); };
+  pmToggle.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); togglePmSub(); }
+  });
+
+  /* Font resizer */
+  (function setupFontResizer(){
+    const STEPS = [80, 90, 100, 110, 125];
+    const DEFAULT_IDX = 2;
+    let idx = DEFAULT_IDX;
+    const inc = document.getElementById('frIncrease');
+    const dec = document.getElementById('frDecrease');
+    const rst = document.getElementById('frReset');
+    const wrapper = document.body;
+    const probe = document.createElement('div');
+    probe.style.zoom = '2';
+    const supportsZoom = probe.style.zoom === '2';
+
+    function apply(){
+      const pct = STEPS[idx];
+      if(supportsZoom){
+        wrapper.style.zoom = (pct / 100).toString();
+      } else {
+        wrapper.style.transformOrigin = 'top left';
+        wrapper.style.transform = `scale(${pct/100})`;
+        wrapper.style.width = `${100 * 100 / pct}%`;
+      }
+      updatePressed();
+    }
+    function updatePressed(){
+      [inc,dec,rst].forEach(b => b && b.setAttribute('aria-pressed','false'));
+      if(idx === STEPS.length - 1 && inc) inc.setAttribute('aria-pressed','true');
+      if(idx === 0 && dec) dec.setAttribute('aria-pressed','true');
+      if(idx === DEFAULT_IDX && rst) rst.setAttribute('aria-pressed','true');
+    }
+    if(inc) inc.addEventListener('click', () => { if(idx < STEPS.length-1){ idx++; apply(); } });
+    if(dec) dec.addEventListener('click', () => { if(idx > 0){ idx--; apply(); } });
+    if(rst) rst.addEventListener('click', () => { idx = DEFAULT_IDX; apply(); });
+    updatePressed();
+  })();
+
+  /* Accessibility strip collapses on scroll */
+  (function setupFloatingHeader(){
+    const strip = document.querySelector('.header-accessibility-strip');
+    const scrollEl = document.getElementById('mainContent');
+    if(!strip || !scrollEl) return;
+    const HIDE_AT = 28, SHOW_AT = 4;
+    let isHidden = false;
+    function update(){
+      const sy = Math.max(scrollEl.scrollTop, window.scrollY || 0);
+      if(!isHidden && sy > HIDE_AT){ strip.classList.add('collapsed'); isHidden = true; }
+      else if(isHidden && sy < SHOW_AT){ strip.classList.remove('collapsed'); isHidden = false; }
+    }
+    scrollEl.addEventListener('scroll', update, {passive:true});
+    window.addEventListener('scroll', update, {passive:true});
+  })();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Wire CPA controls
+   ═══════════════════════════════════════════════════════════════ */
+function wireCpa(){
+  document.getElementById('projectSelect').addEventListener('change', e => {
+    currentProjectId = e.target.value;
+    renderAll();
+  });
+  document.getElementById('baselineSelect').addEventListener('change', renderAll);
+  document.getElementById('recalcBtn').addEventListener('click', () => {
+    const btn = document.getElementById('recalcBtn');
+    const original = btn.textContent;
+    btn.textContent = '⟳ Recalculating…';
+    btn.disabled = true;
+    setTimeout(() => {
+      renderAll();
+      btn.textContent = original;
+      btn.disabled = false;
+    }, 350);
+  });
+  document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+
+  document.querySelectorAll('.view-tab').forEach(tab => {
+    tab.addEventListener('click', () => setView(tab.dataset.view));
+  });
+
+  /* Toggle buttons */
+  const flBtn = document.getElementById('showFloatBtn');
+  const tdBtn = document.getElementById('showTodayBtn');
+  flBtn.addEventListener('click', () => {
+    showFloat = !showFloat;
+    flBtn.setAttribute('aria-pressed', showFloat ? 'true' : 'false');
+    flBtn.textContent = showFloat ? '📐 Show Float' : '📐 Hide Float';
+    if(currentView === 'gantt') renderGantt();
+  });
+  tdBtn.addEventListener('click', () => {
+    showToday = !showToday;
+    tdBtn.setAttribute('aria-pressed', showToday ? 'true' : 'false');
+    tdBtn.textContent = showToday ? '📍 Show Today' : '📍 Hide Today';
+    if(currentView === 'gantt') renderGantt();
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Boot
+   ═══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  wireShell();
+  wireCpa();
+  renderProjectSelector();
+  renderAll();
+});
+</script>
+</body>
+</html>

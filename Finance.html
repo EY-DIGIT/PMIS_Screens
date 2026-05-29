@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>UIDAI PMIS - Finance</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+/* ─── Variables (identical to Project_Management.html / SLA_and_LD_Management.html) ─── */
+:root{
+  --navy:#0b3c88;
+  --navy-deep:#062a63;
+  --cyan:#0aa1c0;
+  --cyan-light:#3cb8d4;
+  --green:#1a8a3d;
+  --green-soft:#e7f7ec;
+  --saffron:#d4440e;
+  --light:#f4f7fb;
+  --light-cool:#eef3f9;
+  --border:#dbe5f1;
+  --border-soft:#e9eef6;
+  --red:#d32f2f;
+  --amber:#b45309;
+  --amber-soft:#fff7ea;
+  --text:#1e2a3a;
+  --text-soft:#5a6680;
+  --text-muted:#7a869a;
+  --uidai-stripe:linear-gradient(90deg, var(--navy) 0%, var(--cyan) 100%);
+}
+
+*{margin:0; padding:0; box-sizing:border-box;}
+html,body{height:100%;}
+body{font-family:'Roboto',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--light);color:var(--text);display:flex;flex-direction:column;min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+.sr-only{position:absolute !important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+.skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:#fff;padding:8px 16px;z-index:9999;text-decoration:none;font-weight:700;border-radius:0 0 6px 0;}
+.skip-link:focus{top:0;}
+*:focus-visible{outline:3px solid #ffb300;outline-offset:2px;border-radius:3px;}
+
+/* ─── Header (matches SLA pattern) ─── */
+.site-header{width:100%;background:#fff;box-shadow:0 2px 8px rgba(11,60,136,.08);position:relative;z-index:50;}
+.site-header::after{content:"";display:block;height:4px;background:var(--uidai-stripe);}
+.header-accessibility-strip{display:flex;gap:8px;padding:4px 16px;align-items:center;justify-content:flex-end;font-size:12px;color:var(--text-soft);border-bottom:1px dashed var(--border);}
+.a11y-label{font-weight:600;}
+.font-resizer{display:inline-flex;gap:4px;}
+.font-resizer button{background:#fff;border:1px solid var(--border);padding:3px 9px;font-size:12px;cursor:pointer;border-radius:4px;color:var(--navy);font-weight:600;}
+.font-resizer button:hover{background:#eef6fb;}
+.header-main{display:flex;align-items:center;gap:18px;padding:10px 18px;flex-wrap:wrap;}
+.header-brand{display:flex;align-items:center;gap:12px;}
+.header-brand img{height:46px;}
+.header-brand-text{display:flex;flex-direction:column;line-height:1.05;}
+.header-brand-hi-1{color:var(--saffron);font-weight:700;font-size:18px;}
+.header-brand-hi-2{color:var(--green);font-weight:700;font-size:18px;}
+.header-title{flex:1;text-align:center;font-size:20px;font-weight:900;line-height:1.2;color:#1a2a3f;min-width:0;}
+.header-authority{font-size:13px;color:var(--navy);font-weight:700;line-height:1.2;text-align:right;}
+
+.navbar{display:flex;justify-content:space-between;align-items:center;background:#fafcfe;border-bottom:1px solid var(--border);min-height:42px;position:relative;z-index:30;}
+.menu-home-block{width:240px;display:flex;justify-content:space-between;padding:6px 14px;border-right:1px solid var(--border);gap:10px;}
+.menu-home-block span{cursor:pointer;padding:5px 10px;border-radius:6px;user-select:none;white-space:nowrap;font-size:14px;font-weight:500;color:var(--navy);}
+.menu-home-block span:hover{background:#eaf2fb;color:var(--navy-deep);}
+.profile{padding:0 20px;cursor:pointer;position:relative;font-size:18px;user-select:none;}
+.profile-menu{position:absolute;right:0;top:40px;background:#fff;border:1px solid var(--border);border-radius:8px;display:none;min-width:120px;box-shadow:0 4px 10px rgba(0,0,0,0.08);z-index:40;overflow:hidden;}
+.profile.open .profile-menu{display:block;}
+.profile-menu div{padding:10px 12px;cursor:pointer;}
+.profile-menu div:hover{background:#eef6fb;}
+
+/* ─── Layout / Sidebar (matches PM + SLA) ─── */
+.layout{display:flex;flex:1;min-height:0;}
+.sidebar{width:240px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;transition:width .25s ease;min-height:0;}
+.sidebar.collapsed{width:70px;}
+.sidebar.collapsed .text,.sidebar.collapsed .submenu-arrow,.sidebar.collapsed .submenu{display:none !important;}
+.menu{padding:12px;}
+.menu a,.submenu div{display:flex;gap:10px;padding:9px 10px;margin-bottom:4px;cursor:pointer;border-radius:6px;align-items:center;line-height:1.2;text-decoration:none;color:var(--text);font-size:14px;}
+.menu a:hover,.submenu div:hover{background:#eef6fb;}
+.menu a.active{background:linear-gradient(90deg,var(--navy),var(--cyan));color:#fff;}
+.submenu{display:none;padding-left:20px;}
+.submenu.open{display:block;}
+
+.content{flex:1;padding:12px 18px;overflow:auto;min-width:0;}
+
+/* ─── Page header (matches PM) ─── */
+.pm-title{font-size:22px;font-weight:700;margin-bottom:8px;color:var(--navy);line-height:1.2;padding-left:14px;}
+.pm-subtitle{color:var(--green);font-weight:700;font-size:14px;margin:-2px 0 8px 14px;line-height:1.4;}
+.page-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;margin-bottom:10px;}
+.page-header .pm-title{margin-bottom:0;}
+.page-header-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center;}
+
+/* ─── Card (matches PM/SLA) ─── */
+.card{background:#fff;padding:16px 20px 14px;border-radius:10px;border:1px solid var(--border-soft);box-shadow:0 2px 8px rgba(11,60,136,.06);margin-bottom:14px;position:relative;}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--uidai-stripe);border-radius:10px 10px 0 0;}
+.card h3{margin:0 0 6px;color:var(--navy);font-size:16px;font-weight:700;}
+.card-section-title{color:var(--navy);font-size:15px;font-weight:700;margin:0 0 10px;}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+.card-head h3{margin:0;}
+.card-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* ─── Form fields (matches PM) ─── */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.field label{font-weight:600;display:block;margin-bottom:4px;font-size:14px;}
+.required{color:var(--red);}
+input,select,textarea{width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--text);font:inherit;}
+input:disabled,select:disabled,textarea:disabled{background:#f3f6fb;color:#3e4a5b;cursor:not-allowed;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(10,161,192,.12);}
+.auto-hint{font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.4;}
+.derived-amt{font-size:12px;color:#1a56db;font-weight:600;margin-top:4px;}
+.derived-amt.muted{color:#66788f;font-weight:500;}
+
+/* ─── Button (matches PM/SLA) ─── */
+.btn{background:linear-gradient(90deg,var(--navy),var(--cyan));color:#fff;padding:10px 18px;border:none;border-radius:6px;cursor:pointer;font-weight:600;letter-spacing:.2px;box-shadow:0 1px 3px rgba(11,60,136,.15);transition:transform .15s ease,opacity .15s ease,box-shadow .15s ease;}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(11,60,136,.22);}
+.btn.cancel{background:#fff;color:var(--navy);border:1px solid var(--border);box-shadow:none;}
+.btn.cancel:hover{background:#f4f8fd;}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn.small-btn{padding:6px 12px;font-size:13px;}
+
+/* ─── Project hero (matches SLA) ─── */
+.project-hero{background:linear-gradient(135deg,#fff,#f7faff);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:14px;position:relative;overflow:hidden;}
+.project-hero::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--uidai-stripe);}
+.hero-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:14px;align-items:center;}
+.hero-block-label{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;}
+.hero-block-value{font-size:18px;font-weight:700;color:var(--navy);line-height:1.2;}
+.hero-block-value.amount{font-size:20px;}
+.hero-block-value.red{color:var(--red);}
+.hero-block-value.green{color:var(--green);}
+.hero-block-sub{font-size:12px;color:var(--text-soft);margin-top:3px;}
+.project-select-wrap{display:flex;flex-direction:column;gap:4px;}
+.project-select-wrap select{padding:8px 10px;font-size:14px;font-weight:600;color:var(--navy);}
+
+/* ─── CCN summary (taken directly from Project_Management.html) ─── */
+.ccn-summary{margin-top:6px;border:1px solid #d7dfee;border-radius:8px;padding:14px 16px;background:#f8fbff;}
+.ccn-summary h4{margin:0 0 10px 0;color:#173e77;font-size:14px;}
+.ccn-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px 18px;margin-bottom:10px;}
+.ccn-summary-item{font-size:13px;color:#4b5870;}
+.ccn-summary-item .val{display:block;font-size:15px;font-weight:700;color:#1e2a3a;margin-top:2px;}
+.ccn-bar-outer{height:10px;background:#e3e9f3;border-radius:999px;overflow:hidden;}
+.ccn-bar-inner{height:100%;background:#1a56db;border-radius:999px;transition:width .25s ease;}
+.ccn-bar-inner.over{background:#c0392b;}
+.ccn-bar-inner.near{background:#d97706;}
+.ccn-summary-foot{font-size:12px;color:#66788f;margin-top:6px;}
+.ccn-summary-foot.warn{color:#c0392b;font-weight:600;}
+
+/* ─── Tables (matches PM/SLA) ─── */
+.table-wrap{width:100%;overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
+.table{width:100%;border-collapse:collapse;background:#fff;}
+.table th{background:#f1f6fd;padding:10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;font-size:13px;color:var(--navy);}
+.table td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top;font-size:13px;}
+.table tr:hover{background:#f9fcff;}
+.table tfoot td{background:#f7faff;font-weight:700;border-top:2px solid var(--border);color:var(--navy);}
+.num{text-align:right;font-variant-numeric:tabular-nums;}
+.right{text-align:right;}
+.center{text-align:center;}
+.muted{color:var(--text-muted);}
+
+/* ─── Pills (matches SLA) ─── */
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;line-height:1.5;white-space:nowrap;}
+.pill.ok{background:var(--green-soft);color:var(--green);}
+.pill.warn{background:var(--amber-soft);color:var(--amber);}
+.pill.bad{background:#fdecec;color:var(--red);}
+.pill.info{background:#e6f1ff;color:var(--navy);}
+.pill.neutral{background:#f1f4f8;color:var(--text-soft);}
+
+/* ─── Category pill (from PM) ─── */
+.ms-cat-pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:700;letter-spacing:.3px;line-height:1.5;border:1px solid transparent;white-space:nowrap;}
+.ms-cat-pill.cat-ccn{background:#fef0e0;color:#9a4d00;border-color:#f3cfa1;}
+.ms-cat-pill.cat-asg{background:#e8f0fe;color:#1a56db;border-color:#b9d0f1;}
+
+/* Contract type pills (from SLA) */
+.contract-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;}
+.contract-pill.pmu{background:#fef3c7;color:#92400e;border:1px solid #f59e0b;}
+.contract-pill.msip-m{background:#e0e7ff;color:#3730a3;border:1px solid #6366f1;}
+.contract-pill.bsp-d{background:#dcfce7;color:#166534;border:1px solid #16a34a;}
+.contract-pill.custom{background:#f3f4f6;color:#374151;border:1px solid #9ca3af;}
+
+/* ─── Info / note boxes (from SLA) ─── */
+.info-box{background:var(--green-soft);border:1px solid var(--green);border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.5;margin:10px 0;}
+.note-box{background:#e6f1ff;border:1px solid var(--navy);border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.5;margin:10px 0;}
+.warn-box{background:var(--amber-soft);border:1px solid var(--amber);border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.5;margin:10px 0;color:#7c5b03;}
+.hint{color:var(--text-soft);font-size:13px;}
+.empty-state{padding:24px;text-align:center;color:var(--text-muted);font-size:13px;background:#fbfcfe;border:1px dashed var(--border);border-radius:8px;}
+
+/* ─── Modal (matches SLA) ─── */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1200;align-items:center;justify-content:center;padding:16px;}
+.modal.open{display:flex;}
+.modal-box{background:#fff;width:min(440px,100%);max-height:92vh;overflow:auto;border-radius:12px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.18);position:relative;}
+.modal-box::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--uidai-stripe);border-radius:12px 12px 0 0;}
+.modal-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;justify-content:flex-end;}
+.modal h3{color:var(--navy);margin-bottom:6px;}
+
+/* ─── Footer (matches PM/SLA) ─── */
+.site-footer{padding:14px 18px;background:#fff;border-top:1px solid var(--border);text-align:center;font-size:12px;color:var(--text-soft);}
+.site-footer .sep{color:var(--border);padding:0 8px;}
+
+/* ─── Responsive ─── */
+@media (max-width:1000px){
+  .hero-grid{grid-template-columns:1fr 1fr;}
+  .grid{grid-template-columns:1fr;}
+}
+@media (max-width:768px){
+  .layout{flex-direction:column;}
+  .sidebar{width:100%;border-right:none;border-bottom:1px solid var(--border);}
+  .sidebar.collapsed{width:100%;}
+  .sidebar.collapsed .text,.sidebar.collapsed .submenu-arrow{display:inline !important;}
+  .sidebar.collapsed .submenu{display:none !important;}
+  .header-title{font-size:16px;}
+  .hero-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+
+<body>
+<a href="#mainContent" class="skip-link">Skip to main content</a>
+
+<header class="site-header" role="banner">
+  <div class="header-accessibility-strip">
+    <span class="a11y-label">Text Size:</span>
+    <div class="font-resizer" role="group" aria-label="Adjust text size">
+      <button type="button" id="frIncrease" aria-label="Increase text size">+A</button>
+      <button type="button" id="frReset" aria-label="Reset text size">A</button>
+      <button type="button" id="frDecrease" aria-label="Decrease text size">-A</button>
+    </div>
+  </div>
+  <div class="header-main">
+    <div class="header-brand">
+      <img src="Aadhaar.png" alt="Aadhaar logo" onerror="this.style.display='none'">
+      <div class="header-brand-text">
+        <span class="header-brand-hi-1" lang="hi">मेरा आधार</span>
+        <span class="header-brand-hi-2" lang="hi">मेरी पहचान</span>
+      </div>
+    </div>
+    <h1 class="header-title">UIDAI Automation Governance Tool</h1>
+    <div class="header-authority">Unique Identification<br>Authority of India</div>
+  </div>
+</header>
+
+<nav class="navbar" role="navigation" aria-label="Top navigation">
+  <div class="menu-home-block">
+    <span id="toggleBtn" role="button" tabindex="0">☰ Menu</span>
+    <span id="homeBtn" role="button" tabindex="0">🏠 Home</span>
+  </div>
+  <div class="profile" id="profileBtn" role="button" tabindex="0">
+    <span aria-hidden="true">👤</span>
+    <div class="profile-menu" id="profileMenu" role="menu">
+      <div role="menuitem" tabindex="-1">Profile</div>
+      <div role="menuitem" tabindex="-1">Sign Out</div>
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar" role="complementary">
+    <nav class="menu" aria-label="Application sections">
+      <a href="#" role="button" tabindex="0">📊 <span class="text">Dashboard</span></a>
+      <a href="#" role="button" tabindex="0">
+        📁 <span class="text">Project Management</span>
+      </a>
+      <a href="#" role="button" tabindex="0">
+        ⚖️ <span class="text">SLA &amp; LD Management</span>
+      </a>
+      <a href="#" class="active" role="button" tabindex="0">
+        💰 <span class="text">Finance</span>
+      </a>
+      <a href="#" role="button" tabindex="0">🗂️ <span class="text">Master Data</span></a>
+      <a href="#" role="button" tabindex="0">🏢 <span class="text">Vendor Management</span></a>
+      <a href="#" role="button" tabindex="0">👤 <span class="text">User Management</span></a>
+    </nav>
+  </aside>
+
+  <main class="content" id="mainContent" role="main" tabindex="-1">
+    <div id="contentArea"></div>
+  </main>
+</div>
+
+<footer class="site-footer" role="contentinfo">
+  © 2026 UIDAI <span class="sep">·</span> PMIS Automation Tool <span class="sep">·</span> Internal Use Only
+</footer>
+
+<!-- Message modal -->
+<div id="messageModal" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <h3 id="messageModalTitle">Notice</h3>
+    <p id="messageModalBody" style="margin-top:10px;line-height:1.5;font-size:14px;color:var(--text-soft);"></p>
+    <div class="modal-actions" style="justify-content:center;">
+      <button class="btn" onclick="closeMessageModal()">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════════
+   DATA — same shape as Project_Management.html and
+   SLA_and_LD_Management.html. Finance reads from both:
+   • From PM:  totalProjectValue, ccnCapPercent,
+               milestones/activities with category='ccn' + ccnValue
+   • From SLA: quarterlyPayments, slaRuleStore, projectSlaLinks
+   ═══════════════════════════════════════════════════════════════ */
+const demoProjects = [
+  {
+    projectId:'PRJ001', projectName:'Test Project Alpha',
+    description:'Testing description alpha', status:'PUBLISHED', owner:'Admin',
+    startDate:'2026-04-01', endDate:'2026-04-30',
+    contractTypeId:'PMU_MSAP',
+    /* From Project Management */
+    totalProjectValue: 12000000, ccnCapPercent: 25,
+    /* From SLA & LD */
+    quarterlyPayments:[
+      { id:'Q1-2026', label:'Q1 FY 2026 (Apr–Jun)', startDate:'2026-04-01', endDate:'2026-06-30', amount:1000000 },
+      { id:'Q2-2026', label:'Q2 FY 2026 (Jul–Sep)', startDate:'2026-07-01', endDate:'2026-09-30', amount:1100000 }
+    ],
+    milestones:[
+      { uid:'m-init', id:'M1', name:'Initiation', category:'original', ccnValue:0,
+        activities:[
+          { uid:'a-reqcoll', id:'A1.1', name:'Requirement Collection', category:'original', ccnValue:0,
+            endDate:'2026-04-02', actualEndDate:'2026-04-03' },
+          { uid:'a-kickoff', id:'A1.2', name:'Kickoff Preparation', category:'original', ccnValue:0,
+            endDate:'2026-04-04', actualEndDate:'2026-04-04' }
+        ]},
+      { uid:'m-exec', id:'M2', name:'Execution', category:'original', ccnValue:0,
+        activities:[
+          { uid:'a-config', id:'A2.1', name:'Configuration Setup', category:'original', ccnValue:0,
+            endDate:'2026-04-10', actualEndDate:'' },
+          { uid:'a-extra-resource', id:'A2.2', name:'Additional Resource (Migration Support)',
+            category:'ccn', ccnValue: 800000,
+            endDate:'2026-05-15', actualEndDate:'' }
+        ]},
+      { uid:'m-ccn-1', id:'M3', name:'Extended Reporting (CCN)', category:'ccn', ccnValue: 1200000,
+        activities:[] }
+    ]
+  },
+  {
+    projectId:'PRJ002', projectName:'Test Project Beta',
+    description:'Testing description beta', status:'PUBLISHED', owner:'Supervisor',
+    startDate:'2026-05-01', endDate:'2026-05-20',
+    contractTypeId:'MSIP',
+    totalProjectValue: 5000000, ccnCapPercent: 25,
+    quarterlyPayments:[
+      { id:'Q1-2026', label:'Q1 FY 2026 (Apr–Jun)', startDate:'2026-04-01', endDate:'2026-06-30', amount:500000 }
+    ],
+    milestones:[
+      { uid:'m-plan', id:'M1', name:'Planning', category:'original', ccnValue:0,
+        activities:[
+          { uid:'a-scope', id:'A1.1', name:'Scope Finalization', category:'original', ccnValue:0,
+            endDate:'2026-05-03', actualEndDate:'' }
+        ]}
+    ]
+  },
+  {
+    projectId:'PRJ003', projectName:'Test Project Gamma',
+    description:'New project — finance not yet set', status:'NEW', owner:'Manager',
+    startDate:'2026-06-01', endDate:'2026-06-25',
+    contractTypeId:'BSP',
+    totalProjectValue: 0, ccnCapPercent: 25,
+    quarterlyPayments:[],
+    milestones:[]
+  }
+];
+
+/* Contract types — same as SLA module */
+const contractTypes = [
+  { id:'PMU_MSAP', label:'PMU / MSAP',          pillClass:'pmu',    description:'Consultant contracts' },
+  { id:'MSIP',     label:'MSIP Infrastructure', pillClass:'msip-m', description:'Infrastructure provider' },
+  { id:'BSP',      label:'BSP Biometric',       pillClass:'bsp-d',  description:'Biometric service provider' }
+];
+
+/* Standard severity → points table (PMU/MSAP/MSIP) */
+const SEVERITY_TO_POINTS = { 0:-2, 1:2, 2:4, 3:6, 4:8 };
+const POINTS_TO_LD_TABLE = [
+  { minPoints:8, ldPercent:4 }, { minPoints:6, ldPercent:3 },
+  { minPoints:4, ldPercent:2 }, { minPoints:2, ldPercent:1 },
+  { minPoints:-Infinity, ldPercent:0 }
+];
+function pointsToLdPct(p){ for(const r of POINTS_TO_LD_TABLE){ if(p>=r.minPoints) return r.ldPercent; } return 0; }
+
+/* SLA rules — same shape as SLA file */
+const slaRuleStore = [
+  {
+    ruleId:'SLA-RULE-001', name:'Activity completion on schedule',
+    contractTypeId:'PMU_MSAP', metricUnit:'days',
+    measureMode:'AUTO_DELAY', calculationModel:'POINTS',
+    tiers:[
+      { from:0, to:0, severity:0 },
+      { from:1, to:7, severity:1 },
+      { from:8, to:14, severity:2 },
+      { from:15, to:21, severity:3 },
+      { from:22, to:null, severity:4 }
+    ],
+    extraPerDay:0, graceDays:0, perSlaCapPercent:10
+  },
+  {
+    ruleId:'SLA-RULE-002', name:'Milestone delivery (MSIP)',
+    contractTypeId:'MSIP', metricUnit:'days',
+    measureMode:'AUTO_DELAY', calculationModel:'POINTS',
+    tiers:[ { from:0, to:0, severity:0 }, { from:1, to:null, severity:4 } ],
+    extraPerDay:0.01, graceDays:0, perSlaCapPercent:10
+  }
+];
+
+/* Project ↔ SLA links — same as SLA file */
+const projectSlaLinks = [
+  { linkId:'LNK-001', projectId:'PRJ001', milestoneUid:'m-init', activityUid:'a-reqcoll', ruleId:'SLA-RULE-001' },
+  { linkId:'LNK-002', projectId:'PRJ001', milestoneUid:'m-exec', activityUid:'a-config',  ruleId:'SLA-RULE-001' },
+  { linkId:'LNK-003', projectId:'PRJ002', milestoneUid:'m-plan', activityUid:'a-scope',   ruleId:'SLA-RULE-002' }
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPERS — INR formatting, dates, lookups
+   ═══════════════════════════════════════════════════════════════ */
+function escapeHtml(s){
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function todayISO(){ return new Date().toISOString().split('T')[0]; }
+function diffDays(later, earlier){
+  if(!later || !earlier) return 0;
+  const a = new Date(later); const b = new Date(earlier);
+  if(isNaN(a) || isNaN(b)) return 0;
+  return Math.round((a-b)/(1000*60*60*24));
+}
+/* Indian-numbering formatter (matches PM's formatINR) */
+function formatINR(amount){
+  const n = Number(amount);
+  if(!isFinite(n)) return '—';
+  if(n === 0 && (amount === '' || amount == null)) return '—';
+  const neg = n < 0;
+  const abs = Math.abs(n);
+  const whole = Math.floor(abs);
+  let s = String(whole);
+  if(s.length > 3){
+    const last3 = s.slice(-3);
+    const rest  = s.slice(0,-3);
+    s = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + ',' + last3;
+  }
+  return `₹${neg?'-':''}${s}`;
+}
+function formatDateDisplay(d){
+  if(!d) return '—';
+  const dt = new Date(d);
+  if(isNaN(dt)) return d;
+  return dt.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+}
+function findProject(id){ return demoProjects.find(p => p.projectId === id) || null; }
+function findRule(id){ return slaRuleStore.find(r => r.ruleId === id) || null; }
+function findMilestone(p, uid){ return (p?.milestones||[]).find(m => m.uid === uid) || null; }
+function findActivity(p, mUid, aUid){
+  const m = findMilestone(p, mUid);
+  return (m?.activities||[]).find(a => a.uid === aUid) || null;
+}
+function contractTypeLabel(id){ return contractTypes.find(c => c.id === id)?.label || id || '—'; }
+function contractPillClass(id){ return contractTypes.find(c => c.id === id)?.pillClass || 'custom'; }
+function contractPillHtml(id){
+  if(!id) return '<span class="contract-pill custom">—</span>';
+  const ct = contractTypes.find(c => c.id === id);
+  if(!ct) return `<span class="contract-pill custom">${escapeHtml(id)}</span>`;
+  return `<span class="contract-pill ${ct.pillClass}">${escapeHtml(ct.label)}</span>`;
+}
+
+/* CCN helpers — same logic as PM */
+function computeCCNUsage(p){
+  if(!p) return 0;
+  let total = 0;
+  (p.milestones||[]).forEach(m => {
+    if(m.category === 'ccn') total += Number(m.ccnValue) || 0;
+    (m.activities||[]).forEach(a => {
+      if(a.category === 'ccn') total += Number(a.ccnValue) || 0;
+    });
+  });
+  return total;
+}
+function getCCNCapAmount(p){
+  if(!p) return 0;
+  const tv = Number(p.totalProjectValue) || 0;
+  const cp = Number(p.ccnCapPercent);
+  const pct = isFinite(cp) ? cp : 25;
+  return tv * pct / 100;
+}
+function listCCNItems(p){
+  const items = [];
+  (p?.milestones||[]).forEach(m => {
+    if(m.category === 'ccn'){
+      items.push({ level:'Milestone', id:m.id, name:m.name, amount:Number(m.ccnValue)||0 });
+    }
+    (m.activities||[]).forEach(a => {
+      if(a.category === 'ccn'){
+        items.push({ level:'Activity', id:a.id, name:a.name, amount:Number(a.ccnValue)||0 });
+      }
+    });
+  });
+  return items;
+}
+function isPublishedProject(p){ return p && p.status === 'PUBLISHED'; }
+
+/* Quarterly helpers — same logic as SLA file */
+function getQuarters(p){
+  if(!p) return [];
+  return Array.isArray(p.quarterlyPayments) ? p.quarterlyPayments : [];
+}
+function getActiveQuarter(p, refDate){
+  const qs = getQuarters(p);
+  if(!qs.length) return null;
+  const today = refDate || todayISO();
+  const cur = qs.find(q => today >= q.startDate && today <= q.endDate);
+  if(cur) return cur;
+  const past = qs.filter(q => q.endDate < today).sort((a,b) => b.endDate.localeCompare(a.endDate))[0];
+  return past || qs[0];
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LD CALCULATION — universal, same as SLA file
+   ═══════════════════════════════════════════════════════════════ */
+function matchRange(rule, value){
+  if(value === null || value === undefined) return null;
+  for(const t of (rule.tiers||[])){
+    const from = Number(t.from);
+    const to   = (t.to === null || t.to === undefined || t.to === '') ? Infinity : Number(t.to);
+    if(value >= from && value <= to) return t;
+  }
+  return null;
+}
+function severityOfTier(t){ return Number(t?.severity ?? 0); }
+function pointsForSeverity(sev){ const c = Math.min(4, Math.max(0, Number(sev||0))); return SEVERITY_TO_POINTS[c] || 0; }
+
+function getMeasuredValueForLink(link){
+  const project = findProject(link.projectId);
+  const activity = findActivity(project, link.milestoneUid, link.activityUid);
+  const rule = findRule(link.ruleId);
+  if(!project || !activity || !rule) return 0;
+  if(rule.measureMode === 'AUTO_DELAY'){
+    const expEnd = activity.endDate || '';
+    const actEnd = activity.actualEndDate || '';
+    if(!expEnd) return 0;
+    if(actEnd) return Math.max(0, diffDays(actEnd, expEnd));
+    const d = diffDays(todayISO(), expEnd);
+    return d > 0 ? d : 0;
+  }
+  return Number(link.actualMetricValue) || 0;
+}
+function calculateLinkLdPct(link){
+  const rule = findRule(link.ruleId);
+  if(!rule) return 0;
+  const value = getMeasuredValueForLink(link);
+  const tier = matchRange(rule, value);
+  if(!tier) return 0;
+  let basePct = 0;
+  if(rule.calculationModel === 'POINTS'){
+    const points = pointsForSeverity(severityOfTier(tier));
+    basePct = pointsToLdPct(points);
+  } else {
+    basePct = Number(tier.ldPercent) || 0;
+  }
+  /* Extra-per-day (used by milestone-style rules) */
+  const extraPerDay = Number(rule.extraPerDay || 0);
+  const graceDays   = Number(rule.graceDays || 0);
+  if(basePct > 0 && extraPerDay > 0 && value > 0){
+    basePct += Math.max(0, value - graceDays) * extraPerDay;
+  }
+  const cap = Number(rule.perSlaCapPercent || 10);
+  return Math.min(basePct, cap);
+}
+function calculateProjectLdPctForQuarter(projectId){
+  /* Sum all link penalties, then apply the 10%-of-quarterly-payment aggregate cap */
+  const links = projectSlaLinks.filter(l => l.projectId === projectId);
+  const sumLdPct = links.reduce((acc, l) => acc + calculateLinkLdPct(l), 0);
+  return { sumLdPct, cappedLdPct: Math.min(sumLdPct, 10), wasCapped: sumLdPct > 10 };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════ */
+let currentProjectId = demoProjects[0].projectId;
+let editingContract  = false;
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER
+   ═══════════════════════════════════════════════════════════════ */
+function onProjectChange(){
+  currentProjectId = document.getElementById('projectSelect').value;
+  editingContract  = false;
+  render();
+}
+
+function render(){
+  const project = findProject(currentProjectId);
+  if(!project){
+    document.getElementById('contentArea').innerHTML = '<div class="card"><div class="empty-state">Project not found.</div></div>';
+    return;
+  }
+
+  const tpv       = Number(project.totalProjectValue) || 0;
+  const capPct    = Number(project.ccnCapPercent);
+  const capPctSafe= isFinite(capPct) ? capPct : 25;
+  const ccnUsed   = computeCCNUsage(project);
+  const ccnCap    = getCCNCapAmount(project);
+  const ccnPctUsed= ccnCap > 0 ? (ccnUsed / ccnCap) * 100 : 0;
+  const headroom  = ccnCap - ccnUsed;
+  const effectiveValue = tpv + ccnUsed;
+  const financeSet = tpv > 0;
+
+  /* CCN bar styling */
+  const barClass = ccnPctUsed > 100 ? 'over' : (ccnPctUsed >= 80 ? 'near' : '');
+  const barWidth = Math.min(100, Math.max(0, ccnPctUsed));
+  const ccnFootMsg = ccnCap <= 0
+    ? 'Set the Total Project Value to compute the CCN cap.'
+    : (ccnPctUsed > 100
+        ? `Over cap by ${formatINR(ccnUsed - ccnCap)} — review CCN items with the project owner.`
+        : (ccnPctUsed >= 80
+            ? `Near cap — only ${formatINR(headroom)} of CCN headroom remaining.`
+            : `Headroom of ${formatINR(headroom)} remaining for future CCNs.`));
+
+  const ccnItems = listCCNItems(project);
+
+  /* ───── Project selector + summary hero ───── */
+  const heroHtml = `
+    <div class="project-hero">
+      <div class="hero-grid">
+        <div class="project-select-wrap">
+          <div class="hero-block-label">Project</div>
+          <select id="projectSelect" onchange="onProjectChange()">
+            ${demoProjects.map(p => `<option value="${escapeHtml(p.projectId)}" ${p.projectId===currentProjectId?'selected':''}>${escapeHtml(p.projectId)} — ${escapeHtml(p.projectName)}</option>`).join('')}
+          </select>
+          <div class="hero-block-sub">${contractPillHtml(project.contractTypeId)} <span class="pill ${isPublishedProject(project)?'ok':'neutral'}" style="margin-left:6px;">${escapeHtml(project.status)}</span></div>
+        </div>
+        <div>
+          <div class="hero-block-label">Contract Value</div>
+          <div class="hero-block-value amount">${financeSet ? formatINR(tpv) : '<span class="muted">Not set</span>'}</div>
+          <div class="hero-block-sub">Base contract</div>
+        </div>
+        <div>
+          <div class="hero-block-label">CCN Used</div>
+          <div class="hero-block-value amount ${ccnPctUsed>100?'red':''}">${formatINR(ccnUsed)}</div>
+          <div class="hero-block-sub">of ${formatINR(ccnCap)} cap</div>
+        </div>
+        <div>
+          <div class="hero-block-label">Effective Value</div>
+          <div class="hero-block-value amount">${financeSet ? formatINR(effectiveValue) : '—'}</div>
+          <div class="hero-block-sub">Base + approved CCN</div>
+        </div>
+      </div>
+    </div>`;
+
+  /* ───── Section 1: Contract Setup ───── */
+  const contractEditable = editingContract;
+  const capLocked = isPublishedProject(project); /* matches PM: cap frozen at publish */
+  const capEditable = contractEditable && !capLocked;
+
+  const contractCard = `
+    <div class="card">
+      <div class="card-head">
+        <h3>Contract Setup</h3>
+        <div class="card-actions">
+          ${editingContract
+            ? `<button class="btn small-btn" onclick="saveContract()">Save</button>
+               <button class="btn cancel small-btn" onclick="cancelContractEdit()">Cancel</button>`
+            : `<button class="btn small-btn" onclick="startContractEdit()">Edit</button>`}
+        </div>
+      </div>
+      <div class="hint" style="margin-bottom:12px;">
+        ${isPublishedProject(project)
+          ? 'This project is published. Total Project Value remains editable (audited); the CCN cap is locked.'
+          : (financeSet
+              ? 'Finance values are set. The project can be published from Project Management.'
+              : 'These values must be set before the project can be published.')}
+      </div>
+      <div class="grid">
+        <div class="field">
+          <label>Total Project Value (₹) <span class="required">*</span></label>
+          <input id="financeTotalValue" type="number" min="0" step="1" value="${tpv}"
+                 ${contractEditable?'':'disabled'}
+                 oninput="document.getElementById('financeTotalValuePreview').innerText=formatINR(this.value||0)">
+          <div id="financeTotalValuePreview" class="derived-amt ${financeSet?'':'muted'}">${financeSet ? formatINR(tpv) : '—'}</div>
+          <div class="auto-hint">Contract value in Rupees. Editable post-publish (changes are audited).</div>
+        </div>
+        <div class="field">
+          <label>Extends upto (CCN) % <span class="required">*</span></label>
+          <input id="financeCcnCap" type="number" min="0" max="100" step="0.01" value="${capPctSafe}"
+                 ${capEditable?'':'disabled'}>
+          ${capLocked
+            ? `<div class="auto-hint">Locked at publish (${capPctSafe}%).</div>`
+            : `<div class="auto-hint">Configurable until the project is published. Default 25%.</div>`}
+        </div>
+      </div>
+    </div>`;
+
+  /* ───── Section 2: CCN Consumption ───── */
+  const ccnCard = `
+    <div class="card">
+      <h3>Change Control Note (CCN) Consumption</h3>
+      <div class="hint" style="margin-bottom:10px;">CCN items are added from <b>Project Management</b> when a milestone or activity is created with category "CCN". This page shows the rolled-up consumption against the cap.</div>
+      <div class="ccn-summary">
+        <div class="ccn-summary-grid">
+          <div class="ccn-summary-item">Total Project Value <span class="val">${formatINR(tpv)}</span></div>
+          <div class="ccn-summary-item">CCN Cap (${capPctSafe}%) <span class="val">${formatINR(ccnCap)}</span></div>
+          <div class="ccn-summary-item">CCN Used <span class="val">${formatINR(ccnUsed)}</span></div>
+          <div class="ccn-summary-item">% Used <span class="val">${ccnCap>0?ccnPctUsed.toFixed(1)+'%':'—'}</span></div>
+        </div>
+        <div class="ccn-bar-outer"><div class="ccn-bar-inner ${barClass}" style="width:${barWidth}%;"></div></div>
+        <div class="ccn-summary-foot ${ccnPctUsed>100?'warn':''}">${escapeHtml(ccnFootMsg)}</div>
+      </div>
+      ${ccnItems.length === 0
+        ? `<div class="empty-state" style="margin-top:14px;">No CCN items added to this project yet.</div>`
+        : `<div class="table-wrap" style="margin-top:14px;">
+            <table class="table">
+              <thead>
+                <tr><th>ID</th><th>Level</th><th>Name</th><th class="num">CCN Value</th></tr>
+              </thead>
+              <tbody>
+                ${ccnItems.map(it => `
+                  <tr>
+                    <td>${escapeHtml(it.id)} <span class="ms-cat-pill cat-ccn">CCN</span></td>
+                    <td>${escapeHtml(it.level)}</td>
+                    <td>${escapeHtml(it.name)}</td>
+                    <td class="num">${formatINR(it.amount)}</td>
+                  </tr>`).join('')}
+              </tbody>
+              <tfoot>
+                <tr><td colspan="3" class="right">Total CCN Used</td><td class="num">${formatINR(ccnUsed)}</td></tr>
+              </tfoot>
+            </table>
+          </div>`}
+    </div>`;
+
+  /* ───── Section 3: Quarterly Payments ───── */
+  const quarters = getQuarters(project);
+  const ldInfo = calculateProjectLdPctForQuarter(project.projectId);
+  const ldPct = ldInfo.cappedLdPct;
+  const activeQ = getActiveQuarter(project);
+
+  let totalGross = 0, totalLd = 0, totalNet = 0;
+  const rows = quarters.map(q => {
+    const gross = Number(q.amount) || 0;
+    const ldAmt = (ldPct / 100) * gross;
+    const net   = gross - ldAmt;
+    totalGross += gross; totalLd += ldAmt; totalNet += net;
+    const isActive = activeQ && activeQ.id === q.id;
+    return `
+      <tr ${isActive?'style="background:#f0f7ff;"':''}>
+        <td>${escapeHtml(q.label || q.id)} ${isActive?'<span class="pill info" style="margin-left:6px;">Current</span>':''}</td>
+        <td>${formatDateDisplay(q.startDate)} – ${formatDateDisplay(q.endDate)}</td>
+        <td class="num">${formatINR(gross)}</td>
+        <td class="num">${ldPct > 0 ? ldPct.toFixed(2)+'%' : '<span class="muted">—</span>'}</td>
+        <td class="num">${ldAmt > 0 ? formatINR(ldAmt) : '<span class="muted">—</span>'}</td>
+        <td class="num"><b>${formatINR(net)}</b></td>
+      </tr>`;
+  }).join('');
+
+  const paymentsCard = `
+    <div class="card">
+      <h3>Quarterly Payments &amp; LD</h3>
+      <div class="hint" style="margin-bottom:10px;">Quarterly payment schedule and Liquidated Damages (LD). LD % is computed from SLA breaches in <b>SLA &amp; LD Management</b>, capped at 10% of the quarterly payment (per contract terms).</div>
+      ${quarters.length === 0
+        ? `<div class="empty-state">No quarterly payments configured. Add them in <b>SLA &amp; LD Management → Project SLA Linkage</b>.</div>`
+        : `<div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Quarter</th>
+                  <th>Period</th>
+                  <th class="num">Planned Payment</th>
+                  <th class="num">LD %</th>
+                  <th class="num">LD Amount</th>
+                  <th class="num">Net Payable</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="2" class="right">Total</td>
+                  <td class="num">${formatINR(totalGross)}</td>
+                  <td class="num">—</td>
+                  <td class="num">${formatINR(totalLd)}</td>
+                  <td class="num">${formatINR(totalNet)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          ${ldPct > 0 ? `<div class="warn-box" style="margin-top:12px;"><b>LD applied this quarter:</b> ${ldPct.toFixed(2)}% ${ldInfo.wasCapped ? '<span class="pill warn" style="margin-left:6px;">Capped at 10%</span>' : ''}. Sum of SLA penalties: ${ldInfo.sumLdPct.toFixed(2)}%. See <b>SLA &amp; LD Management → LD Report</b> for the breakdown.</div>` : `<div class="info-box" style="margin-top:12px;"><b>No LD applicable</b> — all linked SLAs are within their targets for the current quarter.</div>`}
+        `}
+    </div>`;
+
+  /* ───── Compose ───── */
+  document.getElementById('contentArea').innerHTML = `
+    <div class="page-header">
+      <div>
+        <div class="pm-title">Finance</div>
+        <div class="pm-subtitle">Contract value, CCN consumption, and quarterly payments.</div>
+      </div>
+    </div>
+    ${heroHtml}
+    ${contractCard}
+    ${ccnCard}
+    ${paymentsCard}
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACTIONS — Contract edit / save / cancel
+   ═══════════════════════════════════════════════════════════════ */
+function startContractEdit(){
+  editingContract = true;
+  render();
+}
+function cancelContractEdit(){
+  editingContract = false;
+  render();
+}
+function saveContract(){
+  const project = findProject(currentProjectId); if(!project) return;
+  const tpv = Number(document.getElementById('financeTotalValue').value);
+  const capLocked = isPublishedProject(project);
+  const capRaw = document.getElementById('financeCcnCap').value;
+  const capPct = capLocked ? project.ccnCapPercent : Number(capRaw);
+  if(!isFinite(tpv) || tpv <= 0){ showMessage('Total Project Value must be greater than 0.'); return; }
+  if(!capLocked && (!isFinite(capPct) || capPct < 0 || capPct > 100)){
+    showMessage('Extends upto (CCN) % must be between 0 and 100.'); return;
+  }
+  const newCap = capLocked ? project.ccnCapPercent : capPct;
+  const usedAfter = computeCCNUsage(project);
+  const capAfter  = tpv * newCap / 100;
+  if(capAfter > 0 && usedAfter > capAfter){
+    showMessage(`Warning: existing CCN usage (${formatINR(usedAfter)}) exceeds the new cap of ${formatINR(capAfter)}. Values saved, but please review CCN items.`);
+  }
+  project.totalProjectValue = tpv;
+  if(!capLocked) project.ccnCapPercent = capPct;
+  editingContract = false;
+  render();
+  showMessage('Finance values saved.', 'Saved');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MESSAGE MODAL
+   ═══════════════════════════════════════════════════════════════ */
+function showMessage(text, title){
+  document.getElementById('messageModalTitle').textContent = title || 'Notice';
+  document.getElementById('messageModalBody').textContent = text;
+  document.getElementById('messageModal').classList.add('open');
+}
+function closeMessageModal(){ document.getElementById('messageModal').classList.remove('open'); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR + HEADER WIRING
+   ═══════════════════════════════════════════════════════════════ */
+document.getElementById('toggleBtn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+});
+document.getElementById('homeBtn').addEventListener('click', () => {
+  showMessage('This would navigate to the Home dashboard.', 'Home');
+});
+document.getElementById('profileBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  document.getElementById('profileBtn').classList.toggle('open');
+});
+document.addEventListener('click', () => {
+  document.getElementById('profileBtn').classList.remove('open');
+});
+
+/* Font resizer */
+let fontScale = 1;
+function applyScale(){ document.documentElement.style.fontSize = (fontScale*16)+'px'; }
+document.getElementById('frIncrease').onclick = () => { fontScale = Math.min(1.3, fontScale+0.05); applyScale(); };
+document.getElementById('frReset').onclick    = () => { fontScale = 1; applyScale(); };
+document.getElementById('frDecrease').onclick = () => { fontScale = Math.max(0.85, fontScale-0.05); applyScale(); };
+
+/* Modal click-outside-to-close */
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
+});
+
+/* Init */
+render();
+</script>
+</body>
+</html>

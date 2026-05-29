@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UIDAI Automation Governance Tool · Severity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0b3c88;--navy-deep:#062a63;--cyan:#0aa1c0;--green:#1a8a3d;--green-soft:#e7f7ec;
+  --saffron:#d4440e;--light:#f4f7fb;--border:#dbe5f1;--border-soft:#e9eef6;--red:#d32f2f;
+  --text:#1e2a3a;--text-soft:#5a6680;--muted:#6b7a90;--card:#fff;
+  --shadow:0 2px 8px rgba(11,60,136,.08);--uidai-stripe:linear-gradient(90deg,var(--navy) 0%,var(--cyan) 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Roboto',system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:var(--light);color:var(--text);display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden}
+button,input,select{font:inherit}
+.skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:#fff;padding:8px 16px;z-index:9999;text-decoration:none;font-weight:700;border-radius:0 0 6px 0}
+.skip-link:focus{top:0}
+*:focus-visible{outline:none;box-shadow:0 0 0 2px var(--navy),0 0 0 4px var(--cyan);border-radius:3px}
+
+.site-header{width:100%;background:#fff;box-shadow:0 2px 8px rgba(11,60,136,.08);position:relative;z-index:50}
+.site-header::after{content:"";display:block;height:4px;background:var(--uidai-stripe)}
+.header-accessibility-strip{background:#f5f8fd;border-bottom:1px solid var(--border);display:flex;justify-content:flex-end;align-items:center;padding:3px 20px;gap:12px;min-height:28px}
+.a11y-label{font-weight:600;color:#4b5870;font-size:12px}
+.font-resizer{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--border);border-radius:6px;padding:1px;background:#fff}
+.font-resizer button{background:transparent;border:none;cursor:pointer;padding:3px 9px;font-weight:700;color:var(--navy);border-radius:4px;line-height:1}
+.font-resizer button:hover{background:#eef6fb}
+.header-main{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;padding:8px 20px;background:linear-gradient(90deg,#ffebc7 0%,#fff 45%,#fff 55%,#d7efd9 100%)}
+.header-brand{display:flex;align-items:center;gap:12px;min-width:0}
+.header-brand-logo svg{height:52px;width:52px}
+.header-brand-text{display:flex;flex-direction:column;line-height:1.15;gap:2px}
+.header-brand-hi-1,.header-brand-hi-2{font-weight:900;font-size:16px;white-space:nowrap}
+.header-brand-hi-1{color:var(--saffron)}.header-brand-hi-2{color:var(--green)}
+.header-title{text-align:center;font-size:20px;font-weight:700;background:var(--uidai-stripe);-webkit-background-clip:text;background-clip:text;color:transparent;padding:0 8px}
+.header-authority{justify-self:end;font-weight:700;font-size:16px;line-height:1.2;color:#1a2a3f}
+
+.navbar{display:flex;justify-content:space-between;align-items:center;background:#fafcfe;border-bottom:1px solid var(--border);min-height:42px;position:relative;z-index:30}
+.menu-home-block{width:240px;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 14px;border-right:1px solid var(--border)}
+.menu-home-block span{cursor:pointer;padding:5px 10px;border-radius:6px;font-size:14px;font-weight:500;color:var(--navy)}
+.menu-home-block span:hover{background:#eaf2fb}
+.profile{padding:0 20px;cursor:pointer;position:relative;font-size:18px}
+.profile-menu{position:absolute;right:0;top:42px;background:#fff;border:1px solid var(--border);border-radius:8px;display:none;min-width:140px;box-shadow:0 4px 10px rgba(0,0,0,.08);overflow:hidden}
+.profile-menu.open{display:block}
+.profile-menu div{padding:10px 12px;cursor:pointer}
+.profile-menu div:hover{background:#eef6fb}
+
+.layout{display:flex;flex:1;min-height:0}
+.sidebar{width:240px;flex:0 0 240px;background:#fff;border-right:1px solid var(--border);transition:.28s}
+.menu{padding:15px;overflow:auto}
+.menu a,.submenu div,.section-head{display:flex;gap:18px;padding:12px 14px;margin-bottom:6px;cursor:pointer;border-radius:6px;align-items:center;user-select:none}
+.menu a:hover,.submenu div:hover,.section-head:hover{background:#f3f8ff}
+.submenu{display:none;padding-left:20px;margin-bottom:8px}
+.submenu.open{display:block}
+.submenu-arrow{margin-left:auto;font-size:11px;transition:transform .2s}
+.submenu-arrow.rot{transform:rotate(90deg)}
+.content{flex:1;padding:24px clamp(16px,3vw,36px);overflow:auto;min-width:0}
+
+.pm-title{font-size:clamp(20px,2.4vw,26px);font-weight:700;margin-bottom:6px;color:var(--navy);position:relative;padding-left:16px}
+.pm-title::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:5px;border-radius:4px;background:var(--uidai-stripe)}
+.instruction{font-size:14px;color:var(--text-soft);margin:0 0 20px 16px;line-height:1.55;max-width:760px}
+
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:22px;align-items:start}
+.card{background:var(--card);padding:20px 22px;border-radius:10px;border:1px solid var(--border-soft);box-shadow:var(--shadow);position:relative}
+.card::before{content:"";position:absolute;top:-1px;left:-1px;right:-1px;height:4px;background:var(--uidai-stripe);border-radius:10px 10px 0 0}
+.card h3{font-size:16px;color:var(--navy);margin-bottom:14px}
+
+.table-wrap{overflow-x:auto}
+table.t{width:100%;border-collapse:collapse;font-size:14px;border:1px solid var(--border)}
+table.t th{background:#10243f;color:#fff;text-align:center;padding:12px 10px;font-weight:700;font-size:13.5px}
+table.t td{text-align:center;padding:10px;border:1px solid var(--border);vertical-align:middle}
+table.t tbody tr:nth-child(even){background:#f8fbff}
+.cell-input{display:inline-block;width:100%;max-width:200px;padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center;background:#fff}
+.pts-acc{display:inline-block;min-width:64px;padding:8px 12px;background:#eef3fa;border:1px solid var(--border);border-radius:6px;font-weight:700;color:var(--navy)}
+.ld-cell{display:flex;align-items:center;justify-content:center;gap:6px}
+.ld-cell .cell-input{max-width:130px}
+.pct{font-weight:600;color:var(--text-soft)}
+.col-x{width:52px}
+.x-btn{width:30px;height:30px;border:1px solid var(--red);background:#fff;color:var(--red);border-radius:6px;cursor:pointer;font-size:16px;line-height:1}
+.x-btn:hover{background:var(--red);color:#fff}
+.empty-row td{color:var(--muted);font-style:italic;padding:16px}
+
+.add-btn{display:inline-flex;align-items:center;gap:7px;background:#fff;color:var(--navy);border:1.5px dashed var(--navy);padding:9px 16px;border-radius:8px;cursor:pointer;font-weight:700;font-size:14px;margin-top:14px}
+.add-btn:hover{background:#eef5ff}
+.hint{font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.5}
+
+.action-row{display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;margin-top:22px}
+.btn{background:var(--uidai-stripe);color:#fff;padding:11px 24px;border:none;border-radius:7px;cursor:pointer;font-weight:600;box-shadow:0 1px 3px rgba(11,60,136,.15);transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(11,60,136,.22)}
+.btn.cancel{background:#fff;color:var(--navy);border:1px solid var(--border);box-shadow:none}
+
+.site-footer{background:linear-gradient(90deg,#eaf1fb 0%,#f5f9fe 50%,#eaf1fb 100%);color:var(--navy);text-align:center;padding:10px 16px;font-size:12.5px;font-weight:600;margin-top:auto;position:relative}
+.site-footer::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--uidai-stripe)}
+.site-footer .sep{color:var(--cyan);margin:0 8px;font-weight:700}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy-deep);color:#fff;padding:12px 22px;border-radius:8px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.2);opacity:0;pointer-events:none;transition:.25s;z-index:999}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:900px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%);z-index:60}
+  .sidebar.open{transform:translateX(0)}
+  .cards-grid{grid-template-columns:1fr}
+  .header-authority{display:none}
+  .header-title{font-size:16px}
+  .menu-home-block{width:auto}
+}
+@media(max-width:560px){
+  .content{padding:16px 12px}
+  .header-main{grid-template-columns:auto 1fr;gap:8px}
+  .header-title{grid-column:1/-1;order:3;font-size:15px}
+  .card{padding:16px 14px}
+  .btn{flex:1}
+  .cell-input{max-width:none}
+  .ld-cell .cell-input{max-width:110px}
+}
+</style>
+</head>
+<body>
+<a href="#mainContent" class="skip-link">Skip to main content</a>
+
+<header class="site-header" role="banner">
+  <div class="header-accessibility-strip">
+    <span class="a11y-label">Text Size:</span>
+    <div class="font-resizer" role="group" aria-label="Adjust text size">
+      <button type="button" id="frIncrease" aria-label="Increase text size">+A</button>
+      <button type="button" id="frReset" aria-label="Reset text size">A</button>
+      <button type="button" id="frDecrease" aria-label="Decrease text size">-A</button>
+    </div>
+  </div>
+  <div class="header-main">
+    <div class="header-brand">
+      <div class="header-brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="30" fill="#fff" stroke="#0b3c88" stroke-width="2"/>
+          <path d="M20 42c2-12 8-20 12-20s10 8 12 20" fill="none" stroke="#d4440e" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="32" cy="20" r="5" fill="#1a8a3d"/>
+          <path d="M14 46h36" stroke="#0aa1c0" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="header-brand-text">
+        <span class="header-brand-hi-1" lang="hi">मेरा आधार</span>
+        <span class="header-brand-hi-2" lang="hi">मेरी पहचान</span>
+      </div>
+    </div>
+    <h1 class="header-title">UIDAI Automation Governance Tool</h1>
+    <div class="header-authority">Unique Identification<br>Authority of India</div>
+  </div>
+</header>
+
+<div class="navbar">
+  <div class="menu-home-block">
+    <span id="toggleBtn">☰ Menu</span>
+    <span id="homeBtn">🏠 Home</span>
+  </div>
+  <div class="profile" id="profileBtn">👤
+    <div class="profile-menu" id="profileMenu"><div>Profile</div><div>Sign Out</div></div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar" id="sidebar">
+    <div class="menu">
+      <a><span>📊</span><span class="text">Dashboard</span></a>
+      <a><span>📁</span><span class="text">Project Management</span></a>
+      <a class="section-head" id="slaHead"><span>📐</span><span class="text">SLA &amp; LD Management</span><span class="submenu-arrow" id="slaArrow">▶</span></a>
+      <div class="submenu" id="slaSub">
+        <div>📋 <span class="text">SLA Definitions</span></div>
+        <div>💰 <span class="text">LD Configuration</span></div>
+        <div style="background:linear-gradient(90deg,var(--navy),var(--cyan));color:#fff">⚠️ <span class="text">Severity</span></div>
+      </div>
+      <a><span>🗂️</span><span class="text">Master Data</span></a>
+      <a><span>🏢</span><span class="text">Vendor Management</span></a>
+      <a><span>👤</span><span class="text">User Management</span></a>
+    </div>
+  </div>
+
+  <main class="content" id="mainContent" role="main" tabindex="-1">
+    <h2 class="pm-title">Severity</h2>
+    <p class="instruction">
+      Set severity levels and points below &mdash; both columns are editable, add as many as you need. The points auto-fill the table on the right; just enter each LD %.
+    </p>
+
+    <div class="cards-grid">
+      <div class="card">
+        <h3>Severity Levels &amp; Points</h3>
+        <div class="table-wrap">
+          <table class="t">
+            <thead>
+              <tr>
+                <th>Severity Level (SL)</th>
+                <th>Points</th>
+                <th class="col-x"></th>
+              </tr>
+            </thead>
+            <tbody id="sevBody"></tbody>
+          </table>
+        </div>
+        <button type="button" class="add-btn" id="addSevBtn">&#xFF0B; Add Severity</button>
+      </div>
+
+      <div class="card">
+        <h3>Points &rarr; LD %</h3>
+        <div class="table-wrap">
+          <table class="t">
+            <thead>
+              <tr>
+                <th>Points Accumulated</th>
+                <th>LD % (Net Planned Quarterly Payment)</th>
+              </tr>
+            </thead>
+            <tbody id="ldBody"></tbody>
+          </table>
+        </div>
+        <p class="hint">Auto-filled from the points (highest = &ge;, lowest = &le;). Edit only the LD %.</p>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button type="button" class="btn cancel" id="resetBtn">Reset</button>
+      <button type="button" class="btn" id="saveBtn">Save</button>
+    </div>
+  </main>
+</div>
+
+<footer class="site-footer" role="contentinfo">
+  &copy; 2026 UIDAI <span class="sep">&middot;</span> PMIS Automation Tool <span class="sep">&middot;</span> Internal Use Only
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const sevBody = document.getElementById('sevBody');
+const ldBody  = document.getElementById('ldBody');
+const ldMap = {}; // remembers LD % per points value across rebuilds
+const DEFAULTS = [['0','-2'],['1','2'],['2','4'],['3','6'],['4','8']];
+
+function addSevRow(sl, pts){
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input class="cell-input sl-input" type="number" step="any" value="${sl ?? ''}" placeholder="e.g. 0" aria-label="Severity level"></td>
+    <td><input class="cell-input pts-input" type="number" step="any" value="${pts ?? ''}" placeholder="e.g. -2" aria-label="Points"></td>
+    <td><button type="button" class="x-btn" aria-label="Remove row">&times;</button></td>
+  `;
+  sevBody.appendChild(tr);
+  tr.querySelector('.pts-input').addEventListener('input', rebuildLd);
+  tr.querySelector('.x-btn').addEventListener('click', ()=>{ tr.remove(); rebuildLd(); });
+}
+
+function rebuildLd(){
+  ldBody.querySelectorAll('input.ld-input').forEach(inp=>{ ldMap[inp.dataset.pts] = inp.value; });
+
+  let pts = [];
+  sevBody.querySelectorAll('.pts-input').forEach(inp=>{
+    const v = inp.value.trim();
+    if(v !== '' && !isNaN(v)) pts.push(parseFloat(v));
+  });
+  pts = [...new Set(pts)].sort((a,b)=> b - a);
+
+  ldBody.innerHTML = '';
+  if(pts.length === 0){
+    ldBody.innerHTML = '<tr class="empty-row"><td colspan="2">Add a severity level to fill this.</td></tr>';
+    return;
+  }
+  pts.forEach((p, i)=>{
+    let label = String(p);
+    if(pts.length > 1){
+      if(i === 0) label = '>= ' + p;
+      else if(i === pts.length - 1) label = (p <= 0) ? '<= 0' : '<= ' + p;
+    }
+    const saved = ldMap[p] != null ? ldMap[p] : '';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="pts-acc">${label}</span></td>
+      <td><div class="ld-cell"><input class="cell-input ld-input" type="number" min="0" step="0.1" value="${saved}" placeholder="0" data-pts="${p}" aria-label="LD percent for ${label} points"><span class="pct">%</span></div></td>
+    `;
+    ldBody.appendChild(tr);
+    tr.querySelector('.ld-input').addEventListener('input', e=>{ ldMap[p] = e.target.value; });
+  });
+}
+
+document.getElementById('addSevBtn').addEventListener('click', ()=> addSevRow('',''));
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  sevBody.innerHTML=''; for(const k in ldMap) delete ldMap[k];
+  ldMap['-2']='0'; ldMap['2']='1'; ldMap['4']='2'; ldMap['6']='3'; ldMap['8']='4';
+  DEFAULTS.forEach(([s,p])=>addSevRow(s,p)); rebuildLd(); toast('Reset');
+});
+document.getElementById('saveBtn').addEventListener('click', ()=> toast('Saved'));
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2000);}
+
+document.getElementById('toggleBtn').onclick=()=>document.getElementById('sidebar').classList.toggle('open');
+document.getElementById('profileBtn').onclick=e=>{e.stopPropagation();document.getElementById('profileMenu').classList.toggle('open')};
+document.addEventListener('click',()=>document.getElementById('profileMenu').classList.remove('open'));
+const slaHead=document.getElementById('slaHead');
+slaHead.onclick=()=>{document.getElementById('slaSub').classList.toggle('open');document.getElementById('slaArrow').classList.toggle('rot')};
+slaHead.click();
+let fs=100;const apply=()=>document.documentElement.style.fontSize=fs+'%';
+document.getElementById('frIncrease').onclick=()=>{fs=Math.min(130,fs+10);apply()};
+document.getElementById('frDecrease').onclick=()=>{fs=Math.max(80,fs-10);apply()};
+document.getElementById('frReset').onclick=()=>{fs=100;apply()};
+
+ldMap['-2']='0';
+addSevRow('0','-2');
+rebuildLd();
+</script>
+</body>
+</html>

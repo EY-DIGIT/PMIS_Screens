@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UIDAI PMIS - Approval Inbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0b3c88; --navy-deep:#062a63;
+  --cyan:#0aa1c0; --green:#1a8a3d; --green-soft:#e7f7ec;
+  --saffron:#d4440e;
+  --light:#f4f7fb; --light-cool:#eef3f9;
+  --border:#dbe5f1; --border-soft:#e9eef6;
+  --red:#d32f2f;
+  --text:#1e2a3a; --text-soft:#5a6680; --text-muted:#7a869a;
+  --card:#fff;
+  --shadow:0 2px 8px rgba(11,60,136,.08);
+  --uidai-stripe:linear-gradient(90deg, var(--navy) 0%, var(--cyan) 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing:antialiased;
+  background:var(--light); color:var(--text);
+  display:flex; flex-direction:column; min-height:100vh;
+  overflow-x:hidden;
+}
+button,input,select,textarea{font:inherit}
+img{display:block;max-width:100%}
+
+.sr-only{position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
+.skip-link{position:absolute; top:-40px; left:0; background:var(--navy); color:#fff; padding:8px 16px; z-index:9999; text-decoration:none; font-weight:700; border-radius:0 0 6px 0;}
+.skip-link:focus{top:0;}
+*:focus-visible{outline:none; box-shadow:0 0 0 2px var(--navy), 0 0 0 4px var(--cyan); border-radius:3px;}
+
+/* Header */
+.site-header{width:100%; background:#fff; box-shadow:0 2px 8px rgba(11,60,136,.08); position:relative; z-index:50;}
+.site-header::after{content:""; display:block; height:4px; background:var(--uidai-stripe);}
+.header-accessibility-strip{background:#f5f8fd; border-bottom:1px solid var(--border); display:flex; justify-content:flex-end; align-items:center; padding:3px 20px; gap:12px; min-height:28px; font-size:13px;}
+.a11y-label{font-weight:600; color:#4b5870; font-size:12px;}
+.font-resizer{display:inline-flex; align-items:center; gap:4px; border:1px solid var(--border); border-radius:6px; padding:1px; background:#fff;}
+.font-resizer button{background:transparent; border:none; cursor:pointer; padding:3px 9px; font-weight:700; color:var(--navy); border-radius:4px; font-size:13px; line-height:1;}
+.font-resizer button:hover{background:#eef6fb;}
+.header-main{display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:14px; padding:8px 20px; background:linear-gradient(90deg,#ffebc7 0%,#fff 45%,#fff 55%,#d7efd9 100%);}
+.header-brand{display:flex; align-items:center; gap:12px;}
+.header-brand img{height:52px}
+.header-brand-text{display:flex; flex-direction:column; line-height:1.15; gap:2px;}
+.header-brand-hi-1,.header-brand-hi-2{font-weight:900; font-size:16px; white-space:nowrap; letter-spacing:.2px;}
+.header-brand-hi-1{color:var(--saffron)}
+.header-brand-hi-2{color:var(--green)}
+.header-title{text-align:center; font-size:20px; font-weight:700; line-height:1.2; background:var(--uidai-stripe); -webkit-background-clip:text; background-clip:text; color:transparent; margin:0;}
+.header-authority{justify-self:end; font-weight:700; font-size:16px; line-height:1.2; color:#1a2a3f;}
+
+/* Navbar */
+.navbar{display:flex; justify-content:space-between; align-items:center; background:#fafcfe; border-bottom:1px solid var(--border); min-height:42px; position:relative; z-index:30;}
+.menu-home-block{width:240px; display:flex; justify-content:space-between; padding:6px 14px; border-right:1px solid var(--border); gap:10px;}
+.menu-home-block span{cursor:pointer; padding:5px 10px; border-radius:6px; font-size:14px; font-weight:500; color:var(--navy); white-space:nowrap;}
+.menu-home-block span:hover{background:#eaf2fb;}
+.profile{padding:0 20px; cursor:pointer; position:relative; font-size:14px; font-weight:500; color:var(--navy);}
+.profile-menu{position:absolute; right:0; top:40px; background:#fff; border:1px solid var(--border); border-radius:8px; display:none; min-width:140px; box-shadow:0 4px 10px rgba(0,0,0,.08); z-index:40; overflow:hidden;}
+.profile-menu div{padding:10px 12px; cursor:pointer; font-size:13.5px;}
+.profile-menu div:hover{background:#eef6fb;}
+
+/* Layout / Sidebar */
+.layout{display:flex; flex:1; min-height:0;}
+.sidebar{width:240px; background:#fff; border-right:1px solid var(--border); min-height:0;}
+.sidebar.collapsed{width:70px}
+.sidebar.collapsed .text{display:none}
+.menu{padding:12px}
+.menu a{display:flex; gap:10px; padding:9px 10px; margin-bottom:4px; cursor:pointer; border-radius:6px; align-items:center; line-height:1.2; text-decoration:none; color:var(--text); font-size:14px;}
+.menu a:hover{background:#eef6fb}
+.menu a.active{background:var(--uidai-stripe); color:#fff}
+.content{flex:1; padding:14px 20px; overflow:auto; min-width:0;}
+
+/* Page header */
+.page-header{display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:10px 12px; margin-bottom:14px;}
+.page-header-text{flex:1 1 280px; min-width:0;}
+.pm-title{font-size:22px; font-weight:700; color:var(--navy); line-height:1.2; padding-left:14px; margin-bottom:6px; letter-spacing:-0.1px;}
+.pm-subtitle{color:var(--green); font-weight:700; font-size:14px; margin:-2px 0 8px 14px;}
+.pm-description{color:var(--text-soft); font-size:14px; margin:0 0 0 14px; line-height:1.5;}
+
+/* Cards */
+.card{background:var(--card); padding:18px 22px 16px; border-radius:10px; border:1px solid var(--border-soft); box-shadow:var(--shadow); margin-bottom:14px; position:relative;}
+.card::before{content:""; position:absolute; top:0; left:0; right:0; height:4px; background:var(--uidai-stripe); border-radius:10px 10px 0 0;}
+.card-header{display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:14px; flex-wrap:wrap;}
+.card-title{font-size:15px; font-weight:700; color:var(--navy); display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.card-title .meta{color:var(--text-muted); font-weight:500; font-size:12px;}
+
+/* Filter bar */
+.filter-bar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; flex:0 1 auto;}
+.filter-input,.filter-select{
+  padding:7px 11px; border:1px solid var(--border); border-radius:6px;
+  background:#fff; font-size:13px; color:var(--text); font-family:inherit;
+  transition:border-color .15s, box-shadow .15s;
+}
+.filter-input{min-width:220px; flex:1 1 220px;}
+.filter-input::placeholder{color:var(--text-muted);}
+.filter-input:focus,.filter-select:focus{outline:none; border-color:var(--cyan); box-shadow:0 0 0 3px rgba(10,161,192,.12);}
+.filter-select{cursor:pointer; min-width:150px;}
+
+/* Buttons */
+.btn{
+  background:var(--uidai-stripe); color:#fff;
+  padding:9px 18px; border:none; border-radius:6px;
+  cursor:pointer; font-weight:600; letter-spacing:.2px;
+  box-shadow:0 1px 3px rgba(11,60,136,.15);
+  transition:transform .15s, box-shadow .15s;
+  font-size:14px; white-space:nowrap;
+}
+.btn:hover{transform:translateY(-1px); box-shadow:0 4px 10px rgba(11,60,136,.22);}
+.btn.cancel{background:#fff; color:var(--navy); border:1px solid var(--border); box-shadow:none;}
+.btn.cancel:hover{background:#f4f8fd; border-color:#c4d3e8;}
+.btn.danger{background:linear-gradient(90deg,#b42318 0%, #d32f2f 100%); color:#fff; box-shadow:0 1px 3px rgba(180,35,24,.18);}
+.btn.danger:hover{box-shadow:0 4px 10px rgba(180,35,24,.25);}
+.btn.sm{padding:6px 14px; font-size:13px;}
+.btn:disabled{opacity:.55; cursor:not-allowed; transform:none; box-shadow:none;}
+
+/* Back button (distinct from .btn.cancel for emphasis at top of detail view) */
+.btn-back{
+  background:#fff; color:var(--navy);
+  border:1px solid var(--border); border-radius:6px;
+  padding:7px 14px 7px 12px; font-size:13.5px; font-weight:600;
+  cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+  transition:background .15s, border-color .15s, color .15s;
+}
+.btn-back:hover{background:#f4f8fd; border-color:var(--cyan); color:var(--navy-deep);}
+.btn-back .arrow{font-size:15px; line-height:1;}
+
+/* Table */
+.table-wrap{width:100%; overflow-x:auto; border-radius:8px; border:1px solid var(--border);}
+.table{width:100%; border-collapse:collapse; background:#fff; min-width:820px;}
+.table th{
+  background:#f1f6fd; padding:11px 14px;
+  border-bottom:1px solid var(--border);
+  text-align:left; white-space:nowrap;
+  font-size:12.5px; font-weight:700;
+  color:var(--navy-deep);
+  letter-spacing:.2px; text-transform:uppercase;
+}
+.table td{padding:13px 14px; border-bottom:1px solid var(--border-soft); vertical-align:middle; font-size:13.5px;}
+.table tbody tr:hover{background:#fbfdff}
+.table tbody tr:last-child td{border-bottom:none}
+.cell-id{font-family:'Roboto Mono', ui-monospace, monospace; font-weight:700; color:var(--navy-deep); font-size:12px;}
+.cell-name{font-weight:600; color:var(--navy); margin-top:2px;}
+.cell-sub{font-size:12px; color:var(--text-muted); margin-top:2px;}
+.cell-actions{text-align:right; white-space:nowrap;}
+
+/* Activity hyperlink (in table + detail title) */
+.activity-link{
+  color:var(--navy); font-weight:600;
+  text-decoration:underline; text-decoration-color:rgba(11,60,136,.35);
+  text-underline-offset:3px; text-decoration-thickness:1px;
+  cursor:pointer; background:none; border:none; padding:0;
+  font-family:inherit; font-size:inherit; text-align:left;
+  transition:color .15s, text-decoration-color .15s;
+}
+.activity-link:hover,.activity-link:focus-visible{color:var(--cyan); text-decoration-color:var(--cyan); text-decoration-thickness:1.5px;}
+
+/* Pills */
+.pill{display:inline-block; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:700; letter-spacing:.2px; white-space:nowrap; border:1px solid;}
+.pill.pending{background:#fff3e0; color:#b25900; border-color:#f5d0a0;}
+.pill.approved{background:#e7f8ee; color:#1b7a42; border-color:#b6e7c7;}
+.pill.rejected{background:#fdecec; color:#c0392b; border-color:#f4b8b8;}
+
+/* Empty state */
+.empty{padding:34px 14px; text-align:center; color:var(--text-muted); font-size:13.5px;}
+
+/* ───── Detail view (inline, replaces modal) ───── */
+.detail-view{display:flex; flex-direction:column; gap:18px;}
+
+/* Header block at top of detail */
+.detail-title-block{
+  padding:18px 22px;
+  background:linear-gradient(180deg, #f7f9fd 0%, #eef3fb 100%);
+  border:1px solid var(--border-soft);
+  border-radius:10px;
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:18px; flex-wrap:wrap;
+}
+.detail-title-main{flex:1 1 320px; min-width:0;}
+.detail-eyebrow{
+  display:inline-block; font-size:11px; font-weight:800;
+  letter-spacing:.7px; text-transform:uppercase;
+  background:var(--uidai-stripe);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  margin-bottom:8px;
+}
+.detail-title{font-size:19px; font-weight:700; color:var(--navy); line-height:1.35; display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.detail-title-id{font-family:'Roboto Mono', ui-monospace, monospace; font-size:12px; color:var(--navy); background:#fff; padding:4px 10px; border-radius:6px; font-weight:700; border:1px solid var(--border);}
+.detail-title-status{flex:0 0 auto; padding-top:24px;}
+
+/* Section card — proper breathing room and grouping */
+.section{
+  background:#fff;
+  border:1px solid var(--border-soft);
+  border-radius:10px;
+  padding:18px 22px;
+}
+.section-head{
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:14px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border-soft);
+}
+.section-head::before{
+  content:""; width:3px; height:16px;
+  background:var(--uidai-stripe);
+  border-radius:2px; display:inline-block;
+}
+.section-head h3{
+  margin:0; font-size:13px; font-weight:800; color:var(--navy);
+  text-transform:uppercase; letter-spacing:.5px;
+}
+
+/* Definition list — two-column key/value pairs with comfortable spacing */
+.kv-list{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:18px 32px;
+}
+.kv-list .kv-full{grid-column:1 / -1;}
+.kv-list .k{font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.5px; font-weight:700; margin-bottom:5px;}
+.kv-list .v{font-size:14px; color:var(--text); font-weight:500; line-height:1.5; word-break:break-word;}
+.kv-list .v.strong{font-weight:600; color:var(--navy);}
+
+/* Project line — single project info presentation */
+.project-line{
+  font-size:15px; font-weight:600; color:var(--navy);
+  line-height:1.5;
+}
+.project-line .pid{
+  font-family:'Roboto Mono', ui-monospace, monospace;
+  font-size:12px; color:var(--text-muted);
+  background:#f0f4fa; padding:2px 9px; border-radius:5px;
+  font-weight:600; margin-left:6px;
+  display:inline-block;
+}
+
+/* Description text — clean prose, no boxed look */
+.desc-text{
+  font-size:14px; color:var(--text);
+  line-height:1.65;
+}
+
+/* Submission (comments + attachments) */
+.cmt{padding:14px 16px; border:1px solid var(--border-soft); border-radius:8px; background:#f7f9fd;}
+.cmt + .cmt{margin-top:10px;}
+.cmt-meta{font-size:12px; color:var(--text-soft); margin-bottom:8px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;}
+.cmt-meta .who{font-weight:700; color:var(--navy); font-size:13px;}
+.cmt-text{font-size:14px; color:var(--text); line-height:1.6; white-space:pre-wrap;}
+.cmt-atts{margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;}
+.att{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:12px; padding:5px 11px;
+  border:1px solid var(--border); border-radius:6px;
+  background:#fff; cursor:pointer; color:var(--navy);
+  transition:background .15s, border-color .15s;
+}
+.att:hover{background:#eaf2fb; border-color:var(--cyan);}
+.att-size{color:var(--text-muted); font-weight:500;}
+
+/* Division status — full-width rows, one per division */
+.div-status{display:flex; flex-direction:column; gap:8px;}
+.div-status .ds{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 14px; border:1px solid var(--border-soft);
+  border-radius:8px; background:#f7f9fd;
+  font-size:13.5px; gap:12px;
+}
+.div-status .ds.me{background:#fff8eb; border-color:#f5d59d;}
+.div-status .ds .nm{font-weight:600; color:var(--text); display:flex; align-items:center; gap:8px;}
+.div-status .ds .you{font-size:10.5px; font-weight:800; color:var(--saffron); letter-spacing:.4px; padding:2px 7px; background:#fff; border:1px solid #f5d59d; border-radius:4px;}
+
+/* Decision banner (already-decided state) */
+.decided-banner{padding:14px 18px; border-radius:8px; font-size:14px; line-height:1.55;}
+.decided-banner.approved{background:var(--green-soft); border:1px solid #b6e7c7; color:#1b6a3a;}
+.decided-banner.rejected{background:#fdecec; border:1px solid #f4b8b8; color:#9b2c1f;}
+.decided-banner b{font-weight:700;}
+.decided-banner > div + div{margin-top:6px;}
+
+/* Detail actions row (replaces modal footer) */
+.detail-actions{
+  display:flex; justify-content:flex-end; align-items:center; gap:10px;
+  padding-top:6px;
+  flex-wrap:wrap;
+}
+
+/* ───── Modal popup (UIDAI message style) ───── */
+.modal{
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:1800;
+  align-items:center; justify-content:center;
+  padding:16px;
+}
+.modal.open{display:flex;}
+.modal-box{
+  background:#fff;
+  width:min(420px, 100%);
+  max-height:92vh; overflow:auto;
+  border-radius:12px;
+  padding:28px 24px 22px;
+  box-shadow:0 20px 60px rgba(0,0,0,.18);
+  position:relative; text-align:center;
+}
+.modal-box::before{
+  content:""; position:absolute; top:0; left:0; right:0;
+  height:4px; background:var(--uidai-stripe);
+  border-radius:12px 12px 0 0;
+}
+.message-icon{
+  width:60px; height:60px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 14px; font-size:30px; font-weight:900;
+  background:#e7f8ee; color:#1b8f4b;
+}
+.message-icon.error{background:#fdecec; color:var(--red);}
+.message-icon.info{background:#e3f2fd; color:var(--cyan);}
+.message-text{font-size:16px; font-weight:600; line-height:1.5; color:var(--text);}
+.modal-actions{display:flex; justify-content:center; gap:10px; margin-top:18px; flex-wrap:wrap;}
+.modal-actions .btn{min-width:110px;}
+
+/* Reject form (replaces detail-actions during rejection) */
+.reject-form{
+  width:100%; display:flex; flex-direction:column; gap:12px;
+  padding-top:14px; border-top:1px solid var(--border-soft);
+}
+.reject-form label{font-size:12.5px; font-weight:700; color:var(--navy); display:block; margin-bottom:4px;}
+.reject-form textarea{width:100%; min-height:72px; padding:9px 11px; border:1px solid var(--border); border-radius:6px; background:#fff; resize:vertical; font-size:13.5px;}
+.reject-form textarea:focus{outline:none; border-color:var(--cyan); box-shadow:0 0 0 3px rgba(10,161,192,.12);}
+.reject-form .form-actions{display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;}
+
+/* Revert-target picker (radio toggle + dependent picker) */
+.revert-kind{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px;}
+.revert-kind .opt{
+  flex:1 1 0; min-width:180px;
+  display:flex; align-items:flex-start; gap:9px;
+  padding:10px 12px; border:1px solid var(--border); border-radius:8px;
+  background:#fff; cursor:pointer; transition:border-color .15s, background .15s, box-shadow .15s;
+}
+.revert-kind .opt:hover{border-color:var(--cyan); background:#f6fbfd;}
+.revert-kind .opt input[type="radio"]{margin-top:2px; accent-color:var(--cyan); cursor:pointer;}
+.revert-kind .opt .opt-body{display:flex; flex-direction:column; gap:2px;}
+.revert-kind .opt .opt-title{font-size:13px; font-weight:700; color:var(--navy);}
+.revert-kind .opt .opt-sub{font-size:11.5px; color:var(--text-muted); line-height:1.45;}
+.revert-kind .opt.selected{border-color:var(--cyan); background:#eef9fc; box-shadow:0 0 0 3px rgba(10,161,192,.10);}
+
+.revert-target-panel{
+  border:1px solid var(--border); border-radius:8px;
+  background:#fafcfe; padding:10px 12px;
+}
+.revert-target-panel .panel-hint{font-size:11.5px; color:var(--text-muted); margin-bottom:8px;}
+
+/* Division multi-select checkbox list */
+.div-checklist{display:flex; flex-direction:column; gap:6px;}
+.div-checklist .dc-row{
+  display:flex; align-items:center; gap:10px;
+  padding:8px 11px; border:1px solid var(--border); border-radius:6px;
+  background:#fff; cursor:pointer; transition:border-color .15s, background .15s;
+}
+.div-checklist .dc-row:hover{border-color:var(--cyan); background:#f6fbfd;}
+.div-checklist .dc-row input[type="checkbox"]{accent-color:var(--cyan); cursor:pointer;}
+.div-checklist .dc-row .dc-name{font-size:13px; font-weight:600; color:var(--text);}
+.div-checklist .dc-row.checked{border-color:var(--cyan); background:#eef9fc;}
+
+/* Footer */
+.site-footer{background:linear-gradient(90deg,#eaf1fb 0%,#f5f9fe 50%,#eaf1fb 100%); color:var(--navy); text-align:center; padding:10px 16px; font-size:12.5px; font-weight:600; margin-top:auto; position:relative;}
+.site-footer::before{content:""; position:absolute; top:0; left:0; right:0; height:3px; background:var(--uidai-stripe);}
+.site-footer .sep{color:var(--cyan); margin:0 8px;}
+
+@media (max-width:960px){
+  .header-main{grid-template-columns:1fr; text-align:center; gap:8px; padding:8px 14px;}
+  .header-brand{justify-content:center;}
+  .header-authority{text-align:center;}
+  .layout{flex-direction:column;}
+  .sidebar{width:100%; border-right:none; border-bottom:1px solid var(--border);}
+  .menu{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:6px; padding:8px;}
+  .menu a{margin-bottom:0;}
+  .card-header{flex-direction:column; align-items:stretch;}
+  .filter-bar{width:100%;}
+  .filter-input{min-width:0;}
+  .filter-select{flex:1 1 140px;}
+}
+@media (max-width:640px){
+  .header-main{padding:8px 10px;}
+  .header-brand img{height:38px;}
+  .header-title{font-size:16px;}
+  .a11y-label{display:none;}
+  .pm-title{font-size:19px;}
+  .detail-title{font-size:17px;}
+  .content{padding:12px 14px;}
+  .card{padding:14px 14px 14px;}
+  .detail-title-block{padding:16px 16px;}
+  .detail-title-status{padding-top:0;}
+  .section{padding:16px 16px;}
+  .kv-list{gap:14px 20px;}
+}
+@media (max-width:420px){
+  .kv-list{grid-template-columns:1fr; gap:14px;}
+}
+</style>
+</head>
+<body>
+<a href="#mainContent" class="skip-link">Skip to main content</a>
+
+<header class="site-header" role="banner">
+  <div class="header-accessibility-strip">
+    <span class="a11y-label" aria-hidden="true">Text Size:</span>
+    <div class="font-resizer" role="group" aria-label="Adjust text size">
+      <button type="button" id="frIncrease" aria-label="Increase text size">+A</button>
+      <button type="button" id="frReset" aria-label="Reset text size">A</button>
+      <button type="button" id="frDecrease" aria-label="Decrease text size">-A</button>
+    </div>
+  </div>
+  <div class="header-main">
+    <div class="header-brand">
+      <img src="Aadhaar.png" alt="Aadhaar logo" onerror="this.style.display='none'">
+      <div class="header-brand-text">
+        <span class="header-brand-hi-1" lang="hi">मेरा आधार</span>
+        <span class="header-brand-hi-2" lang="hi">मेरी पहचान</span>
+      </div>
+    </div>
+    <h1 class="header-title">UIDAI Automation Governance Tool</h1>
+    <div class="header-authority">Unique Identification<br>Authority of India</div>
+  </div>
+</header>
+
+<nav class="navbar" role="navigation" aria-label="Top navigation">
+  <div class="menu-home-block">
+    <span id="toggleBtn" role="button" tabindex="0">☰ Menu</span>
+    <span id="homeBtn" role="button" tabindex="0">🏠 Home</span>
+  </div>
+  <div class="profile" id="profileBtn" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
+    <span>👤&nbsp;&nbsp;Profile</span>
+    <div class="profile-menu" id="profileMenu" role="menu">
+      <div role="menuitem">Profile</div>
+      <div role="menuitem">Sign Out</div>
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar" role="complementary">
+    <nav class="menu" aria-label="Application sections">
+      <a href="#"><span>📊</span><span class="text">Dashboard</span></a>
+      <a href="#"><span>📁</span><span class="text">Project Management</span></a>
+      <a href="#" class="active"><span>📥</span><span class="text">Approval Inbox</span></a>
+      <a href="#"><span>🗂️</span><span class="text">Master Data</span></a>
+      <a href="#"><span>🏢</span><span class="text">Organization Management</span></a>
+      <a href="#"><span>👤</span><span class="text">User Management</span></a>
+    </nav>
+  </aside>
+
+  <main class="content" id="mainContent" role="main" tabindex="-1">
+    <div class="page-header">
+      <div class="page-header-text">
+        <div class="pm-title">Approval Inbox</div>
+        <div class="pm-subtitle" id="pageSubtitle">Review. Decide. Move forward.</div>
+        <div class="pm-description" id="pageDescription">Activity approval requests routed to you. Click Review to inspect the submission and decide.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <!-- LIST HEADER (visible in list view) -->
+      <div class="card-header" id="listHeader">
+        <h2 class="card-title">All Approvals <span class="meta" id="cntMeta"></span></h2>
+        <div class="filter-bar" role="group" aria-label="Filter approvals">
+          <input type="search" id="filterSearch" class="filter-input"
+                 placeholder="Search activity, project or organization…"
+                 aria-label="Search activity, project or organization">
+          <select id="filterStatus" class="filter-select" aria-label="Filter by status">
+            <option value="all">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- DETAIL HEADER (visible in detail view) -->
+      <div class="card-header" id="detailHeader" style="display:none;">
+        <button type="button" class="btn-back" id="backBtn" onclick="closeReview()" aria-label="Back to inbox">
+          <span class="arrow" aria-hidden="true">←</span> Back to Inbox
+        </button>
+      </div>
+
+      <!-- LIST VIEW -->
+      <div id="listView">
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Activity</th>
+                <th>Project</th>
+                <th>Organization</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th style="text-align:right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="inboxBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- DETAIL VIEW -->
+      <div id="detailView" class="detail-view" style="display:none;" aria-labelledby="detailTitleEl">
+        <div class="detail-title-block">
+          <div class="detail-title-main">
+            <div class="detail-eyebrow">Approval Request</div>
+            <div class="detail-title" id="detailTitleEl">
+              <button type="button" class="activity-link" id="detailTitleLink"
+                      onclick="openActivityFromDetail()">
+                <span id="detailTitle">Activity</span>
+              </button>
+              <span class="detail-title-id" id="detailActivityId">—</span>
+            </div>
+          </div>
+          <div class="detail-title-status" id="detailTitleStatus"></div>
+        </div>
+        <div id="detailBody"></div>
+        <div id="detailActions"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer class="site-footer" role="contentinfo">
+  © 2026 UIDAI <span class="sep">·</span> PMIS Automation Tool <span class="sep">·</span> Internal Use Only
+</footer>
+
+<!-- Message popup -->
+<div id="messageModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="messageText">
+  <div class="modal-box">
+    <div id="messageIcon" class="message-icon">✔</div>
+    <div id="messageText" class="message-text"></div>
+    <div class="modal-actions">
+      <button class="btn cancel" id="messageCancelBtn" type="button" style="display:none;">Cancel</button>
+      <button class="btn" id="messageOkBtn" type="button">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const CURRENT_USER = {
+  name : 'Vikram Singh',
+  division : 'TMD2',
+  divisionLong : 'Activity Owner · TMD2',
+  role : 'activity_owner'
+};
+
+document.getElementById('pageSubtitle').textContent = `${CURRENT_USER.divisionLong}`;
+document.getElementById('pageDescription').textContent = 'Activities awaiting your final decision as Activity Owner. All consent divisions have already approved.';
+
+const inboxItems = [
+  {
+    requestId : 'AP-2026-201',
+    projectId : 'PRJ-2026-018',
+    projectName : 'Aadhaar Authentication API v3.0 Upgrade',
+    activity : {
+      id:'A1.1', name:'Project Charter & Scope Statement',
+      owner:'TMD2', vendor:'Wipro Limited',
+      consentDivisions:['TMD1','PMO'],
+      plannedDates:'2026-03-01 to 2026-03-18',
+      description:'Charter covering scope inclusions/exclusions, success criteria, stakeholder register and high-level milestones for the API v3.0 programme.'
+    },
+    submittedAt:'2026-03-19T09:20:00',
+    divisionDecisions:[
+      { division:'TMD1', status:'approved' },
+      { division:'PMO',  status:'approved' }
+    ],
+    comments:[
+      { kind:'user', who:'Wipro Limited', when:'2026-03-17T18:05:00',
+        text:'Charter packet attached — scope, stakeholder register and milestone plan aligned with the BSP contract clauses. Out-of-scope items listed explicitly. Requesting sign-off.',
+        attachments:[
+          { name:'Charter_v1.0.pdf', size:'1.8 MB' },
+          { name:'Stakeholder_Register.xlsx', size:'214 KB' }
+        ]}
+    ]
+  },
+  {
+    requestId : 'AP-2026-205',
+    projectId : 'PRJ-2026-018',
+    projectName : 'Aadhaar Authentication API v3.0 Upgrade',
+    activity : {
+      id:'A1.4', name:'Risk Assessment Matrix',
+      owner:'TMD2', vendor:'Deloitte Touche Tohmatsu India LLP',
+      consentDivisions:['TMD1','PMO'],
+      plannedDates:'2026-04-05 to 2026-04-25',
+      description:'Risk register covering technical, operational and compliance risks with mitigation plans and owners. Heat-mapped and prioritised.'
+    },
+    submittedAt:'2026-05-12T11:05:00',
+    divisionDecisions:[
+      { division:'TMD1', status:'approved' },
+      { division:'PMO',  status:'approved' }
+    ],
+    comments:[
+      { kind:'user', who:'Deloitte Touche Tohmatsu India LLP', when:'2026-05-10T18:32:00',
+        text:'Latest submission. Addressed prior owner feedback — added rollout-window risk, re-scored crypto-migration risks from Medium to High and updated the heat-map.',
+        attachments:[
+          { name:'Risk_Matrix_v2.0.xlsx', size:'468 KB' },
+          { name:'Risk_Heatmap_v2.pdf', size:'1.1 MB' }
+        ]}
+    ]
+  },
+  {
+    requestId : 'AP-2026-209',
+    projectId : 'PRJ-2026-018',
+    projectName : 'Aadhaar Authentication API v3.0 Upgrade',
+    activity : {
+      id:'A3.1', name:'Production Deployment Runbook',
+      owner:'TMD2', vendor:'TechSolutions India Pvt Ltd',
+      consentDivisions:['TMD1','PMO','ECMD'],
+      plannedDates:'2026-08-15 to 2026-08-30',
+      description:'Deployment runbook — blue-green cut-over plan, canary gates, rollback triggers, error-budget thresholds and the war-room comms tree.'
+    },
+    submittedAt:'2026-05-21T11:00:00',
+    divisionDecisions:[
+      { division:'TMD1', status:'approved' },
+      { division:'PMO',  status:'approved' },
+      { division:'ECMD', status:'approved' }
+    ],
+    comments:[
+      { kind:'user', who:'TechSolutions India Pvt Ltd', when:'2026-05-19T17:42:00',
+        text:'Final runbook for the API v3.0 production deployment. Blue-green strategy with progressive canary gates (5/25/50/100%), rollback triggers and war-room comms tree. Validated against two dry-runs.',
+        attachments:[
+          { name:'Deployment_Runbook_v1.0.pdf', size:'2.4 MB' },
+          { name:'Rollback_Triggers.xlsx', size:'182 KB' }
+        ]}
+    ]
+  },
+  {
+    requestId : 'AP-2026-214',
+    projectId : 'PRJ-2026-021',
+    projectName : 'Aadhaar PVC Card Issuance Modernization',
+    activity : {
+      id:'A2.3', name:'User Training Materials',
+      owner:'TMD2', vendor:'Tata Elxsi Limited',
+      consentDivisions:['PMO','TMD1'],
+      plannedDates:'2026-05-25 to 2026-06-15',
+      description:'Training kit for residents and operators — walkthrough videos, illustrated PDF guides, FAQs and quick-reference cards (English + Hindi).'
+    },
+    submittedAt:'2026-05-22T10:00:00',
+    divisionDecisions:[
+      { division:'PMO',  status:'approved' },
+      { division:'TMD1', status:'approved' }
+    ],
+    comments:[
+      { kind:'user', who:'Tata Elxsi Limited', when:'2026-05-20T19:18:00',
+        text:'Training kit submitted — illustrated walkthrough PDF (EN + HI), 90-second walkthrough video, operator training deck and the FAQ library (49 entries).',
+        attachments:[
+          { name:'Resident_Walkthrough_EN_HI.pdf', size:'3.2 MB' },
+          { name:'Operator_Training_Deck.pptx', size:'4.1 MB' }
+        ]}
+    ]
+  }
+];
+
+/* Persisted user decisions, keyed by requestId. The audit trail (separate
+   page) records every state change with timestamp + actor; here we keep
+   just the latest user-visible status so the inbox row & detail can
+   render it. */
+const myDecisions = {};
+
+const $ = id => document.getElementById(id);
+function escapeHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function fmtDateTime(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  if(isNaN(d.getTime())) return iso;
+  const pad = n => String(n).padStart(2,'0');
+  return `${pad(d.getDate())}-${pad(d.getMonth()+1)}-${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function cap(s){ return s ? s[0].toUpperCase()+s.slice(1) : s; }
+
+/* Message popup — replaces native alerts. Mirrors the Project Management
+   showMessage helper: ✔ for success/info, ! for errors. Falls back silently
+   if the modal element is unexpectedly missing. */
+function showMessage(msg, onOk){
+  const clean = String(msg ?? '').trim().replace(/[.]+$/g,'');
+  const errorPattern = /(not found|required|invalid|warning|cannot|please|at least|provide|choose|select|exceed)/i;
+  const isError = errorPattern.test(clean);
+  const modal  = $('messageModal');
+  const icon   = $('messageIcon');
+  const text   = $('messageText');
+  const okBtn  = $('messageOkBtn');
+  const cnBtn  = $('messageCancelBtn');
+  if(!modal || !icon || !text || !okBtn){
+    if(typeof onOk === 'function') onOk();
+    return;
+  }
+  if(cnBtn) cnBtn.style.display = 'none';
+  okBtn.textContent = 'OK';
+  okBtn.className   = 'btn';
+  icon.classList.toggle('error', isError);
+  icon.classList.toggle('info',  !isError);
+  icon.innerText = isError ? '!' : '✔';
+  text.innerText = clean;
+  okBtn.onclick = () => {
+    modal.classList.remove('open');
+    if(typeof onOk === 'function') setTimeout(onOk, 0);
+  };
+  modal.classList.add('open');
+  setTimeout(() => okBtn.focus(), 50);
+}
+
+/* Confirmation popup — two-button modal. okText/cancelText optional. */
+function showConfirm(msg, onConfirm, opts){
+  opts = opts || {};
+  const clean = String(msg ?? '').trim();
+  const modal = $('messageModal');
+  const icon  = $('messageIcon');
+  const text  = $('messageText');
+  const okBtn = $('messageOkBtn');
+  const cnBtn = $('messageCancelBtn');
+  if(!modal || !icon || !text || !okBtn || !cnBtn){
+    if(typeof onConfirm === 'function') onConfirm();
+    return;
+  }
+  icon.classList.remove('error');
+  icon.classList.add('info');
+  icon.innerText = '?';
+  text.innerText = clean;
+  okBtn.textContent = opts.okText || 'Confirm';
+  okBtn.className   = opts.danger ? 'btn danger' : 'btn';
+  cnBtn.textContent = opts.cancelText || 'Cancel';
+  cnBtn.style.display = '';
+  okBtn.onclick = () => {
+    modal.classList.remove('open');
+    if(typeof onConfirm === 'function') setTimeout(onConfirm, 0);
+  };
+  cnBtn.onclick = () => {
+    modal.classList.remove('open');
+  };
+  modal.classList.add('open');
+  setTimeout(() => cnBtn.focus(), 50);
+}
+
+/* Esc dismisses the message popup when it's open */
+document.addEventListener('keydown', e => {
+  const modal = $('messageModal');
+  if(e.key === 'Escape' && modal && modal.classList.contains('open')){
+    e.stopPropagation();
+    modal.classList.remove('open');
+  }
+}, true);
+
+/* Activity Owner's decision IS the request's final status — they are the
+   final decision-maker. Pending until they act. */
+function getItemStatus(it){
+  const dec = myDecisions[it.requestId];
+  return dec ? dec.status : 'pending';
+}
+
+/* ───── Filter + List ───── */
+let filterText = '';
+let filterStatus = 'all';
+
+function filteredItems(){
+  const q = filterText.trim().toLowerCase();
+  return inboxItems.filter(it => {
+    if(filterStatus !== 'all' && getItemStatus(it) !== filterStatus) return false;
+    if(q){
+      const hay = (
+        it.activity.id + ' ' +
+        it.activity.name + ' ' +
+        it.projectId + ' ' +
+        it.projectName + ' ' +
+        it.activity.vendor
+      ).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function renderInbox(){
+  const items = filteredItems();
+  const total = inboxItems.length;
+  $('cntMeta').textContent = (items.length === total)
+    ? `(${total})`
+    : `(${items.length} of ${total})`;
+
+  const body = $('inboxBody');
+  if(!items.length){
+    body.innerHTML = `<tr><td colspan="6" class="empty">No items match the current filters.</td></tr>`;
+    return;
+  }
+  body.innerHTML = items.map(it => {
+    const st = getItemStatus(it);
+    const safeId   = escapeHtml(it.activity.id);
+    const safeName = escapeHtml(it.activity.name);
+    const linkArgs = `'${safeId.replace(/'/g,"\\'")}','${safeName.replace(/'/g,"\\'")}'`;
+    return `
+      <tr>
+        <td>
+          <div class="cell-id">${safeId}</div>
+          <button type="button" class="activity-link cell-name"
+                  onclick="openActivityPage(${linkArgs})">${safeName}</button>
+        </td>
+        <td>
+          <div>${escapeHtml(it.projectName)}</div>
+          <div class="cell-sub">${escapeHtml(it.projectId)}</div>
+        </td>
+        <td>${escapeHtml(it.activity.vendor)}</td>
+        <td>${escapeHtml(fmtDateTime(it.submittedAt))}</td>
+        <td><span class="pill ${st}">${cap(st)}</span></td>
+        <td class="cell-actions">
+          <button class="btn sm" onclick="openReview('${escapeHtml(it.requestId)}')">Review</button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+/* Filter event wiring */
+$('filterSearch').addEventListener('input', e => { filterText = e.target.value; renderInbox(); });
+$('filterStatus').addEventListener('change', e => { filterStatus = e.target.value; renderInbox(); });
+
+/* ───── Activity link target (simulated navigation) ───── */
+function openActivityPage(actId, actName){
+  showMessage(`Redirecting to Project Management → Activity ${actId}: ${actName} (demo)`);
+}
+function openActivityFromDetail(){
+  const it = inboxItems.find(x => x.requestId === activeRequestId);
+  if(it) openActivityPage(it.activity.id, it.activity.name);
+}
+function downloadAttachmentDemo(el){
+  const name = el && el.dataset && el.dataset.name || 'file';
+  showMessage(`Downloading ${name} (demo)`);
+}
+
+/* ───── Inline detail view ───── */
+let activeRequestId = null;
+let rejectionMode = false;
+let revertKind = '';                /* '' | 'vendor' | 'divisions' */
+let selectedDivisions = [];
+
+function openReview(reqId){
+  activeRequestId = reqId;
+  rejectionMode = false;
+  revertKind = '';
+  selectedDivisions = [];
+  const it = inboxItems.find(x => x.requestId === reqId);
+  if(!it) return;
+
+  $('listView').style.display   = 'none';
+  $('listHeader').style.display = 'none';
+  $('detailView').style.display   = 'flex';
+  $('detailHeader').style.display = 'flex';
+
+  $('detailTitle').textContent      = it.activity.name;
+  $('detailActivityId').textContent = it.activity.id;
+  $('detailBody').innerHTML    = buildBody(it);
+  $('detailActions').innerHTML = buildActions(it);
+
+  /* Scroll the page so the user lands at the top of the detail. */
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => $('backBtn').focus(), 50);
+}
+
+function closeReview(){
+  $('listView').style.display   = '';
+  $('listHeader').style.display = '';
+  $('detailView').style.display   = 'none';
+  $('detailHeader').style.display = 'none';
+  const ts = $('detailTitleStatus'); if(ts) ts.innerHTML = '';
+  activeRequestId = null;
+  rejectionMode = false;
+  revertKind = '';
+  selectedDivisions = [];
+  renderInbox();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* Esc closes detail view (matches the previous modal behaviour) */
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && $('detailView').style.display === 'flex'){
+    if(rejectionMode) cancelRejection();
+    else closeReview();
+  }
+});
+
+function buildBody(it){
+  const a = it.activity;
+  const consent = a.consentDivisions.join(', ');
+
+  /* ── Project section ── */
+  const projectSection = `
+    <div class="section">
+      <div class="section-head"><h3>Project</h3></div>
+      <div class="project-line">
+        ${escapeHtml(it.projectName)}<span class="pid">${escapeHtml(it.projectId)}</span>
+      </div>
+    </div>`;
+
+  /* ── Activity details section: 2-col definition list ── */
+  const detailsSection = `
+    <div class="section">
+      <div class="section-head"><h3>Activity Details</h3></div>
+      <div class="kv-list">
+        <div><div class="k">Organization</div><div class="v strong">${escapeHtml(a.vendor)}</div></div>
+        <div><div class="k">Activity Owner</div><div class="v">${escapeHtml(a.owner)}</div></div>
+        <div><div class="k">Planned Dates</div><div class="v">${escapeHtml(a.plannedDates)}</div></div>
+        <div><div class="k">Submitted</div><div class="v">${escapeHtml(fmtDateTime(it.submittedAt))}</div></div>
+        <div class="kv-full"><div class="k">Consent Divisions</div><div class="v">${escapeHtml(consent)}</div></div>
+        <div class="kv-full"><div class="k">Description</div><div class="v desc-text">${escapeHtml(a.description)}</div></div>
+      </div>
+    </div>`;
+
+  /* ── Organization submission section ── */
+  const cmts = it.comments.map(c => {
+    const atts = (c.attachments || []).map(att =>
+      `<span class="att" onclick="downloadAttachmentDemo(this)" data-name="${escapeHtml(att.name)}">📎 ${escapeHtml(att.name)} <span class="att-size">${escapeHtml(att.size || '')}</span></span>`
+    ).join('');
+    return `
+      <div class="cmt">
+        <div class="cmt-meta">
+          <span class="who">${escapeHtml(c.who)}</span>
+          <span>${escapeHtml(fmtDateTime(c.when))}</span>
+        </div>
+        <div class="cmt-text">${escapeHtml(c.text)}</div>
+        ${atts ? `<div class="cmt-atts">${atts}</div>` : ''}
+      </div>`;
+  }).join('');
+
+  const submissionSection = `
+    <div class="section">
+      <div class="section-head"><h3>Organization Submission</h3></div>
+      ${cmts}
+    </div>`;
+
+  /* ── Division status section ── */
+  const divStatus = it.divisionDecisions.map(d => {
+    const isMe = d.division === CURRENT_USER.division;
+    const status = isMe && myDecisions[it.requestId] ? myDecisions[it.requestId].status : d.status;
+    return `
+      <div class="ds ${isMe ? 'me' : ''}">
+        <span class="nm">${escapeHtml(d.division)}${isMe ? ' <span class="you">YOU</span>' : ''}</span>
+        <span class="pill ${status}">${cap(status)}</span>
+      </div>`;
+  }).join('');
+
+  let ownerRowExtra = '';
+  if(!it.divisionDecisions.some(d => d.division === CURRENT_USER.division)){
+    const st = getItemStatus(it);
+    ownerRowExtra = `
+      <div class="ds me">
+        <span class="nm">${escapeHtml(CURRENT_USER.division)} <span class="you">YOU · OWNER</span></span>
+        <span class="pill ${st}">${cap(st)}</span>
+      </div>`;
+  }
+
+  const statusSection = `
+    <div class="section">
+      <div class="section-head"><h3>Division Status</h3></div>
+      <div class="div-status">${divStatus}${ownerRowExtra}</div>
+    </div>`;
+
+  /* ── Decision banner (when already decided) ── */
+  const dec = myDecisions[it.requestId];
+  let banner = '';
+  if(dec){
+    if(dec.status === 'approved'){
+      banner = `
+        <div class="decided-banner approved">
+          <div><b>You approved this request</b> on ${escapeHtml(fmtDateTime(dec.at))}.</div>
+          <div>Activity has been marked as Completed.</div>
+        </div>`;
+    } else {
+      let tgt;
+      if(dec.revertKind === 'vendor'){
+        tgt = `Organization (${escapeHtml(it.activity.vendor)}) — full restart`;
+      } else {
+        const divs = Array.isArray(dec.revertDivisions) ? dec.revertDivisions : [];
+        const label = divs.length > 1 ? 'Concerned Divisions' : 'Concerned Division';
+        tgt = `${label} — ${escapeHtml(divs.join(', '))} (re-examination only)`;
+      }
+      banner = `
+        <div class="decided-banner rejected">
+          <div><b>You rejected this request</b> on ${escapeHtml(fmtDateTime(dec.at))}.</div>
+          <div><b>Reverted to:</b> ${tgt}</div>
+          <div><b>Reason:</b> ${escapeHtml(dec.reason)}</div>
+        </div>`;
+    }
+  }
+
+  /* Top-right status pill on the title block */
+  const titleStatusEl = $('detailTitleStatus');
+  if(titleStatusEl){
+    const st = getItemStatus(it);
+    titleStatusEl.innerHTML = `<span class="pill ${st}">${cap(st)}</span>`;
+  }
+
+  return banner + projectSection + detailsSection + submissionSection + statusSection;
+}
+
+function buildActions(it){
+  const dec = myDecisions[it.requestId];
+  if(dec){
+    /* Already decided — only Back is needed (already in card header).
+       Keep a Close-style action button at bottom as well so users have
+       both an in-flow and a top-level way back. */
+    return `
+      <div class="detail-actions">
+        <button class="btn cancel" onclick="closeReview()">Back to Inbox</button>
+      </div>`;
+  }
+  if(rejectionMode){
+    return `
+      <div class="reject-form">
+        <div>
+          <label for="rejectReason">Reason for rejection</label>
+          <textarea id="rejectReason" placeholder="Specific reason — what needs to be fixed?" oninput="onRejectInput()"></textarea>
+        </div>
+        <div>
+          <label>Revert workflow to</label>
+          <div class="revert-kind" id="revertKindGroup">
+            <label class="opt ${revertKind==='vendor'?'selected':''}">
+              <input type="radio" name="revertKind" value="vendor" ${revertKind==='vendor'?'checked':''} onchange="onRevertKindChange('vendor')">
+              <span class="opt-body">
+                <span class="opt-title">Organization</span>
+                <span class="opt-sub">Full restart — all consent divisions will re-review after the organization resubmits.</span>
+              </span>
+            </label>
+            <label class="opt ${revertKind==='divisions'?'selected':''}">
+              <input type="radio" name="revertKind" value="divisions" ${revertKind==='divisions'?'checked':''} onchange="onRevertKindChange('divisions')">
+              <span class="opt-body">
+                <span class="opt-title">Concerned Divisions</span>
+                <span class="opt-sub">Re-examination only — pick one or more divisions to review again.</span>
+              </span>
+            </label>
+          </div>
+          <div id="revertTargetPanel">${buildRevertTargetPanel(it)}</div>
+        </div>
+        <div class="form-actions">
+          <button class="btn cancel" onclick="cancelRejection()">Cancel</button>
+          <button class="btn danger" id="confirmRejectBtn" disabled onclick="confirmRejection()">Confirm Rejection</button>
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="detail-actions">
+      <button class="btn cancel" onclick="closeReview()">Back to Inbox</button>
+      <button class="btn danger" onclick="beginRejection()">Reject</button>
+      <button class="btn" onclick="approveRequest()">Approve &amp; Complete</button>
+    </div>`;
+}
+
+function buildRevertTargetPanel(it){
+  if(revertKind === 'vendor'){
+    return `
+      <div class="revert-target-panel">
+        <div class="panel-hint">The workflow will revert to the organization for resubmission.</div>
+      </div>`;
+  }
+  if(revertKind === 'divisions'){
+    const divs = it.activity.consentDivisions || [];
+    if(!divs.length){
+      return `
+        <div class="revert-target-panel">
+          <div class="panel-hint">No consent divisions are configured for this activity.</div>
+        </div>`;
+    }
+    const rows = divs.map(d => {
+      const checked = selectedDivisions.includes(d);
+      const safe = escapeHtml(d).replace(/'/g, "\\'");
+      return `
+        <label class="dc-row ${checked?'checked':''}">
+          <input type="checkbox" value="${escapeHtml(d)}" ${checked?'checked':''}
+                 onchange="onRevertDivisionToggle('${safe}', this.checked)">
+          <span class="dc-name">${escapeHtml(d)}</span>
+        </label>`;
+    }).join('');
+    return `
+      <div class="revert-target-panel">
+        <div class="panel-hint">Select one or more divisions for re-examination.</div>
+        <div class="div-checklist">${rows}</div>
+      </div>`;
+  }
+  return `
+    <div class="revert-target-panel">
+      <div class="panel-hint">Choose Organization or Concerned Divisions above to continue.</div>
+    </div>`;
+}
+
+function approveRequest(){
+  if(!activeRequestId) return;
+  const it = inboxItems.find(x => x.requestId === activeRequestId);
+  showConfirm(
+    `Approve "${it.activity.name}" and mark the activity Completed?`,
+    () => {
+      const now = new Date().toISOString();
+      myDecisions[activeRequestId] = { status:'approved', at: now, reason:'' };
+      $('detailBody').innerHTML    = buildBody(it);
+      $('detailActions').innerHTML = buildActions(it);
+      showMessage('Request approved. Activity marked Completed.');
+    },
+    { okText:'Approve' }
+  );
+}
+
+function beginRejection(){
+  rejectionMode = true;
+  revertKind = '';
+  selectedDivisions = [];
+  $('detailActions').innerHTML = buildActions(inboxItems.find(x => x.requestId === activeRequestId));
+  setTimeout(() => { const t = $('rejectReason'); if(t) t.focus(); }, 0);
+}
+function cancelRejection(){
+  rejectionMode = false;
+  revertKind = '';
+  selectedDivisions = [];
+  $('detailActions').innerHTML = buildActions(inboxItems.find(x => x.requestId === activeRequestId));
+}
+function onRevertKindChange(kind){
+  revertKind = kind;
+  if(kind !== 'divisions') selectedDivisions = [];
+  const it = inboxItems.find(x => x.requestId === activeRequestId);
+  const panel = $('revertTargetPanel');
+  if(panel && it) panel.innerHTML = buildRevertTargetPanel(it);
+  document.querySelectorAll('#revertKindGroup .opt').forEach(el => {
+    const input = el.querySelector('input[type="radio"]');
+    if(input) el.classList.toggle('selected', input.value === kind);
+  });
+  onRejectInput();
+}
+function onRevertDivisionToggle(div, checked){
+  if(checked){
+    if(!selectedDivisions.includes(div)) selectedDivisions.push(div);
+  } else {
+    selectedDivisions = selectedDivisions.filter(d => d !== div);
+  }
+  document.querySelectorAll('#revertTargetPanel .dc-row').forEach(row => {
+    const cb = row.querySelector('input[type="checkbox"]');
+    if(cb) row.classList.toggle('checked', cb.checked);
+  });
+  onRejectInput();
+}
+function onRejectInput(){
+  const ta = $('rejectReason');
+  const btn = $('confirmRejectBtn');
+  if(!ta || !btn) return;
+  const reasonOk = ta.value.trim().length >= 10;
+  let targetOk = false;
+  if(revertKind === 'vendor') targetOk = true;
+  else if(revertKind === 'divisions') targetOk = selectedDivisions.length > 0;
+  btn.disabled = !(reasonOk && targetOk);
+}
+function confirmRejection(){
+  if(!activeRequestId) return;
+  const reason = ($('rejectReason') && $('rejectReason').value || '').trim();
+  if(reason.length < 10){ showMessage('Please provide a reason of at least 10 characters.'); return; }
+  if(!revertKind){ showMessage('Please choose where to revert the workflow.'); return; }
+  if(revertKind === 'divisions' && selectedDivisions.length === 0){
+    showMessage('Please select at least one concerned division for re-examination.');
+    return;
+  }
+  const it = inboxItems.find(x => x.requestId === activeRequestId);
+  const tgtLabel = revertKind === 'vendor'
+    ? `organization (${it.activity.vendor})`
+    : `${selectedDivisions.join(', ')} for re-examination`;
+  showConfirm(
+    `Reject "${it.activity.name}" and revert to ${tgtLabel}?`,
+    () => {
+      const now = new Date().toISOString();
+      myDecisions[activeRequestId] = {
+        status: 'rejected',
+        at: now,
+        reason,
+        revertKind,
+        revertDivisions: revertKind === 'divisions' ? [...selectedDivisions] : []
+      };
+      rejectionMode = false;
+      revertKind = '';
+      selectedDivisions = [];
+      $('detailBody').innerHTML    = buildBody(it);
+      $('detailActions').innerHTML = buildActions(it);
+      showMessage('Request rejected and workflow reverted.');
+    },
+    { okText:'Reject', danger:true }
+  );
+}
+
+/* Expose for inline handlers */
+window.openReview = openReview;
+window.closeReview = closeReview;
+window.openActivityPage = openActivityPage;
+window.openActivityFromDetail = openActivityFromDetail;
+window.downloadAttachmentDemo = downloadAttachmentDemo;
+window.approveRequest = approveRequest;
+window.beginRejection = beginRejection;
+window.cancelRejection = cancelRejection;
+window.confirmRejection = confirmRejection;
+window.onRejectInput = onRejectInput;
+window.onRevertKindChange = onRevertKindChange;
+window.onRevertDivisionToggle = onRevertDivisionToggle;
+
+/* Chrome */
+$('profileBtn').onclick = e => {
+  e.stopPropagation();
+  const m = $('profileMenu');
+  const open = m.style.display === 'block';
+  m.style.display = open ? 'none' : 'block';
+  $('profileBtn').setAttribute('aria-expanded', open ? 'false' : 'true');
+};
+document.addEventListener('click', () => { $('profileMenu').style.display='none'; $('profileBtn').setAttribute('aria-expanded','false'); });
+$('toggleBtn').onclick = () => $('sidebar').classList.toggle('collapsed');
+
+(function setupFontResizer(){
+  const STEPS=[80,90,100,110,125]; let idx=2;
+  const inc=$('frIncrease'), dec=$('frDecrease'), rst=$('frReset');
+  const supportsZoom=(function(){const p=document.createElement('div');p.style.zoom='2';return p.style.zoom==='2';})();
+  function apply(){
+    const pct=STEPS[idx];
+    if(supportsZoom) document.body.style.zoom=(pct/100).toString();
+    else{document.body.style.transformOrigin='top left';document.body.style.transform=`scale(${pct/100})`;document.body.style.width=`${100*100/pct}%`;}
+  }
+  if(inc) inc.onclick=()=>{if(idx<STEPS.length-1){idx++;apply();}};
+  if(dec) dec.onclick=()=>{if(idx>0){idx--;apply();}};
+  if(rst) rst.onclick=()=>{idx=2;apply();};
+})();
+
+renderInbox();
+</script>
+</body>
+</html>

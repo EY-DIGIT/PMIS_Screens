@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UIDAI PMIS - Manage Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0b3c88;
+  --navy-deep:#062a63;
+  --cyan:#0aa1c0;
+  --cyan-light:#3cb8d4;
+  --green:#1a8a3d;
+  --green-soft:#e7f7ec;
+  --saffron:#d4440e;
+  --light:#f4f7fb;
+  --light-cool:#eef3f9;
+  --border:#dbe5f1;
+  --border-soft:#e9eef6;
+  --red:#d32f2f;
+  --text:#1e2a3a;
+  --text-soft:#5a6680;
+  --text-muted:#7a869a;
+  --muted:#6b7a90;
+  --card:#ffffff;
+  --shadow:0 2px 8px rgba(11,60,136,.08);
+  --shadow-soft:0 2px 6px rgba(11,60,136,.05);
+  --uidai-stripe:linear-gradient(90deg, var(--navy) 0%, var(--cyan) 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  background:var(--light);
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body.modal-open{overflow:hidden;}
+button,input,select,textarea{font:inherit}
+img{display:block;max-width:100%}
+
+/* ─── Accessibility helpers ─── */
+.sr-only{
+  position:absolute !important;
+  width:1px; height:1px;
+  padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0);
+  white-space:nowrap; border:0;
+}
+.skip-link{
+  position:absolute; top:-40px; left:0;
+  background:var(--navy); color:#fff;
+  padding:8px 16px; z-index:9999;
+  text-decoration:none; font-weight:700;
+  border-radius:0 0 6px 0;
+}
+.skip-link:focus{top:0;}
+*:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 2px var(--navy), 0 0 0 4px var(--cyan);
+  border-radius:3px;
+}
+
+/* ─── UIDAI Header ─── */
+.site-header{
+  width:100%;
+  background:#fff;
+  box-shadow:0 2px 8px rgba(11,60,136,.08);
+  position:relative;
+  z-index:50;
+}
+.site-header::after{
+  content:"";
+  display:block;
+  height:4px;
+  background:var(--uidai-stripe);
+}
+.header-accessibility-strip{
+  background:#f5f8fd;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  padding:3px 20px;
+  gap:12px;
+  min-height:28px;
+  font-size:13px;
+  color:var(--text);
+}
+.a11y-label{
+  font-weight:600;
+  color:#4b5870;
+  font-size:12px;
+  user-select:none;
+}
+.font-resizer{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:1px;
+  background:#fff;
+}
+.font-resizer button{
+  background:transparent;
+  border:none;
+  cursor:pointer;
+  padding:3px 9px;
+  font-weight:700;
+  color:var(--navy);
+  border-radius:4px;
+  font-family:inherit;
+  font-size:13px;
+  line-height:1;
+  transition:background .12s;
+}
+.font-resizer button:hover{background:#eef6fb;}
+.font-resizer .fr-plus{font-size:15px;}
+.font-resizer .fr-reset{font-size:13px;}
+.font-resizer .fr-minus{font-size:11px;}
+.header-main{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  gap:14px;
+  padding:8px 20px;
+  background:linear-gradient(90deg,#ffebc7 0%, #ffffff 45%, #ffffff 55%, #d7efd9 100%);
+}
+.header-brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.header-brand img{
+  height:52px;
+  width:auto;
+  flex:0 0 auto;
+}
+.header-brand-text{
+  display:flex;
+  flex-direction:column;
+  line-height:1.15;
+  min-width:0;
+  gap:2px;
+}
+.header-brand-hi-1,
+.header-brand-hi-2{
+  font-weight:900;
+  font-size:16px;
+  white-space:nowrap;
+  letter-spacing:0.2px;
+}
+.header-brand-hi-1{color:var(--saffron);}
+.header-brand-hi-2{color:var(--green);}
+.header-title{
+  text-align:center;
+  font-size:20px;
+  font-weight:700;
+  line-height:1.2;
+  background:var(--uidai-stripe);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  padding:0 8px;
+  margin:0;
+  letter-spacing:-0.1px;
+}
+.header-authority{
+  justify-self:end;
+  text-align:left;
+  font-weight:700;
+  font-size:16px;
+  line-height:1.2;
+  color:#1a2a3f;
+  min-width:0;
+}
+
+/* ─── Navbar ─── */
+.navbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#fafcfe;
+  border-bottom:1px solid var(--border);
+  min-height:42px;
+  position:relative;
+  z-index:30;
+}
+.menu-home-block{
+  width:240px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:6px 14px;
+  border-right:1px solid var(--border);
+}
+.menu-home-block span{
+  cursor:pointer;
+  padding:5px 10px;
+  border-radius:6px;
+  user-select:none;
+  white-space:nowrap;
+  font-size:14px;
+  font-weight:500;
+  color:var(--navy);
+  transition:background .15s, color .15s;
+}
+.menu-home-block span:hover{background:#eaf2fb;color:var(--navy-deep);}
+.profile{
+  padding:0 20px;
+  cursor:pointer;
+  position:relative;
+  font-size:14px;
+  font-weight:500;
+  color:var(--navy);
+  user-select:none;
+  display:flex;
+  align-items:center;
+}
+.profile-icon{
+  font-size:20px;
+  line-height:1;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:linear-gradient(135deg, #eef6fb 0%, #f4f8fd 100%);
+  border:1px solid var(--border);
+  transition:background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.profile:hover .profile-icon{
+  background:#eaf2fb;
+  border-color:var(--cyan);
+  transform:scale(1.04);
+}
+.profile-menu{
+  position:absolute; right:0; top:40px; background:#fff;
+  border:1px solid var(--border); border-radius:8px; display:none;
+  min-width:140px; box-shadow:0 4px 10px rgba(0,0,0,.08);
+  overflow:hidden;
+  z-index:40;
+}
+.profile-menu.show{display:block;}
+.profile-menu div{padding:10px 12px; cursor:pointer;}
+.profile-menu div:hover{background:#eef6fb;}
+
+/* ─── Layout / Sidebar ─── */
+.layout{display:flex; flex:1; min-height:0;}
+.sidebar{
+  width:240px; background:#fff; border-right:1px solid var(--border);
+  display:flex; flex-direction:column;
+  transition:width .25s ease, transform .25s ease;
+  min-height:0;
+  flex:0 0 auto;
+}
+.sidebar.collapsed{width:70px;}
+.sidebar.collapsed .text{display:none !important;}
+.menu{padding:12px;}
+.menu a{
+  display:flex; gap:10px; padding:9px 10px; margin-bottom:4px;
+  cursor:pointer; border-radius:6px; align-items:center;
+  user-select:none; line-height:1.2;
+  text-decoration:none; color:var(--text);
+  font-size:14px;
+}
+.menu a:hover{background:#eef6fb;}
+.menu a.active{background:linear-gradient(90deg,var(--navy),var(--cyan)); color:#fff;}
+.menu a.active:hover{background:linear-gradient(90deg,var(--navy),var(--cyan));}
+
+.content{flex:1; padding:14px 20px 24px; overflow:auto; min-width:0;}
+
+/* ─── Page header ─── */
+.pm-title{
+  font-size:22px;
+  font-weight:700;
+  margin-bottom:8px;
+  color:var(--navy);
+  line-height:1.2;
+  position:relative;
+  padding-left:14px;
+  letter-spacing:-0.1px;
+}
+.pm-subtitle{
+  color:var(--green);
+  font-weight:700;
+  font-size:14px;
+  margin:-2px 0 8px 14px;
+  line-height:1.4;
+}
+.pm-description{
+  color:var(--text-soft);
+  font-size:14px;
+  margin:0 0 12px 14px;
+  line-height:1.5;
+  max-width:780px;
+}
+.page-header{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px 12px;
+  margin-bottom:12px;
+}
+.page-header-text{min-width:0; flex:1 1 280px;}
+.page-header-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  align-items:center;
+  padding-top:4px;
+}
+
+/* ─── Cards ─── */
+.card{
+  background:var(--card);
+  padding:18px 22px;
+  border-radius:10px;
+  border:1px solid var(--border-soft);
+  box-shadow:var(--shadow);
+  margin-bottom:18px;
+  position:relative;
+}
+.card::before{
+  content:"";
+  position:absolute;
+  top:0; left:0; right:0;
+  height:4px;
+  background:var(--uidai-stripe);
+  border-radius:10px 10px 0 0;
+}
+.card-title{
+  font-size:16px;
+  font-weight:700;
+  color:var(--navy);
+  margin:0 0 4px;
+  letter-spacing:.1px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.card-title .subtag{
+  font-size:12px;
+  font-weight:600;
+  color:var(--text-soft);
+  background:#eef3f9;
+  padding:3px 10px;
+  border-radius:999px;
+  letter-spacing:.2px;
+}
+.card-subtitle{
+  font-size:13px;
+  color:var(--text-soft);
+  margin:0 0 14px;
+  line-height:1.45;
+}
+.card > .card-title:last-child,
+.card > .card-subtitle:last-of-type{margin-bottom:14px;}
+
+/* ─── Project context banner ─── */
+.project-context{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:16px 32px;
+  align-items:center;
+}
+.context-label{
+  display:block;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.6px;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  margin-bottom:4px;
+}
+.context-id-value{
+  display:inline-block;
+  font-family:'Roboto Mono', ui-monospace, monospace;
+  font-weight:700;
+  color:var(--navy);
+  background:#eaf2fb;
+  padding:4px 10px;
+  border-radius:6px;
+  font-size:14px;
+  letter-spacing:.5px;
+}
+.context-name-value{
+  font-weight:700;
+  color:var(--text);
+  font-size:16px;
+}
+
+/* ─── Buttons ─── */
+.btn{
+  background:var(--uidai-stripe);
+  color:#fff;
+  padding:9px 20px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:600;
+  letter-spacing:.2px;
+  box-shadow:0 1px 3px rgba(11,60,136,.15);
+  transition:transform .15s ease, opacity .15s ease, box-shadow .15s ease;
+  font-size:14px;
+}
+.btn:hover{transform:translateY(-1px); box-shadow:0 4px 10px rgba(11,60,136,.22);}
+.btn.cancel{
+  background:#fff;
+  color:var(--navy);
+  border:1px solid var(--border);
+  box-shadow:none;
+}
+.btn.cancel:hover{background:#f4f8fd; border-color:#c4d3e8; color:var(--navy);}
+.btn:disabled{opacity:.55;cursor:not-allowed; transform:none; box-shadow:none;}
+
+/* ─── Team table ─── */
+.table-wrap{overflow-x:auto; border-radius:10px; border:1px solid var(--border-soft);}
+.team-table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:640px;
+  background:#fff;
+}
+.team-table th{
+  background:#f1f6fd;
+  padding:12px 14px;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+  font-size:13px;
+  font-weight:700;
+  color:var(--navy);
+  letter-spacing:.2px;
+  white-space:nowrap;
+}
+.team-table th.col-role{width:220px;}
+.team-table td{
+  padding:12px 14px;
+  border-bottom:1px solid var(--border-soft);
+  vertical-align:middle;
+  font-size:14px;
+}
+.team-table tr:last-child td{border-bottom:none;}
+.team-table tr:hover{background:#fbfdff;}
+
+/* Readonly role cell — looks like a disabled input */
+.role-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  background:#f3f6fb;
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-weight:600;
+  color:var(--text);
+  font-size:14px;
+  cursor:not-allowed;
+  user-select:none;
+  min-width:170px;
+  max-width:100%;
+}
+.role-pill::before{
+  content:"";
+  width:6px; height:6px;
+  border-radius:50%;
+  background:var(--cyan);
+  flex:0 0 auto;
+}
+
+/* ─── Multi-select (Users) ─── */
+.ms-wrap{
+  position:relative;
+  width:100%;
+  min-width:0;
+}
+.ms-toggle{
+  width:100%;
+  min-height:44px;
+  border:1.5px solid var(--border);
+  border-radius:8px;
+  background:#fff;
+  padding:6px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  cursor:pointer;
+  text-align:left;
+  font-size:14px;
+  color:var(--text);
+  transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.ms-toggle:hover:not(:disabled){
+  border-color:var(--cyan);
+  background:#fbfdff;
+}
+.ms-toggle:focus,
+.ms-toggle:focus-visible{
+  outline:none;
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(10,161,192,.18);
+  background:#fff;
+}
+.ms-wrap.open .ms-toggle{
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(10,161,192,.18);
+  background:#fff;
+}
+.ms-display{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  align-items:center;
+  min-width:0;
+  flex:1;
+}
+.ms-placeholder{
+  color:#8aa1b8;
+  font-size:14px;
+  font-weight:500;
+}
+.ms-tag{
+  display:inline-flex;
+  align-items:center;
+  background:linear-gradient(135deg, var(--navy) 0%, var(--cyan) 100%);
+  color:#fff;
+  border-radius:999px;
+  padding:5px 14px;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.2px;
+  box-shadow:0 1px 2px rgba(11,60,136,.18);
+  max-width:100%;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.ms-caret{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:20px; height:20px;
+  color:var(--navy);
+  font-size:12px;
+  font-weight:700;
+  flex:0 0 auto;
+  transition:transform .2s ease;
+}
+.ms-wrap.open .ms-caret{
+  transform:rotate(180deg);
+  color:var(--cyan);
+}
+.ms-panel{
+  position:fixed;
+  top:0;
+  left:0;
+  width:auto;
+  min-width:240px;
+  max-width:calc(100vw - 20px);
+  background:#fff;
+  border:1px solid var(--border-soft);
+  border-radius:10px;
+  box-shadow:0 18px 40px rgba(7,26,52,.18), 0 4px 10px rgba(7,26,52,.08);
+  z-index:9999;
+  display:none;
+  overflow:hidden;
+}
+.ms-wrap.open .ms-panel{
+  display:block;
+  animation:msPanelIn .18s ease-out;
+}
+@keyframes msPanelIn{
+  from{opacity:0; transform:translateY(-4px) scale(.985)}
+  to{opacity:1; transform:translateY(0) scale(1)}
+}
+.ms-search{
+  width:100%;
+  border:none;
+  border-bottom:1px solid var(--border-soft);
+  border-radius:0;
+  padding:10px 14px;
+  outline:none;
+  font-size:13px;
+  background:#f9fbfd;
+  transition:background .15s ease, border-color .15s ease;
+}
+.ms-search:focus{
+  background:#fff;
+  border-bottom-color:var(--cyan);
+}
+.ms-options{
+  max-height:220px;
+  overflow:auto;
+  padding:6px;
+}
+.ms-options::-webkit-scrollbar{width:8px}
+.ms-options::-webkit-scrollbar-thumb{background:#cdd9e8;border-radius:4px}
+.ms-options::-webkit-scrollbar-thumb:hover{background:#b6c4d6}
+.ms-option{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:9px 12px;
+  border-radius:6px;
+  cursor:pointer;
+  user-select:none;
+  font-size:13px;
+  font-weight:500;
+  color:var(--text);
+  margin:0;
+  line-height:1.35;
+  transition:background .12s ease, color .12s ease;
+}
+.ms-option > span{
+  flex:1;
+  min-width:0;
+  word-break:break-word;
+}
+.ms-option:hover{background:#eaf4ff;}
+.ms-option.checked{
+  background:#f3f8ff;
+  color:var(--navy);
+  font-weight:600;
+}
+.ms-option input[type="checkbox"]{
+  appearance:none;
+  -webkit-appearance:none;
+  width:17px; height:17px;
+  border:1.5px solid #b9c8db;
+  border-radius:4px;
+  background:#fff;
+  cursor:pointer;
+  position:relative;
+  flex:0 0 auto;
+  margin:0;
+  transition:border-color .15s ease, background .15s ease;
+}
+.ms-option input[type="checkbox"]:hover{border-color:var(--cyan);}
+.ms-option input[type="checkbox"]:checked{
+  background:var(--navy);
+  border-color:var(--navy);
+}
+.ms-option input[type="checkbox"]:checked::after{
+  content:"";
+  position:absolute;
+  left:5px; top:1px;
+  width:4px; height:9px;
+  border:solid #fff;
+  border-width:0 2px 2px 0;
+  transform:rotate(45deg);
+}
+/* Single-select mode (Approver fields): checkboxes look like radio buttons */
+.ms-wrap.ms-single .ms-option input[type="checkbox"]{
+  border-radius:50%;
+}
+.ms-wrap.ms-single .ms-option input[type="checkbox"]:checked::after{
+  content:"";
+  position:absolute;
+  left:auto; top:auto;
+  inset:3px;
+  width:auto; height:auto;
+  border:none;
+  border-radius:50%;
+  background:#fff;
+  transform:none;
+}
+.ms-empty{
+  padding:14px 12px;
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;
+  font-style:italic;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ACTIVITY LIST  —  grouped by Milestone, compact row per activity
+   ═══════════════════════════════════════════════════════════ */
+.milestone-group{
+  margin-bottom:18px;
+}
+.milestone-group:last-child{margin-bottom:0;}
+
+.milestone-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:9px 14px;
+  background:linear-gradient(90deg, #eef3fb 0%, #f6faff 100%);
+  border-left:4px solid var(--navy);
+  border-radius:6px;
+  margin-bottom:8px;
+  flex-wrap:wrap;
+}
+.milestone-icon{
+  font-size:14px;
+  flex:0 0 auto;
+}
+.milestone-label{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.6px;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  flex:0 0 auto;
+}
+.milestone-name{
+  font-size:14.5px;
+  font-weight:700;
+  color:var(--navy);
+  letter-spacing:.2px;
+  flex:1;
+  min-width:0;
+}
+.milestone-count{
+  font-size:11.5px;
+  font-weight:600;
+  color:var(--text-soft);
+  background:#fff;
+  border:1px solid var(--border-soft);
+  padding:2px 10px;
+  border-radius:999px;
+  letter-spacing:.3px;
+  white-space:nowrap;
+  flex:0 0 auto;
+}
+
+.milestone-items{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding-left:10px;
+}
+
+.activity-item{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  border:1px solid var(--border-soft);
+  border-radius:8px;
+  padding:11px 14px;
+  background:#fff;
+  cursor:pointer;
+  transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.activity-item:hover{
+  border-color:var(--cyan);
+  box-shadow:0 3px 10px rgba(11,60,136,.08);
+  background:#fbfdff;
+}
+.activity-item:focus-visible{
+  outline:none;
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(10,161,192,.18);
+}
+
+.activity-id-name{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  flex:1;
+  min-width:0;
+}
+.activity-id{
+  font-family:'Roboto Mono', ui-monospace, monospace;
+  font-weight:700;
+  color:var(--navy);
+  background:#eaf2fb;
+  padding:3px 10px;
+  border-radius:6px;
+  font-size:12.5px;
+  letter-spacing:.4px;
+  flex:0 0 auto;
+}
+.activity-name{
+  font-size:14.5px;
+  font-weight:600;
+  color:var(--text);
+  line-height:1.35;
+  min-width:0;
+}
+.activity-arrow{
+  color:var(--text-muted);
+  font-size:20px;
+  font-weight:700;
+  line-height:1;
+  flex:0 0 auto;
+  transition:color .15s, transform .15s;
+}
+.activity-item:hover .activity-arrow{
+  color:var(--cyan);
+  transform:translateX(3px);
+}
+
+/* Modal: divisions section heading + division-tag pill on each field label */
+.modal-divisions-heading{
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  margin-top:4px;
+  padding-bottom:6px;
+  border-bottom:1px dashed var(--border-soft);
+}
+/* Groups a primary role with its Approver — visually pairs them. */
+.modal-role-group{
+  background:#fafcff;
+  border:1px solid var(--border-soft);
+  border-radius:10px;
+  padding:14px 14px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.modal-role-group + .modal-role-group{margin-top:2px;}
+.modal-role-group-heading{
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+  color:var(--navy);
+  padding-bottom:2px;
+}
+.modal-role-group .modal-field{
+  margin:0;
+}
+
+/* A division section: header pill + two nested role fields */
+.modal-role-group.division-group{
+  background:#f6faff;
+  border-color:#cfe1f3;
+  padding:0;
+  overflow:hidden;
+}
+.division-group-header{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px;
+  padding:10px 14px;
+  background:linear-gradient(90deg, #e6f1fb 0%, #f3f8fd 100%);
+  border-bottom:1px solid #cfe1f3;
+}
+.division-group-header .division-tag{
+  margin-right:0;
+  font-size:13px;
+  padding:4px 12px;
+  letter-spacing:.6px;
+}
+.division-group-sub{
+  font-size:12.5px;
+  color:var(--text-soft);
+  line-height:1.4;
+  flex:1;
+  min-width:0;
+}
+.division-group > .modal-field{
+  padding:12px 14px;
+}
+.division-group > .modal-field + .modal-field{
+  border-top:1px dashed var(--border-soft);
+}
+.division-tag{
+  display:inline-block;
+  background:#0e6fa3;
+  color:#fff;
+  border-radius:6px;
+  padding:2px 10px;
+  font-family:'Roboto Mono', ui-monospace, monospace;
+  font-weight:700;
+  font-size:12px;
+  letter-spacing:.4px;
+  margin-right:4px;
+}
+.division-field-suffix{
+  font-size:13px;
+  font-weight:700;
+  color:var(--navy);
+}
+.modal-field.division-field .modal-field-label::before{
+  display:none; /* the division-tag pill replaces the small accent bar */
+}
+.modal-empty-divisions{
+  background:#fbfdff;
+  border:1px dashed var(--border);
+  border-radius:8px;
+  padding:14px 16px;
+  font-size:13px;
+  color:var(--text-soft);
+  line-height:1.5;
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+}
+.modal-empty-divisions span{
+  font-size:16px;
+  line-height:1;
+  flex:0 0 auto;
+  padding-top:1px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODAL  —  per-activity configuration
+   ═══════════════════════════════════════════════════════════ */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(7,26,52,.55);
+  z-index:200;
+  display:none;
+  overflow-y:auto;
+  padding:20px;
+  -webkit-overflow-scrolling:touch;
+  animation:overlayIn .18s ease-out;
+}
+.modal-overlay.show{
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+}
+@keyframes overlayIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+.modal{
+  background:#fff;
+  width:100%;
+  max-width:640px;
+  border-radius:14px;
+  box-shadow:0 24px 60px rgba(7,26,52,.4);
+  margin:auto;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  animation:modalIn .22s ease-out;
+}
+@keyframes modalIn{
+  from{opacity:0; transform:translateY(-12px) scale(.97)}
+  to{opacity:1; transform:translateY(0) scale(1)}
+}
+.modal-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding:18px 22px 16px;
+  background:linear-gradient(180deg, #f4f8fd 0%, #ffffff 100%);
+  border-bottom:1px solid var(--border-soft);
+  border-radius:14px 14px 0 0;
+}
+.modal-title-block{
+  min-width:0;
+  flex:1;
+}
+.modal-eyebrow{
+  display:inline-block;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+  background:var(--uidai-stripe);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  margin-bottom:5px;
+}
+.modal-title{
+  font-size:17px;
+  font-weight:700;
+  color:var(--navy);
+  line-height:1.25;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.modal-title-id{
+  font-family:'Roboto Mono', ui-monospace, monospace;
+  font-size:12px;
+  color:var(--navy);
+  background:#eaf2fb;
+  padding:3px 10px;
+  border-radius:6px;
+  font-weight:700;
+  letter-spacing:.4px;
+}
+.modal-close{
+  background:transparent;
+  border:none;
+  cursor:pointer;
+  color:var(--text-muted);
+  font-size:26px;
+  line-height:1;
+  padding:2px 10px;
+  border-radius:6px;
+  transition:background .15s, color .15s;
+  flex:0 0 auto;
+}
+.modal-close:hover{
+  background:#f3f6fb;
+  color:var(--navy);
+}
+.modal-body{
+  padding:18px 22px 6px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.modal-field-label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  font-weight:700;
+  color:var(--navy);
+  margin-bottom:4px;
+  letter-spacing:.2px;
+}
+.modal-field-label::before{
+  content:"";
+  width:3px; height:14px;
+  background:var(--uidai-stripe);
+  border-radius:2px;
+  display:inline-block;
+}
+.modal-field-hint{
+  font-size:12.5px;
+  color:var(--text-muted);
+  margin-bottom:8px;
+  line-height:1.45;
+  padding-left:11px;
+}
+.modal-footer{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  padding:14px 22px 18px;
+  background:linear-gradient(0deg, #f4f8fd 0%, #ffffff 100%);
+  border-top:1px solid var(--border-soft);
+  border-radius:0 0 14px 14px;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+
+/* Toast */
+.toast{
+  position:fixed;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--navy);
+  color:#fff;
+  padding:11px 22px;
+  border-radius:8px;
+  font-size:14px;
+  font-weight:500;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+  z-index:999;
+  box-shadow:0 8px 24px rgba(11,60,136,.25);
+  max-width:calc(100vw - 30px);
+  text-align:center;
+}
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+.toast.error{background:var(--red);}
+.toast.success{background:#1a7f37;}
+
+/* ─── Footer ─── */
+.site-footer{
+  background:linear-gradient(90deg, #eaf1fb 0%, #f5f9fe 50%, #eaf1fb 100%);
+  color:var(--navy);
+  text-align:center;
+  padding:10px 16px;
+  font-size:12.5px;
+  font-weight:600;
+  letter-spacing:0.2px;
+  margin-top:auto;
+  position:relative;
+}
+.site-footer::before{
+  content:"";
+  position:absolute;
+  top:0; left:0; right:0;
+  height:3px;
+  background:var(--uidai-stripe);
+}
+.site-footer .sep{color:var(--cyan); margin:0 8px; font-weight:700;}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════ */
+
+/* Tablet */
+@media (max-width: 992px){
+  .content{padding:14px 16px 22px;}
+  .sidebar{width:200px;}
+  .menu a{font-size:13px; padding:9px;}
+  .team-table{min-width:560px;}
+  .card{padding:16px 18px;}
+}
+
+/* Small tablet / large phone */
+@media (max-width: 840px){
+  .header-main{
+    grid-template-columns:auto 1fr;
+    grid-template-rows:auto auto;
+    gap:6px 10px;
+    padding:8px 14px;
+  }
+  .header-brand{grid-column:1; grid-row:1;}
+  .header-title{
+    grid-column:1 / -1; grid-row:2;
+    text-align:left;
+    font-size:16px;
+    padding:0;
+  }
+  .header-authority{
+    grid-column:2; grid-row:1;
+    justify-self:end;
+    text-align:right;
+    font-size:13px;
+  }
+  .header-brand-hi-1, .header-brand-hi-2{font-size:14px;}
+  .header-brand img{height:42px;}
+  .menu-home-block{width:auto; min-width:0;}
+  .profile{padding:0 14px;}
+  .page-header-actions{
+    width:100%;
+    justify-content:flex-start;
+  }
+  .pm-description{font-size:13.5px;}
+}
+
+/* Phone — switch table to stacked card layout, modal becomes near-fullscreen */
+@media (max-width: 640px){
+  .header-accessibility-strip{padding:3px 10px;}
+  .header-main{padding:8px 10px;}
+  .header-brand img{height:36px;}
+  .header-brand-hi-1, .header-brand-hi-2{font-size:13px;}
+  .header-title{font-size:15px;}
+  .header-authority{font-size:12px;}
+
+  .sidebar{
+    position:fixed;
+    top:0; left:0; bottom:0;
+    z-index:60;
+    transform:translateX(-100%);
+    box-shadow:8px 0 24px rgba(7,26,52,.18);
+    width:240px;
+  }
+  .sidebar.open{transform:translateX(0);}
+  .sidebar.collapsed{width:240px;}
+  .sidebar.collapsed .text{display:flex !important;}
+
+  .content{padding:12px 12px 20px;}
+  .pm-title{font-size:19px; padding-left:10px;}
+  .pm-subtitle{margin-left:10px; font-size:13px;}
+  .pm-description{margin-left:10px; font-size:13px;}
+  .page-header-actions{gap:8px;}
+  .page-header-actions .btn{flex:1 1 auto; padding:9px 14px;}
+  .card{padding:14px 14px 16px;}
+  .card-title{font-size:15px;}
+
+  /* ─── Stacked table rows ─── */
+  .table-wrap{
+    overflow:visible;
+    border:none;
+    border-radius:0;
+  }
+  .team-table,
+  .team-table tbody,
+  .team-table tr,
+  .team-table td{
+    display:block;
+    width:100%;
+  }
+  .team-table{
+    min-width:0;
+    background:transparent;
+    border-collapse:separate;
+  }
+  .team-table thead{display:none;}
+  .team-table tr{
+    background:#fff;
+    border:1px solid var(--border-soft);
+    border-radius:10px;
+    padding:14px;
+    margin-bottom:10px;
+    position:relative;
+    box-shadow:0 1px 2px rgba(11,60,136,.04);
+  }
+  .team-table tr:last-child{margin-bottom:0;}
+  .team-table tr:hover{background:#fff;}
+  .team-table td{
+    border:none;
+    padding:8px 0 0;
+  }
+  .team-table td:first-of-type{padding-top:0;}
+  .team-table td[data-label]::before{
+    content:attr(data-label);
+    display:block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.6px;
+    text-transform:uppercase;
+    color:var(--text-muted);
+    margin-bottom:6px;
+  }
+  .role-pill{
+    width:100%;
+    min-width:0;
+    justify-content:flex-start;
+  }
+  .ms-panel{min-width:0;}
+
+  /* Activity rows: compact on phones */
+  .milestone-head{padding:8px 12px; gap:8px;}
+  .milestone-label{display:none;} /* save space — icon + name is enough */
+  .milestone-name{font-size:14px;}
+  .milestone-count{font-size:11px; padding:2px 8px;}
+  .milestone-items{padding-left:0;}
+  .activity-item{padding:11px 12px;}
+  .activity-id{font-size:12px;}
+  .activity-name{font-size:14px;}
+
+  /* Modal — full-screen on phones */
+  .modal-overlay{padding:0;}
+  .modal{
+    border-radius:0;
+    max-width:100%;
+    min-height:100vh;
+    margin:0;
+  }
+  .modal-header{
+    padding:14px 16px 12px;
+    position:sticky;
+    top:0;
+    border-radius:0;
+    z-index:5;
+  }
+  .modal-body{padding:14px 16px 6px;}
+  .modal-footer{
+    padding:12px 16px 16px;
+    position:sticky;
+    bottom:0;
+    border-radius:0;
+  }
+  .modal-footer .btn{
+    flex:1 1 auto;
+    min-width:120px;
+  }
+}
+
+/* Tiny phone */
+@media (max-width: 380px){
+  .header-main{padding:6px 8px;}
+  .menu-home-block{padding:6px 8px;}
+  .menu-home-block span{padding:4px 6px; font-size:13px;}
+  .profile{padding:0 10px;}
+  .pm-title{font-size:18px;}
+  .page-header-actions .btn{font-size:13px; padding:8px 12px;}
+  .card{padding:12px;}
+  .team-table tr{padding:12px;}
+  .activity-item{padding:10px 11px; gap:10px;}
+  .activity-name{font-size:13.5px;}
+  .activity-arrow{font-size:18px;}
+  .milestone-head{padding:7px 10px;}
+  .milestone-name{font-size:13.5px;}
+  .modal-title{font-size:16px;}
+}
+</style>
+</head>
+
+<body>
+<a href="#mainContent" class="skip-link">Skip to main content</a>
+
+<header class="site-header" role="banner">
+  <div class="header-accessibility-strip">
+    <span class="a11y-label" aria-hidden="true">Text Size:</span>
+    <div class="font-resizer" role="group" aria-label="Adjust text size">
+      <button type="button" class="fr-plus" id="frIncrease" aria-label="Increase text size" title="Increase text size">+A</button>
+      <button type="button" class="fr-reset" id="frReset" aria-label="Reset text size to default" title="Reset text size">A</button>
+      <button type="button" class="fr-minus" id="frDecrease" aria-label="Decrease text size" title="Decrease text size">-A</button>
+    </div>
+  </div>
+  <div class="header-main">
+    <div class="header-brand">
+      <img src="Aadhaar.png" alt="Aadhaar logo" onerror="this.style.display='none'">
+      <div class="header-brand-text">
+        <span class="header-brand-hi-1" lang="hi">मेरा आधार</span>
+        <span class="header-brand-hi-2" lang="hi">मेरी पहचान</span>
+      </div>
+    </div>
+    <h1 class="header-title">UIDAI Automation Governance Tool</h1>
+    <div class="header-authority">
+      Unique Identification<br>Authority of India
+    </div>
+  </div>
+</header>
+
+<nav class="navbar" role="navigation" aria-label="Top navigation">
+  <div class="menu-home-block">
+    <span id="toggleBtn" role="button" tabindex="0" aria-label="Toggle side menu">☰ Menu</span>
+    <span id="homeBtn" role="button" tabindex="0" aria-label="Go to home">🏠 Home</span>
+  </div>
+  <div class="profile" id="profileBtn" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="Profile">
+    <span class="profile-icon" aria-hidden="true">👤</span>
+    <div class="profile-menu" id="profileMenu" role="menu">
+      <div role="menuitem">Profile</div>
+      <div role="menuitem">Sign Out</div>
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar" role="complementary" aria-label="Primary navigation">
+    <nav class="menu" aria-label="Application sections">
+      <a href="#" role="button" tabindex="0"><span>📊</span><span class="text">Dashboard</span></a>
+      <a href="#" class="active" role="button" tabindex="0"><span>📁</span><span class="text">Project Management</span></a>
+      <a href="#" role="button" tabindex="0"><span>🗂️</span><span class="text">Master Data Management</span></a>
+      <a href="#" role="button" tabindex="0"><span>🏢</span><span class="text">Organization Management</span></a>
+      <a href="#" role="button" tabindex="0"><span>👤</span><span class="text">User Management</span></a>
+    </nav>
+  </aside>
+
+  <main class="content" id="mainContent" role="main" tabindex="-1">
+
+    <!-- ─── PAGE HEADER ─── -->
+    <div class="page-header">
+      <div class="page-header-text">
+        <div class="pm-title">Manage Team</div>
+        <div class="pm-subtitle">Roles set. People in.</div>
+        <div class="pm-description">
+          Assign users to project roles, then configure ownership for each activity.
+          Click any activity below to set its Activity Owner and Concerned Divisions.
+        </div>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn cancel" onclick="goBack()">← Back</button>
+        <button class="btn" onclick="submitTeam()">Submit</button>
+      </div>
+    </div>
+
+    <!-- ─── PROJECT CONTEXT BANNER ─── -->
+    <div class="card" aria-label="Project context">
+      <div class="project-context">
+        <div class="context-id-block">
+          <span class="context-label">Project ID</span>
+          <span class="context-id-value" id="ctxProjectId">PRJ1234</span>
+        </div>
+        <div class="context-name-block">
+          <span class="context-label">Project Name</span>
+          <span class="context-name-value" id="ctxProjectName">Aadhaar Service Onboarding</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 1. ORGANIZATION USER ─── -->
+    <div class="card" data-section="orgUser">
+      <h2 class="card-title">Organization User</h2>
+      <div class="table-wrap">
+        <table class="team-table">
+          <thead>
+            <tr>
+              <th class="col-role">Role</th>
+              <th>Users</th>
+            </tr>
+          </thead>
+          <tbody id="orgUserBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── 2. PROJECT OWNER ─── -->
+    <div class="card" data-section="projectOwner">
+      <h2 class="card-title">Project Owner <span class="subtag">TMD-I</span></h2>
+      <div class="table-wrap">
+        <table class="team-table">
+          <thead>
+            <tr>
+              <th class="col-role">Role</th>
+              <th>Users</th>
+            </tr>
+          </thead>
+          <tbody id="projectOwnerBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── 3. ACTIVITIES (per-activity Owner + Concerned Divisions) ─── -->
+    <div class="card" data-section="activities">
+      <h2 class="card-title">Activities <span class="subtag" id="activityCountTag">0 activities</span></h2>
+      <p class="card-subtitle">
+        Activities are grouped by milestone. Click any activity to assign its
+        Activity Owner and the users for each Concerned Division
+        (set in <strong>Project Management</strong>).
+      </p>
+      <div class="activity-list" id="activityList" role="list"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ─── MODAL: Per-activity configuration ─── -->
+<div class="modal-overlay" id="activityModalOverlay"
+     role="dialog" aria-modal="true" aria-labelledby="actModalTitle" aria-hidden="true"
+     onclick="if(event.target===this) closeActivityModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title-block">
+        <span class="modal-eyebrow">📍 Milestone · <span id="actModalMilestone">—</span></span>
+        <div class="modal-title">
+          <span id="actModalTitle">Activity</span>
+          <span class="modal-title-id" id="actModalId">ACT000</span>
+        </div>
+      </div>
+      <button type="button" class="modal-close" aria-label="Close" onclick="closeActivityModal()">×</button>
+    </div>
+
+    <div class="modal-body" id="modalDynamicBody">
+      <!-- Body built dynamically by buildModalBody(): Activity Owner +
+           one user picker per concerned division of this activity. -->
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn cancel" onclick="closeActivityModal()">Cancel</button>
+      <button type="button" class="btn" onclick="saveActivityModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer" role="contentinfo">
+  © 2026 UIDAI <span class="sep">·</span> PMIS Automation Tool <span class="sep">·</span> Internal Use Only
+</footer>
+
+<div class="toast" id="appToast" role="status" aria-live="polite"></div>
+
+<script>
+/* ──────────────────────────────────────────────────────────
+   SAMPLE USER DIRECTORY — replace with real users from API.
+   ────────────────────────────────────────────────────────── */
+const USER_DIRECTORY = [
+  { id:'shub.singh',    name:'asddsad1222 (shub singh)' },
+  { id:'chinmaya',      name:'chinmayatestfield (chinmaya)' },
+  { id:'saikat.aich',   name:'Saikat Aich' },
+  { id:'amit.roy',      name:'Amit Roy (EMP001)' },
+  { id:'neha.das',      name:'Neha Das (EMP002)' },
+  { id:'sourav.paul',   name:'Sourav Paul (EMP003)' },
+  { id:'priya.mehta',   name:'Priya Mehta (EMP004)' },
+  { id:'rahul.kumar',   name:'Rahul Kumar (EMP005)' },
+  { id:'anjali.sharma', name:'Anjali Sharma (EMP006)' },
+  { id:'vikram.singh',  name:'Vikram Singh (EMP007)' },
+  { id:'deepa.iyer',    name:'Deepa Iyer (EMP008)' },
+  { id:'ravi.kumar',    name:'Ravi Kumar (EMP009)' }
+];
+
+/* ──────────────────────────────────────────────────────────
+   PAGE STATE
+   - orgUser & projectOwner are role-rows (role + users[])
+   - activities is an array; each activity:
+       milestone          — parent milestone name (set in Project Management)
+       concernedDivisions — array of division names, set in Project Management
+                            (this drives which user pickers show on the popup)
+       owner              — array of user ids (Activity Owner — picked here)
+       divisionUsers      — { [divisionName]: userIds[] } — picked here
+   ────────────────────────────────────────────────────────── */
+const state = {
+  orgUser: [
+    { roleLabel:'Project Admin', users:['saikat.aich', 'amit.roy', 'shub.singh'] },
+    { roleLabel:'Project User',  users:['neha.das', 'priya.mehta', 'rahul.kumar', 'anjali.sharma'] }
+  ],
+  projectOwner: [
+    { roleLabel:'Approver',      users:[], single:true },
+    { roleLabel:'Project Owner', users:['saikat.aich', 'vikram.singh'] }
+  ],
+
+  activities: [
+    { id:'ACT001', name:'Requirement Collection', milestone:'Initiation',
+      concernedDivisions: ['TMD-II'],
+      owner:['amit.roy', 'sourav.paul'], ownerApprover:[],
+      divisionUsers: { 'TMD-II': ['ravi.kumar', 'rahul.kumar'] },
+      divisionApprovers: { 'TMD-II': [] } },
+
+    { id:'ACT002', name:'Kickoff Preparation', milestone:'Initiation',
+      concernedDivisions: ['TMD-I'],
+      owner:['deepa.iyer'], ownerApprover:[],
+      divisionUsers: { 'TMD-I': ['neha.das', 'chinmaya'] },
+      divisionApprovers: { 'TMD-I': [] } },
+
+    { id:'ACT003', name:'Configuration Setup', milestone:'Execution',
+      concernedDivisions: ['TMD-I', 'TMD-II'],
+      owner:['amit.roy'], ownerApprover:[],
+      divisionUsers: { 'TMD-I': ['priya.mehta'], 'TMD-II': ['anjali.sharma'] },
+      divisionApprovers: { 'TMD-I': [], 'TMD-II': [] } },
+
+    { id:'ACT004', name:'User Acceptance Testing', milestone:'Execution',
+      concernedDivisions: ['TMD-I', 'TMD-II'],
+      owner:[], ownerApprover:[],
+      divisionUsers: {}, divisionApprovers: {} },
+
+    { id:'ACT005', name:'Go-Live Readiness', milestone:'Closure',
+      concernedDivisions: ['TMD-I'],
+      owner:['amit.roy'], ownerApprover:[],
+      divisionUsers: { 'TMD-I': ['chinmaya'] },
+      divisionApprovers: { 'TMD-I': [] } },
+
+    { id:'ACT006', name:'Documentation Handover', milestone:'Closure',
+      concernedDivisions: [],
+      owner:['neha.das'], ownerApprover:[],
+      divisionUsers: {}, divisionApprovers: {} }
+  ]
+};
+
+const SECTION_BODY_ID = {
+  orgUser:      'orgUserBody',
+  projectOwner: 'projectOwnerBody'
+};
+
+/* Modal working state — a copy that lives only while the modal is open */
+let modalState = null;
+let lastFocusedBeforeModal = null;
+
+/* ─────── Escaping ─────── */
+function escapeHtml(s){
+  return String(s ?? '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+/* Pretty short label for a user id (used in summary chips) */
+function userShortLabel(uid){
+  const u = USER_DIRECTORY.find(x => x.id === uid);
+  if(!u) return uid;
+  // Strip trailing "(...)" so chips stay compact, e.g. "Amit Roy (EMP001)" → "Amit Roy"
+  const stripped = u.name.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  return stripped || u.name;
+}
+function userFullLabel(uid){
+  const u = USER_DIRECTORY.find(x => x.id === uid);
+  return u ? u.name : uid;
+}
+
+/* ──────────────────────────────────────────────────────────
+   MULTI-SELECT — chip-style user picker.
+   Generic builder; the `path` describes where to write changes:
+     - "section:<sectionId>:<rowIdx>"   → page-level rows
+     - "modal:<field>"                  → modal working state
+   When opts.single is true, the picker becomes a SINGLE-select:
+   selecting a new user replaces the previous selection, and the
+   picker closes automatically after a choice.
+   ────────────────────────────────────────────────────────── */
+function buildUserMultiSelect(path, selectedIds, opts){
+  const options = opts || {};
+  const single = !!options.single;
+  const selectedSet = new Set(selectedIds || []);
+
+  // For single-select, only the first selection is shown / persisted
+  const displayIds = single ? (selectedIds || []).slice(0, 1) : (selectedIds || []);
+
+  const tags = displayIds.map(uid => {
+    const label = userFullLabel(uid);
+    return `<span class="ms-tag" data-uid="${escapeHtml(uid)}" title="${escapeHtml(label)}">${escapeHtml(label)}</span>`;
+  }).join('');
+
+  const placeholder = single ? 'Select a user...' : 'Search user...';
+  const display = tags
+    ? `<div class="ms-display">${tags}</div>`
+    : `<div class="ms-display"><span class="ms-placeholder">${placeholder}</span></div>`;
+
+  const optsHtml = USER_DIRECTORY.map(u => {
+    const checked = selectedSet.has(u.id) ? 'checked' : '';
+    const cls = selectedSet.has(u.id) ? 'ms-option checked' : 'ms-option';
+    return `
+      <label class="${cls}" data-uid="${escapeHtml(u.id)}">
+        <input type="checkbox" value="${escapeHtml(u.id)}" ${checked}
+               onchange="toggleUserAtPath('${escapeHtml(path)}', '${escapeHtml(u.id)}', this.checked)">
+        <span>${escapeHtml(u.name)}</span>
+      </label>`;
+  }).join('');
+
+  const wrapCls = single ? 'ms-wrap ms-single' : 'ms-wrap';
+
+  return `
+    <div class="${wrapCls}" data-path="${escapeHtml(path)}">
+      <button type="button" class="ms-toggle" onclick="toggleMs(this)" aria-haspopup="listbox">
+        ${display}
+        <span class="ms-caret" aria-hidden="true">▾</span>
+      </button>
+      <div class="ms-panel" onclick="event.stopPropagation()">
+        <input type="text" class="ms-search" placeholder="${placeholder}"
+               oninput="filterMsOptions(this)" aria-label="Search users">
+        <div class="ms-options" role="listbox">${optsHtml}</div>
+      </div>
+    </div>`;
+}
+
+/* Toggle open/close on a multi-select. One open at a time. */
+function toggleMs(btn){
+  const wrap = btn.closest('.ms-wrap');
+  if(!wrap) return;
+  const isOpen = wrap.classList.contains('open');
+  closeAllMs();
+  if(!isOpen){
+    wrap.classList.add('open');
+    positionMsPanel(wrap);
+    // Focus search field for fast filtering
+    const searchInput = wrap.querySelector('.ms-search');
+    if(searchInput) setTimeout(() => searchInput.focus(), 60);
+  }
+}
+function closeAllMs(){
+  document.querySelectorAll('.ms-wrap.open').forEach(w => w.classList.remove('open'));
+}
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.ms-wrap')) closeAllMs();
+});
+
+/* Position the .ms-panel relative to its toggle button.
+   Uses position:fixed so the panel can escape any clipping parent
+   (e.g. .table-wrap with overflow:auto, or .modal-body with overflow:auto).
+   Flips above the toggle if there isn't enough space below. */
+function positionMsPanel(wrap){
+  if(!wrap) return;
+  const toggle = wrap.querySelector('.ms-toggle');
+  const panel = wrap.querySelector('.ms-panel');
+  if(!toggle || !panel) return;
+
+  // Make sure the panel is rendered so we can measure it.
+  // (display:none on .ms-panel is overridden by .ms-wrap.open .ms-panel)
+  const prevVisibility = panel.style.visibility;
+  panel.style.visibility = 'hidden';
+  panel.style.display = 'block';
+
+  const rect = toggle.getBoundingClientRect();
+  const viewportW = window.innerWidth;
+  const viewportH = window.innerHeight;
+  const margin = 10;
+
+  // Width: match the toggle, but stay within viewport and respect min/max.
+  const panelMinWidth = 240;
+  const panelMaxWidth = Math.min(viewportW - margin * 2, 480);
+  let width = Math.max(panelMinWidth, Math.min(rect.width, panelMaxWidth));
+  if(width > viewportW - margin * 2) width = viewportW - margin * 2;
+
+  // Horizontal placement: align to toggle's left, then clamp inside viewport.
+  let left = rect.left;
+  if(left + width > viewportW - margin) left = viewportW - margin - width;
+  if(left < margin) left = margin;
+
+  // Set width first so we can measure height accurately.
+  panel.style.width = width + 'px';
+  panel.style.maxWidth = (viewportW - margin * 2) + 'px';
+
+  const panelHeight = panel.offsetHeight;
+  const spaceBelow = viewportH - rect.bottom - margin;
+  const spaceAbove = rect.top - margin;
+  const gap = 6;
+
+  let top;
+  if(spaceBelow >= panelHeight + gap || spaceBelow >= spaceAbove){
+    top = rect.bottom + gap;
+    // If panel would overflow bottom, clamp it
+    if(top + panelHeight > viewportH - margin){
+      top = Math.max(margin, viewportH - margin - panelHeight);
+    }
+  } else {
+    top = rect.top - panelHeight - gap;
+    if(top < margin) top = margin;
+  }
+
+  panel.style.left = left + 'px';
+  panel.style.top = top + 'px';
+  panel.style.display = '';
+  panel.style.visibility = prevVisibility;
+}
+
+/* Keep open panel aligned when the user scrolls or resizes the viewport. */
+function repositionOpenMs(){
+  document.querySelectorAll('.ms-wrap.open').forEach(positionMsPanel);
+}
+window.addEventListener('scroll', repositionOpenMs, true);
+window.addEventListener('resize', repositionOpenMs);
+
+/* Filter dropdown options by typed search text */
+function filterMsOptions(input){
+  const panel = input.closest('.ms-panel');
+  if(!panel) return;
+  const q = input.value.trim().toLowerCase();
+  let anyVisible = false;
+  panel.querySelectorAll('.ms-option').forEach(opt => {
+    const txt = opt.textContent.trim().toLowerCase();
+    const visible = !q || txt.includes(q);
+    opt.style.display = visible ? '' : 'none';
+    if(visible) anyVisible = true;
+  });
+  let empty = panel.querySelector('.ms-empty');
+  if(!anyVisible){
+    if(!empty){
+      empty = document.createElement('div');
+      empty.className = 'ms-empty';
+      empty.textContent = 'No matching users';
+      panel.querySelector('.ms-options').appendChild(empty);
+    }
+  } else if(empty){
+    empty.remove();
+  }
+}
+
+/* Determines whether a given path is a single-select (Approver) field. */
+function isSinglePath(path){
+  const parts = path.split(':');
+  if(parts[0] === 'section'){
+    const row = state[parts[1]] && state[parts[1]][parseInt(parts[2], 10)];
+    return !!(row && row.single);
+  }
+  if(parts[0] === 'modal'){
+    return parts[1] === 'ownerApprover' || parts[1] === 'divApprover';
+  }
+  return false;
+}
+
+/* Toggle a user at any path:
+   - section:<sectionId>:<rowIdx>     → page-level rows (orgUser, projectOwner)
+   - modal:owner                      → Activity Owner in popup
+   - modal:ownerApprover              → Activity Owner's Approver in popup (single)
+   - modal:div:<divisionName>         → that division's user list in popup
+   - modal:divApprover:<divisionName> → that division's approver in popup (single)
+   For single-select paths, the array is replaced with [userId] (or []),
+   and the dropdown auto-closes after the selection.
+*/
+function toggleUserAtPath(path, userId, isChecked){
+  const single = isSinglePath(path);
+  // Single-select: close after a positive pick, stay open after a deselect
+  const shouldReopen = !single || !isChecked;
+  const parts = path.split(':');
+
+  if(parts[0] === 'section'){
+    const sectionId = parts[1];
+    const rowIdx = parseInt(parts[2], 10);
+    const row = state[sectionId] && state[sectionId][rowIdx];
+    if(!row) return;
+    if(single){
+      row.users = isChecked ? [userId] : [];
+    } else {
+      const set = new Set(row.users);
+      isChecked ? set.add(userId) : set.delete(userId);
+      row.users = Array.from(set);
+    }
+    renderSection(sectionId);
+    if(shouldReopen) reopenMsByPath(path);
+    return;
+  }
+
+  if(parts[0] === 'modal'){
+    if(!modalState) return;
+
+    if(parts[1] === 'owner'){
+      const set = new Set(modalState.owner);
+      isChecked ? set.add(userId) : set.delete(userId);
+      modalState.owner = Array.from(set);
+      renderModalOwnerField();
+      reopenMsByPath(path);
+      return;
+    }
+
+    if(parts[1] === 'ownerApprover'){
+      modalState.ownerApprover = isChecked ? [userId] : [];
+      renderModalOwnerApproverField();
+      if(shouldReopen) reopenMsByPath(path);
+      return;
+    }
+
+    if(parts[1] === 'div'){
+      // Division name may contain anything text-y; join the rest just in case
+      const division = parts.slice(2).join(':');
+      const set = new Set(modalState.divisionUsers[division] || []);
+      isChecked ? set.add(userId) : set.delete(userId);
+      modalState.divisionUsers[division] = Array.from(set);
+      renderModalDivisionField(division);
+      reopenMsByPath(path);
+      return;
+    }
+
+    if(parts[1] === 'divApprover'){
+      const division = parts.slice(2).join(':');
+      modalState.divisionApprovers[division] = isChecked ? [userId] : [];
+      renderModalDivisionApproverField(division);
+      if(shouldReopen) reopenMsByPath(path);
+      return;
+    }
+  }
+}
+
+function reopenMsByPath(path){
+  setTimeout(() => {
+    const ms = document.querySelector(`.ms-wrap[data-path="${CSS.escape(path)}"]`);
+    if(ms){
+      ms.classList.add('open');
+      positionMsPanel(ms);
+    }
+  }, 0);
+}
+
+/* ──────────────────────────────────────────────────────────
+   PAGE-LEVEL SECTIONS  (Organization User, Project Owner)
+   ────────────────────────────────────────────────────────── */
+function rowHtml(sectionId, row, idx){
+  const path = `section:${sectionId}:${idx}`;
+  return `
+    <tr data-row-idx="${idx}">
+      <td data-label="Role">
+        <span class="role-pill" title="Role is fixed and cannot be edited">
+          ${escapeHtml(row.roleLabel)}
+        </span>
+      </td>
+      <td data-label="${row.single ? 'User' : 'Users'}">${buildUserMultiSelect(path, row.users, { single: !!row.single })}</td>
+    </tr>`;
+}
+
+function renderSection(sectionId){
+  const body = document.getElementById(SECTION_BODY_ID[sectionId]);
+  if(!body) return;
+  const rows = state[sectionId] || [];
+  body.innerHTML = rows.length
+    ? rows.map((r, i) => rowHtml(sectionId, r, i)).join('')
+    : `<tr><td colspan="2" style="text-align:center;color:var(--muted);padding:18px;font-style:italic;">
+        No role assignments.
+       </td></tr>`;
+}
+
+/* ──────────────────────────────────────────────────────────
+   ACTIVITY LIST — grouped by Milestone, compact rows.
+   Configuration details live in the popup, not on the row.
+   ────────────────────────────────────────────────────────── */
+function activityItemHtml(act){
+  const safeId = escapeHtml(act.id);
+  return `
+    <div class="activity-item" role="listitem" tabindex="0"
+         data-activity-id="${safeId}"
+         onclick="openActivityModal('${safeId}')"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openActivityModal('${safeId}')}"
+         aria-label="Configure activity ${escapeHtml(act.name)}">
+      <div class="activity-id-name">
+        <span class="activity-id">${safeId}</span>
+        <span class="activity-name">${escapeHtml(act.name)}</span>
+      </div>
+      <span class="activity-arrow" aria-hidden="true">›</span>
+    </div>`;
+}
+
+function milestoneGroupHtml(group){
+  const count = group.items.length;
+  return `
+    <section class="milestone-group">
+      <header class="milestone-head">
+        <span class="milestone-icon" aria-hidden="true">📍</span>
+        <span class="milestone-label">Milestone</span>
+        <span class="milestone-name">${escapeHtml(group.milestone)}</span>
+        <span class="milestone-count">${count} ${count === 1 ? 'activity' : 'activities'}</span>
+      </header>
+      <div class="milestone-items">
+        ${group.items.map(activityItemHtml).join('')}
+      </div>
+    </section>`;
+}
+
+function renderActivities(){
+  const container = document.getElementById('activityList');
+  const tag = document.getElementById('activityCountTag');
+  if(!container) return;
+
+  const arr = state.activities || [];
+
+  // Group by milestone, preserving insertion order
+  const groups = [];
+  const groupMap = new Map();
+  arr.forEach(a => {
+    const m = a.milestone || '(Unassigned)';
+    if(!groupMap.has(m)){
+      const g = { milestone: m, items: [] };
+      groupMap.set(m, g);
+      groups.push(g);
+    }
+    groupMap.get(m).items.push(a);
+  });
+
+  container.innerHTML = groups.length
+    ? groups.map(milestoneGroupHtml).join('')
+    : `<div style="text-align:center;color:var(--muted);padding:24px;font-style:italic;border:1px dashed var(--border);border-radius:10px;">
+         No activities defined for this project.
+       </div>`;
+
+  if(tag){
+    const totalAct = arr.length;
+    const totalMs = groups.length;
+    tag.textContent = `${totalMs} ${totalMs === 1 ? 'milestone' : 'milestones'} · ${totalAct} ${totalAct === 1 ? 'activity' : 'activities'}`;
+  }
+}
+
+function renderAll(){
+  renderSection('orgUser');
+  renderSection('projectOwner');
+  renderActivities();
+}
+
+/* ──────────────────────────────────────────────────────────
+   MODAL — open / close / save
+   ────────────────────────────────────────────────────────── */
+function openActivityModal(activityId){
+  const act = state.activities.find(a => a.id === activityId);
+  if(!act) return;
+
+  // Seed working state from the activity's stored values
+  const concerned = Array.isArray(act.concernedDivisions) ? act.concernedDivisions : [];
+  const seedDivUsers = {};
+  const seedDivApprovers = {};
+  concerned.forEach(d => {
+    const curUsers = (act.divisionUsers && act.divisionUsers[d]) || [];
+    const curApprovers = (act.divisionApprovers && act.divisionApprovers[d]) || [];
+    seedDivUsers[d] = [...curUsers];
+    seedDivApprovers[d] = [...curApprovers];
+  });
+
+  modalState = {
+    activityId,
+    owner: [...(act.owner || [])],
+    ownerApprover: [...(act.ownerApprover || [])],
+    divisionUsers: seedDivUsers,
+    divisionApprovers: seedDivApprovers,
+    concernedDivisionsSnapshot: [...concerned]  // freeze for the open lifetime
+  };
+
+  // Header text
+  document.getElementById('actModalTitle').textContent = act.name;
+  document.getElementById('actModalId').textContent = act.id;
+  document.getElementById('actModalMilestone').textContent = act.milestone || '—';
+
+  // Build dynamic body (Owner + Approver + one slot per concerned division with its approver)
+  buildModalBody();
+
+  // Render each multi-select
+  renderModalOwnerField();
+  renderModalOwnerApproverField();
+  concerned.forEach(d => {
+    renderModalDivisionField(d);
+    renderModalDivisionApproverField(d);
+  });
+
+  lastFocusedBeforeModal = document.activeElement;
+  const overlay = document.getElementById('activityModalOverlay');
+  overlay.classList.add('show');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+
+  setTimeout(() => {
+    const closeBtn = overlay.querySelector('.modal-close');
+    if(closeBtn) closeBtn.focus();
+  }, 50);
+}
+
+function closeActivityModal(){
+  closeAllMs();
+  const overlay = document.getElementById('activityModalOverlay');
+  overlay.classList.remove('show');
+  overlay.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+  modalState = null;
+  if(lastFocusedBeforeModal && typeof lastFocusedBeforeModal.focus === 'function'){
+    try{ lastFocusedBeforeModal.focus(); }catch(e){}
+  }
+}
+
+function saveActivityModal(){
+  if(!modalState) return;
+  const act = state.activities.find(a => a.id === modalState.activityId);
+  if(!act){ closeActivityModal(); return; }
+
+  act.owner = [...modalState.owner];
+  act.ownerApprover = [...modalState.ownerApprover];
+
+  // Only persist the divisions that are currently concerned for this activity
+  const newDivUsers = {};
+  const newDivApprovers = {};
+  (act.concernedDivisions || []).forEach(d => {
+    newDivUsers[d] = [...(modalState.divisionUsers[d] || [])];
+    newDivApprovers[d] = [...(modalState.divisionApprovers[d] || [])];
+  });
+  act.divisionUsers = newDivUsers;
+  act.divisionApprovers = newDivApprovers;
+
+  const name = act.name;
+  closeActivityModal();
+  renderActivities();
+  showToast(`Saved assignments for "${name}".`, 'success');
+}
+
+/* Build the modal body dynamically based on the activity's concerned divisions.
+   Each ownership scope exposes TWO roles, with the Approver listed first:
+     - Activity Ownership group: Approver + Activity Owner
+     - Each Concerned Division gets its own labeled section: Approver + Users
+*/
+function buildModalBody(){
+  const body = document.getElementById('modalDynamicBody');
+  if(!body || !modalState) return;
+
+  const divisions = modalState.concernedDivisionsSnapshot;
+
+  let html = `
+    <div class="modal-role-group division-group">
+      <div class="division-group-header">
+        <span class="division-tag">Activity</span>
+        <span class="division-group-sub">Pick the Approver and Activity Owner for this activity.</span>
+      </div>
+      <div class="modal-field">
+        <div class="modal-field-label">Approver</div>
+        <div class="modal-field-hint">A single approver who will sign off on the Activity Owner's work.</div>
+        <div id="modalOwnerApproverSlot"></div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-field-label">Activity Owner</div>
+        <div class="modal-field-hint">One or more users responsible for this activity.</div>
+        <div id="modalOwnerSlot"></div>
+      </div>
+    </div>`;
+
+  if(divisions.length){
+    html += `<div class="modal-divisions-heading">Concerned Divisions</div>`;
+    divisions.forEach(d => {
+      html += `
+        <div class="modal-role-group division-group">
+          <div class="division-group-header">
+            <span class="division-tag">${escapeHtml(d)}</span>
+            <span class="division-group-sub">Pick the Approver and Users from <strong>${escapeHtml(d)}</strong>.</span>
+          </div>
+          <div class="modal-field">
+            <div class="modal-field-label">Approver</div>
+            <div class="modal-field-hint">A single approver from <strong>${escapeHtml(d)}</strong> for this activity.</div>
+            <div data-division-approver-slot="${escapeHtml(d)}"></div>
+          </div>
+          <div class="modal-field">
+            <div class="modal-field-label">Users</div>
+            <div class="modal-field-hint">Users from <strong>${escapeHtml(d)}</strong> who will work on this activity.</div>
+            <div data-division-slot="${escapeHtml(d)}"></div>
+          </div>
+        </div>`;
+    });
+  } else {
+    html += `
+      <div class="modal-empty-divisions">
+        <span aria-hidden="true">ℹ️</span>
+        No Concerned Divisions are set for this activity in <strong>Project Management</strong>.
+        Add divisions there to assign division users here.
+      </div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+function renderModalOwnerField(){
+  const slot = document.getElementById('modalOwnerSlot');
+  if(!slot || !modalState) return;
+  slot.innerHTML = buildUserMultiSelect('modal:owner', modalState.owner);
+}
+
+function renderModalOwnerApproverField(){
+  const slot = document.getElementById('modalOwnerApproverSlot');
+  if(!slot || !modalState) return;
+  slot.innerHTML = buildUserMultiSelect('modal:ownerApprover', modalState.ownerApprover, { single:true });
+}
+
+function renderModalDivisionField(division){
+  const slot = document.querySelector(`[data-division-slot="${CSS.escape(division)}"]`);
+  if(!slot || !modalState) return;
+  const selected = modalState.divisionUsers[division] || [];
+  slot.innerHTML = buildUserMultiSelect(`modal:div:${division}`, selected);
+}
+
+function renderModalDivisionApproverField(division){
+  const slot = document.querySelector(`[data-division-approver-slot="${CSS.escape(division)}"]`);
+  if(!slot || !modalState) return;
+  const selected = modalState.divisionApprovers[division] || [];
+  slot.innerHTML = buildUserMultiSelect(`modal:divApprover:${division}`, selected, { single:true });
+}
+
+/* ESC closes modal */
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape'){
+    const overlay = document.getElementById('activityModalOverlay');
+    if(overlay && overlay.classList.contains('show')){
+      closeActivityModal();
+    }
+  }
+});
+
+/* ──────────────────────────────────────────────────────────
+   PAGE-LEVEL ACTIONS
+   ────────────────────────────────────────────────────────── */
+function goBack(){
+  if(window.history.length > 1) window.history.back();
+  else showToast('Back to project list.');
+}
+
+function submitTeam(){
+  const missing = [];
+
+  // Org User: each role row must have ≥1 user
+  state.orgUser.forEach(r => {
+    if(!r.users || r.users.length === 0) missing.push(`Organization User → ${r.roleLabel}`);
+  });
+  // Project Owner section: every role row (Project Owner, Approver) needs ≥1 user
+  state.projectOwner.forEach(r => {
+    if(!r.users || r.users.length === 0) missing.push(`Project Owner → ${r.roleLabel}`);
+  });
+  // Activities: every activity needs an Activity Owner AND an Approver;
+  //             each of its concerned divisions needs at least one user AND one approver.
+  state.activities.forEach(a => {
+    if(!a.owner || a.owner.length === 0){
+      missing.push(`Activity "${a.name}" → Activity Owner`);
+    }
+    if(!a.ownerApprover || a.ownerApprover.length === 0){
+      missing.push(`Activity "${a.name}" → Activity Owner Approver`);
+    }
+    (a.concernedDivisions || []).forEach(d => {
+      const users = (a.divisionUsers || {})[d];
+      if(!users || users.length === 0){
+        missing.push(`Activity "${a.name}" → ${d} users`);
+      }
+      const approvers = (a.divisionApprovers || {})[d];
+      if(!approvers || approvers.length === 0){
+        missing.push(`Activity "${a.name}" → ${d} Approver`);
+      }
+    });
+  });
+
+  if(missing.length){
+    const first = missing[0];
+    const more = missing.length > 1 ? ` (+ ${missing.length - 1} more)` : '';
+    showToast(`Please complete: ${first}${more}`, 'error');
+    return;
+  }
+
+  console.log('Submitting team:', JSON.parse(JSON.stringify(state)));
+  showToast('Team saved successfully.', 'success');
+}
+
+/* ─────── Toast ─────── */
+let toastTimer = null;
+function showToast(msg, type=''){
+  const t = document.getElementById('appToast');
+  if(!t) return;
+  t.textContent = msg;
+  t.className = 'toast show ' + (type || '');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = 'toast'; }, 2400);
+}
+
+/* ──────────────────────────────────────────────────────────
+   HEADER UI WIRING
+   ────────────────────────────────────────────────────────── */
+const sidebar = document.getElementById('sidebar');
+const isPhone = () => window.matchMedia('(max-width: 640px)').matches;
+
+document.getElementById('toggleBtn').addEventListener('click', () => {
+  if(isPhone()) sidebar.classList.toggle('open');
+  else sidebar.classList.toggle('collapsed');
+});
+
+// Close mobile sidebar when clicking outside
+document.addEventListener('click', (e) => {
+  if(isPhone() && sidebar.classList.contains('open')
+     && !e.target.closest('#sidebar')
+     && !e.target.closest('#toggleBtn')){
+    sidebar.classList.remove('open');
+  }
+});
+
+// Profile menu
+const profileBtn = document.getElementById('profileBtn');
+const profileMenu = document.getElementById('profileMenu');
+profileBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  profileMenu.classList.toggle('show');
+  profileBtn.setAttribute('aria-expanded',
+    profileMenu.classList.contains('show') ? 'true' : 'false');
+});
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('#profileBtn')) profileMenu.classList.remove('show');
+});
+
+// Home
+document.getElementById('homeBtn').addEventListener('click', () => {
+  showToast('Home');
+});
+
+// Font resizer
+let fontScale = 1;
+const FR_STEP = 0.1, FR_MIN = 0.8, FR_MAX = 1.4;
+function applyScale(){ document.documentElement.style.fontSize = (16 * fontScale) + 'px'; }
+document.getElementById('frIncrease').addEventListener('click', () => {
+  fontScale = Math.min(FR_MAX, +(fontScale + FR_STEP).toFixed(2)); applyScale();
+});
+document.getElementById('frDecrease').addEventListener('click', () => {
+  fontScale = Math.max(FR_MIN, +(fontScale - FR_STEP).toFixed(2)); applyScale();
+});
+document.getElementById('frReset').addEventListener('click', () => {
+  fontScale = 1; applyScale();
+});
+
+/* ─────── INIT ─────── */
+renderAll();
+</script>
+</body>
+</html>

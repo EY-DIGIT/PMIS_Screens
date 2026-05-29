@@ -1,0 +1,2463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>UIDAI PMIS - SLA &amp; LD Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --navy:#0b3c88;
+  --navy-deep:#062a63;
+  --cyan:#0aa1c0;
+  --cyan-light:#3cb8d4;
+  --green:#1a8a3d;
+  --green-soft:#e7f7ec;
+  --saffron:#d4440e;
+  --light:#f4f7fb;
+  --light-cool:#eef3f9;
+  --border:#dbe5f1;
+  --border-soft:#e9eef6;
+  --red:#d32f2f;
+  --amber:#b45309;
+  --amber-soft:#fff7ea;
+  --text:#1e2a3a;
+  --text-soft:#5a6680;
+  --text-muted:#7a869a;
+  --uidai-stripe:linear-gradient(90deg, var(--navy) 0%, var(--cyan) 100%);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{font-family:'Roboto',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--light);color:var(--text);display:flex;flex-direction:column;min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+.sr-only{position:absolute !important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+.skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:#fff;padding:8px 16px;z-index:9999;text-decoration:none;font-weight:700;border-radius:0 0 6px 0;}
+.skip-link:focus{top:0;}
+*:focus-visible{outline:3px solid #ffb300;outline-offset:2px;border-radius:3px;}
+
+.site-header{width:100%;background:#fff;box-shadow:0 2px 8px rgba(11,60,136,.08);position:relative;z-index:50;}
+.site-header::after{content:"";display:block;height:4px;background:var(--uidai-stripe);}
+.header-accessibility-strip{display:flex;gap:8px;padding:4px 16px;align-items:center;justify-content:flex-end;font-size:12px;color:var(--text-soft);border-bottom:1px dashed var(--border);}
+.a11y-label{font-weight:600;}
+.font-resizer{display:inline-flex;gap:4px;}
+.font-resizer button{background:#fff;border:1px solid var(--border);padding:3px 9px;font-size:12px;cursor:pointer;border-radius:4px;color:var(--navy);font-weight:600;}
+.font-resizer button:hover{background:#eef6fb;}
+.header-main{display:flex;align-items:center;gap:18px;padding:10px 18px;flex-wrap:wrap;}
+.header-brand{display:flex;align-items:center;gap:12px;}
+.header-brand img{height:46px;}
+.header-brand-text{display:flex;flex-direction:column;line-height:1.05;}
+.header-brand-hi-1{color:var(--saffron);font-weight:700;font-size:18px;}
+.header-brand-hi-2{color:var(--green);font-weight:700;font-size:18px;}
+.header-title{flex:1;text-align:center;font-size:20px;font-weight:900;line-height:1.2;color:#1a2a3f;min-width:0;}
+.header-authority{font-size:13px;color:var(--navy);font-weight:700;line-height:1.2;text-align:right;}
+
+.navbar{display:flex;justify-content:space-between;align-items:center;background:#fafcfe;border-bottom:1px solid var(--border);min-height:42px;position:relative;z-index:30;}
+.menu-home-block{width:240px;display:flex;justify-content:space-between;padding:6px 14px;border-right:1px solid var(--border);gap:10px;}
+.menu-home-block span{cursor:pointer;padding:5px 10px;border-radius:6px;user-select:none;white-space:nowrap;font-size:14px;font-weight:500;color:var(--navy);}
+.menu-home-block span:hover{background:#eaf2fb;color:var(--navy-deep);}
+.profile{padding:0 20px;cursor:pointer;position:relative;font-size:18px;user-select:none;}
+.profile-menu{position:absolute;right:0;top:40px;background:#fff;border:1px solid var(--border);border-radius:8px;display:none;min-width:120px;box-shadow:0 4px 10px rgba(0,0,0,0.08);z-index:40;overflow:hidden;}
+.profile.open .profile-menu{display:block;}
+.profile-menu div{padding:10px 12px;cursor:pointer;}
+.profile-menu div:hover{background:#eef6fb;}
+
+.layout{display:flex;flex:1;min-height:0;}
+.sidebar{width:240px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;transition:width .25s ease;min-height:0;}
+.sidebar.collapsed{width:70px;}
+.sidebar.collapsed .text,.sidebar.collapsed .submenu-arrow,.sidebar.collapsed .submenu{display:none !important;}
+.menu{padding:12px;}
+.menu a,.submenu div{display:flex;gap:10px;padding:9px 10px;margin-bottom:4px;cursor:pointer;border-radius:6px;align-items:center;line-height:1.2;text-decoration:none;color:var(--text);font-size:14px;}
+.menu a:hover,.submenu div:hover{background:#eef6fb;}
+.menu a.active{background:linear-gradient(90deg,var(--navy),var(--cyan));color:#fff;}
+.submenu{display:none;padding-left:20px;}
+.submenu.open{display:block;}
+.submenu div.active{background:#e6f1ff;color:var(--navy);font-weight:600;}
+
+.content{flex:1;padding:12px 18px;overflow:auto;min-width:0;}
+
+.pm-title{font-size:22px;font-weight:700;margin-bottom:8px;color:var(--navy);line-height:1.2;padding-left:14px;}
+.pm-subtitle{color:var(--green);font-weight:700;font-size:14px;margin:-2px 0 8px 14px;line-height:1.4;}
+.pm-description{color:var(--text-soft);font-size:14px;margin:0 0 12px 14px;line-height:1.5;}
+.page-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;margin-bottom:10px;}
+.page-header .pm-title{margin-bottom:0;}
+.page-header-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center;}
+
+.card{background:#fff;padding:16px 20px 14px;border-radius:10px;border:1px solid var(--border-soft);box-shadow:0 2px 8px rgba(11,60,136,.06);margin-bottom:14px;position:relative;}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--uidai-stripe);border-radius:10px 10px 0 0;}
+.card-section-title{color:var(--navy);font-size:15px;font-weight:700;margin:0 0 10px;}
+
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
+.full{grid-column:1 / -1;}
+.field label{font-weight:600;display:block;margin-bottom:4px;font-size:14px;}
+.field .hint-inline{font-size:12px;color:var(--text-muted);margin-top:3px;}
+.required{color:var(--red);}
+textarea{height:80px;resize:vertical;}
+
+input,select,textarea{width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--text);font:inherit;}
+input:disabled,select:disabled,textarea:disabled{background:#f3f6fb;color:#3e4a5b;cursor:not-allowed;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(10,161,192,.12);}
+
+.btn{background:linear-gradient(90deg,var(--navy),var(--cyan));color:#fff;padding:10px 18px;border:none;border-radius:6px;cursor:pointer;font-weight:600;letter-spacing:.2px;box-shadow:0 1px 3px rgba(11,60,136,.15);transition:transform .15s ease,opacity .15s ease,box-shadow .15s ease;}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(11,60,136,.22);}
+.btn.cancel{background:#fff;color:var(--navy);border:1px solid var(--border);box-shadow:none;}
+.btn.cancel:hover{background:#f4f8fd;}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn.delete-btn{background:#fff;color:var(--red);border:1px solid var(--red);padding:8px 14px;box-shadow:none;}
+.btn.delete-btn:hover{background:var(--red);color:#fff;}
+.btn.small-btn{padding:6px 12px;font-size:13px;}
+
+.table-wrap{width:100%;overflow-x:auto;margin-top:15px;border-radius:10px;border:1px solid var(--border);}
+.table{width:100%;border-collapse:collapse;background:#fff;}
+.table th{background:#f1f6fd;padding:10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;font-size:13px;color:var(--navy);}
+.table td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top;font-size:13px;}
+.table tr:hover{background:#f9fcff;}
+.table .link{color:var(--cyan);cursor:pointer;font-weight:600;text-decoration:underline;}
+.table .link:hover{color:var(--navy);}
+
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;line-height:1.5;white-space:nowrap;}
+.pill.ok{background:var(--green-soft);color:var(--green);}
+.pill.warn{background:var(--amber-soft);color:var(--amber);}
+.pill.bad{background:#fdecec;color:var(--red);}
+.pill.info{background:#e6f1ff;color:var(--navy);}
+.pill.neutral{background:#f1f4f8;color:var(--text-soft);}
+
+.range-row{display:grid;gap:8px;align-items:center;margin-bottom:8px;}
+.range-row select,.range-row input{padding:8px;}
+.range-header{font-weight:600;font-size:12px;color:var(--text-muted);text-transform:uppercase;padding-bottom:4px;}
+.icon-btn{background:#fff;color:var(--red);border:1px solid var(--red);padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:700;}
+.icon-btn:hover{background:var(--red);color:#fff;}
+.add-row-btn{background:#fff;color:var(--navy);border:1px dashed var(--cyan);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;}
+.add-row-btn:hover{background:#eef6fb;}
+
+.section-head{padding:8px 0 6px;border-bottom:1px solid var(--border-soft);margin:18px 0 12px;color:var(--navy);font-weight:700;font-size:14px;}
+.section-head:first-child{margin-top:0;}
+
+.hint{color:var(--text-soft);font-size:13px;}
+.flex-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.muted{color:var(--text-muted);}
+.center{text-align:center;}
+.right{text-align:right;}
+.num{text-align:right;font-variant-numeric:tabular-nums;}
+
+.formula-box{background:var(--amber-soft);border:1px solid var(--amber);border-radius:8px;padding:10px 14px;font-family:'Courier New',monospace;font-size:13px;color:var(--navy-deep);line-height:1.7;margin:10px 0;}
+.info-box{background:var(--green-soft);border:1px solid var(--green);border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.5;margin:10px 0;}
+.note-box{background:#e6f1ff;border:1px solid var(--navy);border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.5;margin:10px 0;}
+
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1200;align-items:center;justify-content:center;padding:16px;}
+.modal.open{display:flex;}
+.modal-box{background:#fff;width:min(720px,100%);max-height:92vh;overflow:auto;border-radius:12px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.18);position:relative;}
+.modal-box::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--uidai-stripe);border-radius:12px 12px 0 0;}
+.modal-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}
+.modal h3{color:var(--navy);margin-bottom:6px;}
+
+.site-footer{padding:14px 18px;background:#fff;border-top:1px solid var(--border);text-align:center;font-size:12px;color:var(--text-soft);}
+.site-footer .sep{color:var(--border);padding:0 8px;}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIMPLE / CARD-BASED UI (added for non-tech users)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Contract-type colour-coded pills (for SLA rule cards) */
+.contract-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;}
+.contract-pill.pmu{background:#fef3c7;color:#92400e;border:1px solid #f59e0b;}
+.contract-pill.msip-m{background:#e0e7ff;color:#3730a3;border:1px solid #6366f1;}
+.contract-pill.msip-o{background:#dbeafe;color:#1e40af;border:1px solid #3b82f6;}
+.contract-pill.bsp-d{background:#dcfce7;color:#166534;border:1px solid #16a34a;}
+.contract-pill.bsp-m{background:#fce7f3;color:#9d174d;border:1px solid #db2777;}
+.contract-pill.custom{background:#f3f4f6;color:#374151;border:1px solid #9ca3af;}
+
+/* Rule card grid */
+.rule-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px;margin-top:14px;}
+.rule-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 18px 14px;box-shadow:0 2px 8px rgba(11,60,136,.06);position:relative;display:flex;flex-direction:column;transition:box-shadow .15s ease,transform .15s ease;}
+.rule-card:hover{box-shadow:0 6px 18px rgba(11,60,136,.12);transform:translateY(-1px);}
+.rule-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--uidai-stripe);border-radius:12px 12px 0 0;}
+.rule-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;}
+.rule-card-id{font-size:12px;font-weight:700;color:var(--text-muted);letter-spacing:.4px;}
+.rule-card-name{font-size:16px;font-weight:700;color:var(--navy);line-height:1.3;margin:2px 0 8px;}
+.rule-card-desc{font-size:12.5px;color:var(--text-soft);line-height:1.5;margin-bottom:10px;min-height:38px;}
+.rule-card-section{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;margin:8px 0 4px;}
+.rule-card-meta{font-size:12.5px;color:var(--text);line-height:1.6;}
+.rule-card-ladder{background:#f8fbff;border:1px solid var(--border-soft);border-radius:8px;padding:8px 10px;margin:6px 0 8px;font-size:12.5px;}
+.rule-card-ladder .ladder-row{display:flex;align-items:center;gap:8px;padding:3px 0;}
+.rule-card-ladder .ladder-row .ldicon{width:14px;text-align:center;font-weight:700;flex-shrink:0;}
+.rule-card-ladder .ladder-row .ldicon.ok{color:var(--green);}
+.rule-card-ladder .ladder-row .ldicon.warn{color:var(--amber);}
+.rule-card-ladder .ladder-row .ldicon.bad{color:var(--red);}
+.rule-card-ladder .ladder-row .ld-cond{flex:1;color:var(--text);}
+.rule-card-ladder .ladder-row .ld-pct{font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;}
+.rule-card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:10px;border-top:1px solid var(--border-soft);}
+.rule-card-used{font-size:12px;color:var(--text-muted);}
+.rule-card-used b{color:var(--navy);}
+.rule-card-actions{display:flex;gap:6px;}
+
+/* Filter pills row */
+.filter-pills{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px;}
+.filter-pill{padding:6px 14px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--text-soft);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s ease;}
+.filter-pill:hover{background:#eef6fb;color:var(--navy);}
+.filter-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* Step-numbered editor card */
+.step-card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden;}
+.step-card-head{display:flex;align-items:center;gap:12px;padding:14px 18px;background:linear-gradient(90deg,#f1f6fd,#f7faff);border-bottom:1px solid var(--border-soft);}
+.step-num{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--cyan));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;}
+.step-title{font-size:15px;font-weight:700;color:var(--navy);}
+.step-hint{font-size:12.5px;color:var(--text-soft);margin-top:2px;margin-bottom:10px;}
+.step-body{padding:14px 18px;}
+.step-card{display:flex;}
+.step-card > .step-num{margin:14px 0 0 14px;}
+.step-card > .step-body{flex:1;}
+.step-body h3{font-size:15px;color:var(--navy);margin:0 0 4px;font-weight:700;}
+
+/* Penalty tier rows */
+.tier-list{display:flex;flex-direction:column;gap:6px;}
+.tier-row{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f8fbff;border:1px solid var(--border-soft);border-radius:6px;flex-wrap:wrap;}
+.tier-row input[type="number"]{width:90px;padding:6px 8px;border:1px solid var(--border);border-radius:5px;font:inherit;}
+.tier-sep{color:var(--text-muted);font-size:13px;}
+.tier-unit{color:var(--text-soft);font-size:12.5px;min-width:30px;}
+.tier-pct-label{color:var(--text-soft);font-size:12.5px;}
+.tier-derived{color:var(--navy);font-size:12px;font-weight:600;background:#fef3c7;padding:2px 8px;border-radius:4px;}
+.info-mini{background:#fef9e7;border:1px solid #f59e0b40;border-radius:6px;padding:8px 12px;font-size:12.5px;color:#7c5b03;margin-top:10px;line-height:1.5;}
+
+/* Paired choice cards (radio buttons styled like the reference screenshot) */
+.choice-pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:6px;}
+.choice-card{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;transition:all .15s ease;}
+.choice-card:hover{border-color:var(--cyan);background:#f8fbff;}
+.choice-card.selected{border-color:var(--navy);background:#eaf3ff;}
+.choice-card input[type="radio"]{
+  width:18px;
+  height:18px;
+  padding:0;
+  margin:2px 0 0 0;
+  flex-shrink:0;
+  accent-color:var(--navy);
+  cursor:pointer;
+}
+.choice-card-body{flex:1;}
+.choice-card-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px;}
+.choice-card-desc{font-size:12.5px;color:var(--text-soft);line-height:1.45;}
+
+/* Severity → Points config grid */
+.sev-points-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px;}
+.sev-points-cell{background:#f8fbff;border:1px solid var(--border-soft);border-radius:6px;padding:10px 12px;}
+.sev-points-cell label{font-size:12px;color:var(--text-soft);font-weight:600;display:block;margin-bottom:4px;}
+.sev-points-cell input{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:5px;font:inherit;font-weight:600;color:var(--navy);}
+.sev-points-cell .sev-num{font-size:11px;color:var(--text-muted);background:#eef4fc;padding:1px 6px;border-radius:3px;display:inline-block;font-family:ui-monospace,monospace;}
+.points-ld-table{margin-top:14px;background:#f8fbff;border:1px solid var(--border-soft);border-radius:6px;padding:12px 14px;font-size:12.5px;color:var(--text);}
+.points-ld-table b{color:var(--navy);}
+.icon-btn{width:28px;height:28px;border:none;background:#fee;color:var(--red);border-radius:5px;cursor:pointer;font-size:14px;}
+.icon-btn:hover{background:#fdd;}
+
+/* Manual/auto radio choices */
+.radio-stack{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
+.radio-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-size:13px;transition:all .15s ease;}
+.radio-row.selected{border-color:var(--navy);background:#eaf3ff;}
+.radio-row input[type="radio"]{
+  width:16px;
+  height:16px;
+  padding:0;
+  margin:0;
+  flex-shrink:0;
+  accent-color:var(--navy);
+  cursor:pointer;
+}
+
+/* Live example preview block */
+.preview-result{background:#f7faff;border:1px solid var(--border-soft);border-radius:6px;padding:12px 14px;margin-top:10px;font-size:14px;}
+.preview-result b{color:var(--navy);}
+.preview-note{font-size:12px;color:var(--text-soft);margin-top:4px;}
+
+/* Contract-type radio cards (for editor) */
+.contract-choice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;}
+.contract-choice{border:2px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:all .15s ease;background:#fff;}
+.contract-choice:hover{border-color:var(--cyan);background:#f6fbfd;}
+.contract-choice.selected{border-color:var(--navy);background:#eaf3ff;box-shadow:0 0 0 3px rgba(11,60,136,.08);}
+.contract-choice-title{font-weight:700;color:var(--navy);font-size:13px;margin-bottom:4px;display:flex;align-items:center;gap:6px;}
+.contract-choice-desc{font-size:12px;color:var(--text-soft);line-height:1.4;}
+.contract-choice input[type="radio"]{display:none;}
+.contract-choice-actions{display:flex;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-soft);}
+.link-btn{background:none;border:none;padding:0;color:var(--navy);font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline;}
+.link-btn:hover{color:var(--cyan);}
+.link-btn.danger{color:var(--red);}
+.link-btn.danger:hover{color:#a30b0b;}
+
+/* Ladder editor (cleaner ranges UI) */
+.ladder-editor{background:#fafcff;border:1px solid var(--border-soft);border-radius:8px;padding:12px;}
+.ladder-editor-header{display:grid;gap:8px;font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid var(--border-soft);margin-bottom:6px;}
+.ladder-editor-row{display:grid;gap:8px;align-items:center;padding:6px 0;}
+.ladder-editor-row input,.ladder-editor-row select{padding:7px 9px;font-size:13px;}
+
+/* Live preview card */
+.preview-card{background:linear-gradient(135deg,#fff7ea,#fffdf6);border:1px solid #f59e0b;border-radius:10px;padding:14px;margin-top:10px;}
+.preview-card-title{font-weight:700;color:#92400e;margin-bottom:8px;font-size:13px;letter-spacing:.3px;}
+.preview-card-body{font-size:13px;color:var(--text);line-height:1.7;}
+.preview-card-body .big{font-size:18px;font-weight:700;color:var(--navy);}
+.preview-card-input{display:inline-block;width:90px;padding:4px 8px;border:1px solid #f59e0b;border-radius:5px;background:#fff;font-weight:600;}
+
+/* Project SLA Linkage redesign */
+.project-hero{background:linear-gradient(135deg,#fff,#f7faff);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:14px;position:relative;overflow:hidden;}
+.project-hero::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--uidai-stripe);}
+.hero-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:14px;align-items:center;}
+.hero-block{padding:8px 4px;}
+.hero-block-label{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;}
+.hero-block-value{font-size:24px;font-weight:700;color:var(--navy);line-height:1.1;}
+.hero-block-sub{font-size:12.5px;color:var(--text-soft);margin-top:3px;}
+.hero-amount{color:var(--red);}
+.hero-amount.zero{color:var(--green);}
+.hero-progress{width:100%;background:#e6f1ff;height:8px;border-radius:99px;overflow:hidden;margin-top:6px;}
+.hero-progress > div{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--cyan),var(--navy));transition:width .3s ease;}
+.hero-progress.danger > div{background:linear-gradient(90deg,#f97316,var(--red));}
+
+/* Milestone accordion */
+.ms-card{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 4px rgba(11,60,136,.04);}
+.ms-card-head{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;user-select:none;background:linear-gradient(90deg,#f4f9ff,#fafcff);border-bottom:1px solid var(--border-soft);transition:background .15s ease;}
+.ms-card-head:hover{background:linear-gradient(90deg,#eaf3ff,#f4f9ff);}
+.ms-card-head.collapsed{border-bottom-color:transparent;}
+.ms-head-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
+.ms-head-icon{font-size:14px;color:var(--navy);transition:transform .2s ease;width:14px;flex-shrink:0;}
+.ms-head-title{font-weight:700;font-size:15px;color:var(--navy);line-height:1.3;}
+.ms-head-meta{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.ms-head-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+.ms-card-body{padding:14px 18px;}
+.ms-card.collapsed .ms-card-body{display:none;}
+
+/* Activity block within milestone */
+.act-block{border:1px solid var(--border-soft);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fcfdff;}
+.act-block:last-child{margin-bottom:0;}
+.act-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;}
+.act-head-name{font-weight:700;font-size:14px;color:var(--text);line-height:1.3;}
+.act-head-id{font-size:11.5px;color:var(--text-muted);font-weight:600;}
+.act-head-meta{font-size:12px;color:var(--text-soft);margin-top:4px;display:flex;flex-wrap:wrap;gap:14px;}
+.act-head-meta span b{color:var(--text);}
+.act-status{display:inline-flex;gap:5px;align-items:center;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap;}
+.act-status.ok{background:var(--green-soft);color:var(--green);}
+.act-status.warn{background:var(--amber-soft);color:var(--amber);}
+.act-status.bad{background:#fdecec;color:var(--red);}
+.act-status.info{background:#e6f1ff;color:var(--navy);}
+.act-status.neutral{background:#f1f4f8;color:var(--text-soft);}
+
+.sla-mini-card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:8px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;transition:border-color .15s ease;}
+.sla-mini-card:hover{border-color:var(--cyan);}
+.sla-mini-card-left{min-width:0;}
+.sla-mini-card-title{font-weight:700;font-size:13px;color:var(--navy);margin-bottom:2px;}
+.sla-mini-card-rule{font-size:11.5px;color:var(--text-muted);margin-bottom:5px;}
+.sla-mini-card-line{font-size:12.5px;color:var(--text);}
+.sla-mini-card-line .ld-amount{font-weight:700;color:var(--red);}
+.sla-mini-card-line .ld-amount.zero{color:var(--green);}
+.sla-mini-card-right{display:flex;flex-direction:column;gap:4px;align-items:flex-end;}
+
+.add-sla-link{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:7px 14px;border:1px dashed var(--cyan);background:#fff;color:var(--navy);font-size:12.5px;font-weight:600;border-radius:6px;cursor:pointer;transition:all .15s ease;}
+.add-sla-link:hover{background:#eaf3fb;border-style:solid;}
+
+.no-activities{padding:30px;text-align:center;color:var(--text-muted);background:#fbfcfe;border:1px dashed var(--border);border-radius:10px;font-size:13.5px;}
+.no-sla-link{font-size:12.5px;color:var(--text-muted);font-style:italic;padding:4px 0;}
+
+/* Inline measurement input */
+.measure-input{display:inline-flex;gap:4px;align-items:center;margin-top:4px;}
+.measure-input input{width:120px;padding:5px 8px;font-size:12px;}
+.measure-input button{padding:5px 12px;font-size:12px;}
+
+/* Activity status legend (top of project page) */
+.status-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-soft);margin-top:8px;}
+.status-legend span{display:inline-flex;align-items:center;gap:4px;}
+.status-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.status-legend .dot.g{background:var(--green);}
+.status-legend .dot.a{background:var(--amber);}
+.status-legend .dot.r{background:var(--red);}
+.status-legend .dot.b{background:var(--navy);}
+
+/* ── SIMPLIFIED LAYOUT (used by new compact UI) ── */
+.page-header-simple{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;}
+.ph-title{font-size:22px;font-weight:700;color:var(--navy);margin:0;}
+
+.project-picker{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.project-picker label{font-weight:600;color:var(--text);font-size:14px;}
+.project-picker select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:14px;min-width:260px;}
+
+.ld-summary{background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin-bottom:16px;}
+.ld-summary-row{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--border-soft);margin-bottom:14px;}
+.ld-summary-label{font-size:14px;color:var(--text);font-weight:600;}
+.ld-summary-value{font-size:30px;font-weight:700;color:var(--green);line-height:1;}
+.ld-summary-value.has-ld{color:var(--red);}
+.ld-cap-row{display:flex;flex-direction:column;gap:6px;}
+.ld-cap-label{font-size:12.5px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+.ld-cap-meta{font-size:12.5px;color:var(--text-soft);}
+.ld-bar{width:100%;background:#e6f1ff;height:10px;border-radius:99px;overflow:hidden;}
+.ld-bar > div{height:100%;background:linear-gradient(90deg,var(--cyan),var(--navy));transition:width .3s ease;}
+.ld-bar.danger > div{background:linear-gradient(90deg,#f97316,var(--red));}
+
+.rcs-id{display:inline-block;background:#eef4fc;color:var(--navy);font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:4px;font-family:ui-monospace,monospace;margin-bottom:4px;letter-spacing:.3px;}
+.sev-badge{display:inline-block;background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:6px;letter-spacing:.3px;}
+
+.rule-grid-simple{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;}
+.rule-card-simple{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;}
+.rcs-head{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.rcs-name{font-size:15px;font-weight:700;color:var(--navy);line-height:1.3;}
+.rcs-ladder{background:#f8fbff;border-radius:6px;padding:8px 10px;font-size:13px;}
+.rcs-ladder .ladder-row{display:flex;align-items:center;gap:8px;padding:2px 0;}
+.rcs-ladder .ldicon{width:14px;text-align:center;font-weight:700;flex-shrink:0;}
+.rcs-ladder .ldicon.ok{color:var(--green);}
+.rcs-ladder .ldicon.warn{color:var(--amber);}
+.rcs-ladder .ldicon.bad{color:var(--red);}
+.rcs-ladder .ld-cond{flex:1;color:var(--text);}
+.rcs-ladder .ld-pct{font-weight:700;color:var(--navy);}
+.rcs-actions{display:flex;gap:6px;margin-top:auto;}
+
+.ms-card-simple{margin-bottom:18px;}
+.ms-head-simple{font-size:15px;font-weight:700;color:var(--navy);padding:8px 0;border-bottom:2px solid var(--navy);margin-bottom:10px;}
+.ms-id,.act-id{display:inline-block;background:#eef4fc;color:var(--navy);font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;margin-right:6px;font-family:ui-monospace,monospace;}
+
+.act-block-simple{background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:10px;}
+.act-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+.act-name{font-weight:600;font-size:14px;color:var(--text);}
+.act-status-simple{font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;white-space:nowrap;}
+.act-status-simple.ok{background:var(--green-soft);color:var(--green);}
+.act-status-simple.warn{background:var(--amber-soft);color:var(--amber);}
+.act-status-simple.bad{background:#fdecec;color:var(--red);}
+.act-status-simple.info{background:#f1f4f8;color:var(--text-soft);}
+
+.sla-line{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;background:#f8fbff;border-radius:6px;margin:6px 0;flex-wrap:wrap;}
+.sla-line-main{flex:1;min-width:200px;}
+.sla-line-name{font-weight:600;font-size:13px;color:var(--navy);}
+.sla-line-amt{font-size:12.5px;color:var(--text-soft);margin-top:2px;}
+.sla-line-amt.has-ld b{color:var(--red);}
+.sla-line-amt.no-ld{color:var(--green);}
+.sla-line-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.act-no-sla{font-size:12.5px;color:var(--text-muted);font-style:italic;padding:4px 0;}
+
+.add-sla-btn{margin-top:8px;padding:6px 14px;border:1px dashed var(--cyan);background:#fff;color:var(--navy);font-size:12.5px;font-weight:600;border-radius:6px;cursor:pointer;}
+.add-sla-btn:hover{background:#eaf3fb;}
+
+.modal-context{background:#f7faff;border:1px solid var(--border-soft);border-radius:8px;padding:10px 14px;}
+.modal-context-row{font-size:13px;color:var(--text);padding:3px 0;}
+.modal-context-row span{color:var(--text-muted);display:inline-block;min-width:80px;}
+
+@media (max-width:1000px){.grid{grid-template-columns:1fr;}.grid-3,.grid-4{grid-template-columns:1fr 1fr;}.hero-grid{grid-template-columns:1fr 1fr;}.rule-grid,.rule-grid-simple{grid-template-columns:1fr;}}
+@media (max-width:768px){.layout{flex-direction:column;}.sidebar{width:100%;border-right:none;border-bottom:1px solid var(--border);}.sidebar.collapsed{width:100%;}.sidebar.collapsed .text,.sidebar.collapsed .submenu-arrow{display:inline !important;}.sidebar.collapsed .submenu{display:none !important;}.grid-3,.grid-4{grid-template-columns:1fr;}.hero-grid{grid-template-columns:1fr;}.header-title{font-size:16px;}.sla-mini-card{grid-template-columns:1fr;}.sla-mini-card-right{flex-direction:row;justify-content:flex-end;}.contract-choice-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+
+<body>
+<a href="#mainContent" class="skip-link">Skip to main content</a>
+
+<header class="site-header" role="banner">
+  <div class="header-accessibility-strip">
+    <span class="a11y-label">Text Size:</span>
+    <div class="font-resizer" role="group" aria-label="Adjust text size">
+      <button type="button" id="frIncrease" aria-label="Increase text size">+A</button>
+      <button type="button" id="frReset" aria-label="Reset text size">A</button>
+      <button type="button" id="frDecrease" aria-label="Decrease text size">-A</button>
+    </div>
+  </div>
+  <div class="header-main">
+    <div class="header-brand">
+      <img src="Aadhaar.png" alt="Aadhaar logo">
+      <div class="header-brand-text">
+        <span class="header-brand-hi-1" lang="hi">मेरा आधार</span>
+        <span class="header-brand-hi-2" lang="hi">मेरी पहचान</span>
+      </div>
+    </div>
+    <h1 class="header-title">UIDAI Automation Governance Tool</h1>
+    <div class="header-authority">Unique Identification<br>Authority of India</div>
+  </div>
+</header>
+
+<nav class="navbar" role="navigation" aria-label="Top navigation">
+  <div class="menu-home-block">
+    <span id="toggleBtn" role="button" tabindex="0">☰ Menu</span>
+    <span id="homeBtn" role="button" tabindex="0">🏠 Home</span>
+  </div>
+  <div class="profile" id="profileBtn" role="button" tabindex="0">
+    <span aria-hidden="true">👤</span>
+    <div class="profile-menu" id="profileMenu" role="menu">
+      <div role="menuitem" tabindex="-1">Profile</div>
+      <div role="menuitem" tabindex="-1">Sign Out</div>
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar" role="complementary">
+    <nav class="menu" aria-label="Application sections">
+      <a href="#" role="button" tabindex="0">📊 <span class="text">Dashboard</span></a>
+      <a href="#" id="pmToggle" role="button" tabindex="0" aria-expanded="false">
+        📁 <span class="text">Project Management</span>
+        <span class="submenu-arrow">▶</span>
+      </a>
+      <div class="submenu" id="pmSub" role="menu">
+        <div onclick="alert('Add Project - see Project Management screen')" role="menuitem" tabindex="0">➕ Add Project</div>
+        <div onclick="alert('Search Project - see Project Management screen')" role="menuitem" tabindex="0">🔍 Search Project</div>
+      </div>
+      <a href="#" class="active" id="slaToggle" role="button" tabindex="0" aria-expanded="true">
+        ⚖️ <span class="text">SLA &amp; LD Management</span>
+        <span class="submenu-arrow">▼</span>
+      </a>
+      <div class="submenu open" id="slaSub" role="menu">
+        <div onclick="showSlaRules()" role="menuitem" tabindex="0" class="active" id="navRules">📚 SLA Rules Library</div>
+        <div onclick="showProjectSlas()" role="menuitem" tabindex="0" id="navProj">🔗 Project SLA Linkage</div>
+        <div onclick="showLdReport()" role="menuitem" tabindex="0" id="navReport">📈 LD Report</div>
+      </div>
+      <a href="#" role="button" tabindex="0">🗂️ <span class="text">Master Data</span></a>
+      <a href="#" role="button" tabindex="0">🏢 <span class="text">Vendor Management</span></a>
+      <a href="#" role="button" tabindex="0">👤 <span class="text">User Management</span></a>
+    </nav>
+  </aside>
+
+  <main class="content" id="mainContent" role="main" tabindex="-1">
+    <div id="contentArea"></div>
+  </main>
+</div>
+
+<footer class="site-footer" role="contentinfo">
+  © 2026 UIDAI <span class="sep">·</span> PMIS Automation Tool <span class="sep">·</span> Internal Use Only
+</footer>
+
+<div id="messageModal" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-box" style="max-width:440px;">
+    <h3 id="messageModalTitle">Notice</h3>
+    <p id="messageModalBody" style="margin-top:10px;line-height:1.5;"></p>
+    <div class="modal-actions" style="justify-content:center;">
+      <button class="btn" onclick="closeMessageModal()">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="confirmModal" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-box" style="max-width:480px;">
+    <h3 id="confirmModalTitle">Confirm</h3>
+    <p id="confirmModalBody" style="margin-top:10px;line-height:1.5;"></p>
+    <div class="modal-actions" style="justify-content:center;">
+      <button class="btn" id="confirmModalOk">Yes</button>
+      <button class="btn cancel" onclick="closeConfirmModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="addLinkModal" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-box" style="max-width:620px;">
+    <h3 id="addLinkModalTitle">Link an SLA Rule</h3>
+    <div id="addLinkModalBody"></div>
+    <div class="modal-actions">
+      <button class="btn cancel" onclick="closeAddLinkModal()">Cancel</button>
+      <button class="btn" onclick="saveNewLink()">Link SLA</button>
+    </div>
+  </div>
+</div>
+
+<div id="addContractTypeModal" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-box" style="max-width:520px;">
+    <h3 id="ctModalTitle">Add Contract Type</h3>
+    <p style="margin-top:6px;font-size:13px;color:var(--text-soft);">A contract type is a label for grouping SLA rules. Each rule under any contract type defines its own penalty tiers.</p>
+    <div class="field" style="margin-top:14px;">
+      <label>Contract type name <span class="required">*</span></label>
+      <input id="ct_name" type="text" placeholder="e.g. Data Centre Operator">
+    </div>
+    <div class="field" style="margin-top:10px;">
+      <label>Description (optional)</label>
+      <input id="ct_desc" type="text" placeholder="Brief description">
+    </div>
+    <input id="ct_editing_id" type="hidden" value="">
+    <div class="modal-actions">
+      <button class="btn cancel" onclick="closeAddContractTypeModal()">Cancel</button>
+      <button class="btn" onclick="saveContractType()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   SLA & LD MANAGEMENT
+   ─────────────────────────────────────────────────────────────────────────
+   Two-store architecture:
+     - slaRuleStore: reusable SLA rules. Each rule is fully self-contained:
+                     metric definition, penalty tiers, optional per-day extra,
+                     grace days, and per-rule cap. No fixed templates — any
+                     contract pattern can be expressed via these inputs.
+     - projectSlaLinks: links a project's activity to an existing rule.
+
+   Universal calculation:
+     1. Get measured value (auto from activity dates, or manually entered)
+     2. Match a tier — get its penalty %
+     3. If extraPerDay > 0 and there's a penalty, add extraPerDay × max(0, value - graceDays)
+     4. Cap at the rule's perSlaCapPercent
+     5. Penalty amount = capped % × project's quarterly payment
+     6. Project total is capped at 10% of quarterly payment.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Project list - same shape as Project_Management.html ── */
+const demoProjects = [
+  {
+    projectId:'PRJ001', projectName:'Test Project Alpha',
+    description:'Testing description alpha', status:'PUBLISHED', owner:'Admin',
+    startDate:'2026-04-01', endDate:'2026-04-30',
+    actualStartDate:'2026-04-01', actualEndDate:'',
+    quarterlyPayments:[
+      { id:'Q1-2026', label:'Q1 FY 2026 (Apr–Jun)',  startDate:'2026-04-01', endDate:'2026-06-30', amount:1000000 },
+      { id:'Q2-2026', label:'Q2 FY 2026 (Jul–Sep)',  startDate:'2026-07-01', endDate:'2026-09-30', amount:1100000 }
+    ], vendors:['Vendor A','Vendor B'],
+    milestones:[
+      { uid:'m-init', id:'M1', name:'Initiation', status:'Completed',
+        startDate:'2026-04-01', endDate:'2026-04-05',
+        activities:[
+          { uid:'a-reqcoll', id:'A1.1', name:'Requirement Collection', type:'Standard Type',
+            status:'Completed', startDate:'2026-04-01', endDate:'2026-04-02',
+            actualStartDate:'2026-04-01', actualEndDate:'2026-04-03',
+            owner:'TMD1', vendor:'Vendor A' },
+          { uid:'a-kickoff', id:'A1.2', name:'Kickoff Preparation', type:'Resource Type',
+            status:'Completed', startDate:'2026-04-03', endDate:'2026-04-04',
+            actualStartDate:'2026-04-03', actualEndDate:'2026-04-04',
+            owner:'TMD2', vendor:'Vendor B' }
+        ]},
+      { uid:'m-exec', id:'M2', name:'Execution', status:'In Progress',
+        startDate:'2026-04-06', endDate:'2026-04-18',
+        activities:[
+          { uid:'a-config', id:'A2.1', name:'Configuration Setup', type:'Transactional Type',
+            status:'In Progress', startDate:'2026-04-06', endDate:'2026-04-10',
+            actualStartDate:'2026-04-07', actualEndDate:'',
+            owner:'TMD1', vendor:'Vendor A' },
+          { uid:'a-deploy', id:'A2.2', name:'Deployment', type:'Standard Type',
+            status:'Not Started', startDate:'2026-04-11', endDate:'2026-04-15',
+            actualStartDate:'', actualEndDate:'',
+            owner:'TMD1', vendor:'Vendor A' }
+        ]}
+    ]
+  },
+  {
+    projectId:'PRJ002', projectName:'Test Project Beta',
+    description:'Testing description beta', status:'PUBLISHED', owner:'Supervisor',
+    startDate:'2026-05-01', endDate:'2026-05-20',
+    actualStartDate:'2026-05-01', actualEndDate:'',
+    quarterlyPayments:[
+      { id:'Q1-2026', label:'Q1 FY 2026 (Apr–Jun)', startDate:'2026-04-01', endDate:'2026-06-30', amount:500000 }
+    ], vendors:['Vendor C'],
+    milestones:[
+      { uid:'m-plan', id:'M1', name:'Planning', status:'In Progress',
+        startDate:'2026-05-01', endDate:'2026-05-04',
+        activities:[
+          { uid:'a-scope', id:'A1.1', name:'Scope Finalization', type:'Standard Type',
+            status:'In Progress', startDate:'2026-05-02', endDate:'2026-05-03',
+            actualStartDate:'2026-05-02', actualEndDate:'',
+            owner:'TMD1', vendor:'Vendor C' }
+        ]}
+    ]
+  },
+  {
+    projectId:'PRJ003', projectName:'Test Project Gamma',
+    description:'Empty project', status:'PUBLISHED', owner:'Manager',
+    startDate:'2026-06-01', endDate:'2026-06-25',
+    actualStartDate:'', actualEndDate:'',
+    quarterlyPayments:[
+      { id:'Q2-2026', label:'Q2 FY 2026 (Jul–Sep)', startDate:'2026-07-01', endDate:'2026-09-30', amount:200000 }
+    ], vendors:[], milestones:[]
+  }
+];
+
+/* ───────────────────────────────────────────────────────────────
+   CONTRACT TYPES — purely metadata for grouping & visual labels.
+   Calculations are NOT determined by contract type. Each rule
+   carries its own complete configuration.
+   ─────────────────────────────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────────────
+   STANDARD POINTS TABLES (PMU / MSAP / MSIP Milestone)
+   These are fixed by the RFPs and not user-editable.
+   ─────────────────────────────────────────────────────────────── */
+const SEVERITY_TO_POINTS = { 0:-2, 1:2, 2:4, 3:6, 4:8 };
+const POINTS_TO_LD_TABLE = [
+  { minPoints:8,  ldPercent:4 },
+  { minPoints:6,  ldPercent:3 },
+  { minPoints:4,  ldPercent:2 },
+  { minPoints:2,  ldPercent:1 },
+  { minPoints:-Infinity, ldPercent:0 }  /* points <= 0 → 0% */
+];
+function pointsToLdPct(totalPoints){
+  for(const row of POINTS_TO_LD_TABLE){
+    if(totalPoints >= row.minPoints) return row.ldPercent;
+  }
+  return 0;
+}
+
+/* How LD is calculated for a rule. Some contracts (PMU/MSAP/MSIP
+   milestone) use a 2-stage Severity→Points→LD% with point
+   accumulation; others (MSIP operational, BSP) use a direct LD%
+   per tier. */
+const CALCULATION_MODELS = [
+  { id:'POINTS',     label:'Severity → Points → LD %',  description:'Each tier has a severity (0–4). Severity maps to points (per fixed table). Points accumulate across measurements within the reporting interval, then map to LD %.' },
+  { id:'DIRECT_PCT', label:'Direct LD % per tier',       description:'Each tier directly carries an LD %. For daily-measured SLAs, the quarter LD = Σ(days_in_tier × tier_ld%) / days_in_quarter.' }
+];
+
+/* ───────────────────────────────────────────────────────────────
+   Contract pill colours — used internally for visual grouping
+   (auto-assigned in round-robin when a new contract type is added).
+   Not user-selectable. Backend just persists the chosen pillClass.
+   ─────────────────────────────────────────────────────────────── */
+const PILL_COLOUR_POOL = ['pmu','msip-m','msip-o','bsp-d','bsp-m','custom'];
+
+const contractTypes = [
+  { id:'PMU_MSAP',    label:'PMU / MSAP',          pillClass:'pmu',    description:'Consultant contracts' },
+  { id:'MSIP',        label:'MSIP Infrastructure', pillClass:'msip-m', description:'Infrastructure provider' },
+  { id:'BSP',         label:'BSP Biometric',       pillClass:'bsp-d',  description:'Biometric service provider' }
+];
+
+/* ───────────────────────────────────────────────────────────────
+   METRIC CATALOG — pre-defined metrics most contracts use.
+   Each rule references one of these IDs via rule.metricId.
+   If a contract needs something new, pick 'CUSTOM' and override
+   the label/unit. Backend should accept either a catalog id
+   OR id='CUSTOM' with non-empty metricLabel/metricUnit.
+   ─────────────────────────────────────────────────────────────── */
+const metricCatalog = [
+  { id:'DELAY_DAYS',      label:'Delay (days late)',          unit:'days',    defaultMode:'AUTO_DELAY' },
+  { id:'UPTIME_PCT',      label:'Availability / Uptime',       unit:'%',       defaultMode:'MANUAL' },
+  { id:'ERROR_RATE_PCT',  label:'Error rate (FNIR / FPIR)',    unit:'%',       defaultMode:'MANUAL' },
+  { id:'RESPONSE_TIME_S', label:'Response time',               unit:'seconds', defaultMode:'MANUAL' },
+  { id:'RESOLUTION_HRS',  label:'Resolution time',             unit:'hours',   defaultMode:'MANUAL' },
+  { id:'INCIDENT_COUNT',  label:'Count of incidents',          unit:'count',   defaultMode:'MANUAL' },
+  { id:'COMPLIANCE_PCT',  label:'Compliance %',                unit:'%',       defaultMode:'MANUAL' },
+  { id:'CUSTOM',          label:'Other (specify name & unit)', unit:'',        defaultMode:'MANUAL' }
+];
+
+/* How the metric value is obtained */
+const MEASURE_MODES = [
+  { id:'AUTO_DELAY', label:'Computed automatically from activity dates' },
+  { id:'MANUAL',     label:'Manually entered each measurement' }
+];
+
+const MEASUREMENT_INTERVALS = [
+  { id:'ONE_TIME',  label:'One-time (at milestone)' },
+  { id:'DAILY',     label:'Daily' },
+  { id:'WEEKLY',    label:'Weekly' },
+  { id:'MONTHLY',   label:'Monthly' },
+  { id:'QUARTERLY', label:'Quarterly' }
+];
+
+const REPORTING_INTERVALS = [
+  { id:'ONE_TIME',  label:'One-time' },
+  { id:'WEEKLY',    label:'Weekly' },
+  { id:'MONTHLY',   label:'Monthly' },
+  { id:'QUARTERLY', label:'Quarterly' }
+];
+
+/* Common cap suggestions (UI hint only; user can still type any number 0-100) */
+const COMMON_CAPS = [5, 7.5, 10, 15, 20];
+
+/* ═══════════════════════════════════════════════════════════════
+   SLA RULE STORE — universal rule shape
+   Each rule = independent set of tiers + optional daily extra
+   + grace + per-rule cap. No engines, no fixed templates.
+   ─────────────────────────────────────────────────────────────── */
+const slaRuleStore = [
+  {
+    ruleId:'SLA-RULE-001',
+    name:'Activity completion on schedule',
+    description:'Days-late SLA used by PMU / MSAP. Severity accumulates across measurements within the quarter, then maps to LD %.',
+    contractTypeId:'PMU_MSAP',
+    metricId:'DELAY_DAYS',
+    metricLabel:'Days late',
+    metricUnit:'days',
+    measureMode:'AUTO_DELAY',
+    calculationModel:'POINTS',
+    tiers:[
+      { from:0,  to:0,    severity:0 },
+      { from:1,  to:7,    severity:1 },
+      { from:8,  to:14,   severity:2 },
+      { from:15, to:21,   severity:3 },
+      { from:22, to:null, severity:4 }
+    ],
+    extraPerDay:0,
+    graceDays:0,
+    perSlaCapPercent:10,
+    measurementInterval:'MONTHLY',
+    reportingInterval:'QUARTERLY',
+    createdAt:'2026-04-01', createdBy:'Admin'
+  },
+  {
+    ruleId:'SLA-RULE-002',
+    name:'Milestone delivery (with daily delay add-on)',
+    description:'Milestone SLA. Severity 4 if missed (gives 4% LD), with an additional 0.01 % LD per day of further delay.',
+    contractTypeId:'MSIP',
+    metricId:'DELAY_DAYS',
+    metricLabel:'Days late',
+    metricUnit:'days',
+    measureMode:'AUTO_DELAY',
+    calculationModel:'POINTS',
+    tiers:[
+      { from:0, to:0,    severity:0 },
+      { from:1, to:null, severity:4 }
+    ],
+    extraPerDay:0.01,
+    graceDays:0,
+    perSlaCapPercent:10,
+    measurementInterval:'ONE_TIME',
+    reportingInterval:'ONE_TIME',
+    createdAt:'2026-04-01', createdBy:'Admin'
+  },
+  {
+    ruleId:'SLA-RULE-003',
+    name:'Service availability target',
+    description:'Penalty grows as monthly uptime drops below the target.',
+    contractTypeId:'MSIP',
+    metricId:'UPTIME_PCT',
+    metricLabel:'Uptime',
+    metricUnit:'%',
+    measureMode:'MANUAL',
+    calculationModel:'DIRECT_PCT',
+    tiers:[
+      { from:99.95, to:100,   ldPercent:0 },
+      { from:99.5,  to:99.95, ldPercent:0.1 },
+      { from:99,    to:99.5,  ldPercent:0.2 },
+      { from:98,    to:99,    ldPercent:0.3 },
+      { from:97,    to:98,    ldPercent:0.4 },
+      { from:96,    to:97,    ldPercent:0.5 },
+      { from:95,    to:96,    ldPercent:0.6 },
+      { from:90,    to:95,    ldPercent:0.7 },
+      { from:85,    to:90,    ldPercent:0.8 },
+      { from:80,    to:85,    ldPercent:0.9 },
+      { from:0,     to:80,    ldPercent:1.0 }
+    ],
+    extraPerDay:0,
+    graceDays:0,
+    perSlaCapPercent:10,
+    measurementInterval:'MONTHLY',
+    reportingInterval:'QUARTERLY',
+    createdAt:'2026-04-01', createdBy:'Admin'
+  },
+  {
+    ruleId:'SLA-RULE-004',
+    name:'False Negative rate (FNIR)',
+    description:'Penalty applies when the measured error rate crosses each threshold.',
+    contractTypeId:'BSP',
+    metricId:'ERROR_RATE_PCT',
+    metricLabel:'Error rate',
+    metricUnit:'%',
+    measureMode:'MANUAL',
+    calculationModel:'DIRECT_PCT',
+    tiers:[
+      { from:0,   to:0.1,  ldPercent:0 },
+      { from:0.1, to:0.2,  ldPercent:2 },
+      { from:0.2, to:0.5,  ldPercent:4 },
+      { from:0.5, to:null, ldPercent:6 }
+    ],
+    extraPerDay:0,
+    graceDays:0,
+    perSlaCapPercent:10,
+    measurementInterval:'DAILY',
+    reportingInterval:'QUARTERLY',
+    createdAt:'2026-04-01', createdBy:'Admin'
+  },
+  {
+    ruleId:'SLA-RULE-005',
+    name:'Milestone delivery (with grace + daily extra)',
+    description:'Flat penalty on slippage, plus a per-day extra once a grace window is exceeded.',
+    contractTypeId:'BSP',
+    metricId:'DELAY_DAYS',
+    metricLabel:'Days late',
+    metricUnit:'days',
+    measureMode:'AUTO_DELAY',
+    calculationModel:'DIRECT_PCT',
+    tiers:[
+      { from:0, to:0,    ldPercent:0 },
+      { from:1, to:null, ldPercent:2 }
+    ],
+    extraPerDay:0.1,
+    graceDays:5,
+    perSlaCapPercent:10,
+    measurementInterval:'ONE_TIME',
+    reportingInterval:'ONE_TIME',
+    createdAt:'2026-04-01', createdBy:'Admin'
+  }
+];
+
+/* ── Project-SLA links (which Activity is bound to which Rule) ── */
+const projectSlaLinks = [
+  { linkId:'LNK-001', projectId:'PRJ001', milestoneUid:'m-init', activityUid:'a-reqcoll', ruleId:'SLA-RULE-001', actualMetricValue:null, createdAt:'2026-04-01' },
+  { linkId:'LNK-002', projectId:'PRJ001', milestoneUid:'m-exec', activityUid:'a-config', ruleId:'SLA-RULE-002', actualMetricValue:null, createdAt:'2026-04-06' },
+  { linkId:'LNK-003', projectId:'PRJ002', milestoneUid:'m-plan', activityUid:'a-scope', ruleId:'SLA-RULE-001', actualMetricValue:null, createdAt:'2026-05-01' }
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILS
+   ═══════════════════════════════════════════════════════════════ */
+function escapeHtml(s){
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function formatDateDisplay(d){
+  if(!d) return '-';
+  const dt = new Date(d);
+  if(isNaN(dt.getTime())) return d;
+  return dt.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+}
+function todayISO(){ return new Date().toISOString().split('T')[0]; }
+function diffDays(later, earlier){
+  if(!later || !earlier) return 0;
+  const a = new Date(later); const b = new Date(earlier);
+  if(isNaN(a.getTime()) || isNaN(b.getTime())) return 0;
+  return Math.round((a - b) / (1000*60*60*24));
+}
+function fmtMoney(n){
+  if(n === null || n === undefined || isNaN(n)) return '-';
+  return 'Rs. ' + Number(n).toLocaleString('en-IN', {maximumFractionDigits:2});
+}
+function fmtPct(n){
+  if(n === null || n === undefined || isNaN(n)) return '-';
+  return Number(n).toFixed(2) + '%';
+}
+
+/* Lookups */
+function findProject(projectId){ return demoProjects.find(p => p.projectId === projectId) || null; }
+
+/* ── Quarterly-payment resolution ──────────────────────────────
+   A project has a list of quarters, each with its own amount.
+   - getActiveQuarter:   the quarter that contains today's date,
+                         else the most recently ended past quarter,
+                         else the first future quarter.
+   - getQuarterById:     lookup by quarter id.
+   - getPaymentForQuarter: the amount for a given quarter id,
+                         falls back to active quarter, else 0.
+   ─────────────────────────────────────────────────────────── */
+function getQuarters(project){
+  if(!project) return [];
+  if(Array.isArray(project.quarterlyPayments) && project.quarterlyPayments.length) return project.quarterlyPayments;
+  /* Legacy fallback: single number */
+  if(project.quarterlyPayment != null){
+    return [{ id:'LEGACY', label:'Current quarter', startDate:'1900-01-01', endDate:'9999-12-31', amount: Number(project.quarterlyPayment) }];
+  }
+  return [];
+}
+function getActiveQuarter(project, referenceDate){
+  const qs = getQuarters(project);
+  if(qs.length === 0) return null;
+  const today = referenceDate || todayISO();
+  const current = qs.find(q => today >= q.startDate && today <= q.endDate);
+  if(current) return current;
+  const past = qs.filter(q => q.endDate < today).sort((a,b) => b.endDate.localeCompare(a.endDate))[0];
+  if(past) return past;
+  return qs[0];
+}
+function getQuarterById(project, quarterId){
+  return getQuarters(project).find(q => q.id === quarterId) || null;
+}
+function findMilestone(project, milestoneUid){ return (project?.milestones||[]).find(m => m.uid === milestoneUid) || null; }
+function findActivity(project, milestoneUid, activityUid){
+  const m = findMilestone(project, milestoneUid);
+  return (m?.activities||[]).find(a => a.uid === activityUid) || null;
+}
+function findRule(ruleId){ return slaRuleStore.find(r => r.ruleId === ruleId) || null; }
+function contractTypeLabel(id){ return contractTypes.find(c => c.id === id)?.label || id; }
+function intervalLabel(id){
+  return [...MEASUREMENT_INTERVALS, ...REPORTING_INTERVALS].find(i => i.id === id)?.label || id;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CALCULATION (universal)
+   ─────────────────────────────────────────────────────────────── */
+
+/* Get the measured value for a rule + link.
+   For AUTO_DELAY: compute days late from activity dates.
+   For MANUAL: read from link.actualMetricValue.
+   Returns { value, referenceDate, mode } or { value:null, ... } when n/a */
+function getMeasuredValue(link, rule, project, activity){
+  if(rule.measureMode === 'AUTO_DELAY'){
+    const expEnd = activity.endDate || '';
+    const actEnd = activity.actualEndDate || '';
+    if(!expEnd) return { value:0, referenceDate:'-', mode:'no-baseline' };
+    if(actEnd){
+      const d = diffDays(actEnd, expEnd);
+      return { value: Math.max(0, d), referenceDate: actEnd,
+               mode: d > 0 ? 'completed-late' : 'completed-on-time' };
+    }
+    const today = todayISO();
+    const d = diffDays(today, expEnd);
+    if(d <= 0) return { value:0, referenceDate:today, mode:'in-progress-ok' };
+    return { value:d, referenceDate:today, mode:'in-progress-late' };
+  }
+  /* MANUAL — read whatever value was entered */
+  return {
+    value: link.actualMetricValue !== null && link.actualMetricValue !== undefined ? Number(link.actualMetricValue) : null,
+    referenceDate: link.measurementDate || todayISO(),
+    mode: link.actualMetricValue !== null && link.actualMetricValue !== undefined ? 'measured' : 'not-measured'
+  };
+}
+
+/* Match a value to a tier. Empty/null upper bound means open-ended. */
+function matchRange(rule, value){
+  if(value === null || value === undefined) return null;
+  const tiers = rule.tiers || rule.ranges || [];   /* tiers is new field; ranges is legacy */
+  for(const t of tiers){
+    const from = Number(t.from);
+    const to   = (t.to === null || t.to === undefined || t.to === '') ? Infinity : Number(t.to);
+    if(value >= from && value <= to) return t;
+  }
+  return null;
+}
+
+/* Universal calculation:
+     1. Get measured value
+     2. Match a tier -> base LD %
+     3. If extraPerDay > 0 AND tier penalty > 0 AND value > 0:
+        add extraPerDay × max(0, value - graceDays)
+     4. Cap at rule.perSlaCapPercent
+     5. Multiply by project.quarterlyPayment
+*/
+/* For POINTS rules we cap each measurement at severity 4 (RFP "SLA cap"). */
+function severityOfTier(tier){ return Number(tier.severity ?? 0); }
+function pointsForSeverity(sev, rule){
+  const capped = Math.min(4, Math.max(0, Number(sev || 0)));
+  /* Use the rule's own map if provided, else the standard table */
+  const map = (rule && rule.severityToPoints) ? rule.severityToPoints : SEVERITY_TO_POINTS;
+  return Number(map[capped] ?? SEVERITY_TO_POINTS[capped] ?? 0);
+}
+
+function calculateLink(link, quarterId){
+  const project = findProject(link.projectId);
+  const milestone = findMilestone(project, link.milestoneUid);
+  const activity = findActivity(project, link.milestoneUid, link.activityUid);
+  const rule = findRule(link.ruleId);
+  if(!project || !milestone || !activity || !rule){
+    return { error:'Project/Activity/Rule not found', cappedLdPct:0, ldAmount:0,
+             breach:{value:0, mode:'error', referenceDate:'-'}, calcSteps:[] };
+  }
+
+  /* Resolve which quarter's payment to use */
+  const quarter = quarterId ? getQuarterById(project, quarterId) : getActiveQuarter(project);
+  const quarterlyPayment = quarter ? Number(quarter.amount || 0) : 0;
+  const perSlaCap = Number(rule.perSlaCapPercent || rule.perSlaCap || 10);
+  const model = rule.calculationModel || 'DIRECT_PCT';
+
+  /* Gather measurements. For POINTS rules with multiple measurements per
+     reporting interval, link.measurements is an array. Otherwise the
+     primary measurement comes from getMeasuredValue(). */
+  const measurements = Array.isArray(link.measurements) && link.measurements.length
+    ? link.measurements
+    : (() => {
+        const breach = getMeasuredValue(link, rule, project, activity);
+        return breach.value === null ? [] : [{ value: breach.value, referenceDate: breach.referenceDate, mode: breach.mode }];
+      })();
+
+  const calcSteps = [];
+  const unit = rule.metricUnit || '';
+
+  if(measurements.length === 0){
+    return {
+      link, project, milestone, activity, rule, model,
+      breach:{ value:null, mode:'not-measured', referenceDate:'-' },
+      measurements:[], measurementBreakdown:[],
+      tier:null, totalPoints:0, rawLdPct:0, cappedLdPct:0,
+      extraDays:0, extraPct:0,
+      perSlaCap, quarter, quarterlyPayment, ldAmount:0,
+      calcSteps:['No measurement yet — enter the value(s) to compute the penalty.']
+    };
+  }
+
+  /* ── Per-measurement breakdown ── */
+  const breakdown = measurements.map((m, idx) => {
+    const t = matchRange(rule, Number(m.value));
+    let pointsHere = 0, ldHere = 0;
+    if(t){
+      if(model === 'POINTS'){
+        const sev = severityOfTier(t);
+        pointsHere = pointsForSeverity(sev, rule);
+      } else {
+        ldHere = Number(t.ldPercent || 0);
+      }
+    }
+    return { index: idx + 1, value: Number(m.value), referenceDate: m.referenceDate, tier: t,
+             severity: t ? severityOfTier(t) : null, points: pointsHere, ldHere };
+  });
+
+  /* ── Final LD% per model ── */
+  let totalPoints = 0;
+  let baseLdPct = 0;
+  let tierLast = breakdown[breakdown.length - 1]?.tier || null;
+  const primaryValue = breakdown[breakdown.length - 1]?.value ?? 0;
+
+  if(model === 'POINTS'){
+    totalPoints = breakdown.reduce((acc, b) => acc + b.points, 0);
+    baseLdPct = pointsToLdPct(totalPoints);
+    calcSteps.push(`Total points accumulated: ${totalPoints} (capped at severity 4 per measurement).`);
+    calcSteps.push(`Points → LD %: ${baseLdPct}%  (≥8→4%, 6→3%, 4→2%, 2→1%, ≤0→0%).`);
+  } else {
+    /* DIRECT_PCT: if daily measurement + multiple values → weighted by days; else use last value */
+    if(rule.measurementInterval === 'DAILY' && breakdown.length > 1){
+      /* Each measurement is 1 day in that tier (or use m.days if provided) */
+      const daysInQuarter = quarter ? Math.max(1, diffDays(quarter.endDate, quarter.startDate) + 1) : 90;
+      const weighted = breakdown.reduce((acc, b) => acc + (Number(b.ldHere || 0) * 1), 0);
+      baseLdPct = weighted / daysInQuarter;
+      calcSteps.push(`Daily roll-up: Σ(days × LD %) / ${daysInQuarter} days = ${baseLdPct.toFixed(3)}%`);
+    } else {
+      baseLdPct = breakdown[breakdown.length - 1]?.ldHere || 0;
+      const t = tierLast;
+      if(t){
+        const upper = (t.to===null||t.to===undefined||t.to==='') ? `${t.from}+` : `${t.from}–${t.to}`;
+        calcSteps.push(`Measured ${(rule.metricLabel||'value').toLowerCase()}: ${primaryValue}${unit?' '+unit:''}`);
+        calcSteps.push(`Matched tier ${upper}${unit?' '+unit:''} → ${baseLdPct}%`);
+      }
+    }
+  }
+
+  /* Extra per-day (used by milestone-style rules) */
+  let extraDays = 0, extraPct = 0;
+  const extraPerDay = Number(rule.extraPerDay || 0);
+  const graceDays   = Number(rule.graceDays || 0);
+  if(baseLdPct > 0 && extraPerDay > 0 && primaryValue > 0){
+    extraDays = Math.max(0, primaryValue - graceDays);
+    extraPct  = extraDays * extraPerDay;
+    if(extraPct > 0){
+      calcSteps.push(`Extra per-day: ${extraDays} day(s) × ${extraPerDay}% = +${extraPct.toFixed(2)}%`);
+    }
+  }
+  const rawLdPct = baseLdPct + extraPct;
+
+  /* Per-rule cap */
+  const cappedLdPct = Math.min(rawLdPct, perSlaCap);
+  if(cappedLdPct < rawLdPct){
+    calcSteps.push(`Capped at ${perSlaCap}% (per-rule limit).`);
+  }
+
+  const ldAmount = (cappedLdPct / 100) * quarterlyPayment;
+  if(quarter){
+    calcSteps.push(`Penalty = ${cappedLdPct.toFixed(2)}% × ${fmtMoney(quarterlyPayment)} (${quarter.label || quarter.id}) = ${fmtMoney(ldAmount)}`);
+  }
+
+  return {
+    link, project, milestone, activity, rule, model,
+    breach: { value: primaryValue, mode: breakdown[breakdown.length-1]?.mode || 'measured',
+              referenceDate: breakdown[breakdown.length-1]?.referenceDate || '-' },
+    measurements, measurementBreakdown: breakdown,
+    tier: tierLast, totalPoints,
+    rawLdPct, cappedLdPct, extraDays, extraPct,
+    perSlaCap, quarter, quarterlyPayment, ldAmount,
+    calcSteps
+  };
+}
+
+function calculateProjectAggregate(projectId, quarterId){
+  const project = findProject(projectId);
+  if(!project) return null;
+  const quarter = quarterId ? getQuarterById(project, quarterId) : getActiveQuarter(project);
+  const quarterlyPayment = quarter ? Number(quarter.amount || 0) : 0;
+  const links = projectSlaLinks.filter(l => l.projectId === projectId);
+  const calcs = links.map(l => calculateLink(l, quarter?.id));
+  const sumLdPct = calcs.reduce((acc, c) => acc + (c.cappedLdPct || 0), 0);
+  const cappedSumLdPct = Math.min(sumLdPct, 10);
+  const totalLdAmount = (cappedSumLdPct / 100) * quarterlyPayment;
+  return {
+    project, calcs, sumLdPct, cappedSumLdPct,
+    quarter, quarterlyPayment, totalLdAmount,
+    wasCapped: sumLdPct > 10
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════════════════════════ */
+const contentArea = document.getElementById('contentArea');
+let currentView = 'rules';
+
+function setActiveNav(id){
+  document.querySelectorAll('#slaSub div').forEach(d => d.classList.remove('active'));
+  if(id) document.getElementById(id)?.classList.add('active');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VIEW 1 - SLA RULES LIBRARY (cards, plain English)
+   ═══════════════════════════════════════════════════════════════ */
+function contractPillHtml(contractTypeId){
+  const ct = contractTypes.find(c => c.id === contractTypeId);
+  if(!ct) return `<span class="contract-pill custom">${escapeHtml(contractTypeId || 'Unknown')}</span>`;
+  return `<span class="contract-pill ${ct.pillClass || 'custom'}" title="${escapeHtml(ct.description || '')}">${escapeHtml(ct.label)}</span>`;
+}
+
+function intervalShort(id){
+  const map = { ONE_TIME:'One-time', DAILY:'Daily', MONTHLY:'Monthly', QUARTERLY:'Quarterly' };
+  return map[id] || id;
+}
+
+/* Friendly preview of a rule's tiers for the cards */
+function buildLadderPreview(rule){
+  const tiers = rule.tiers || rule.ranges || [];
+  if(!tiers.length) return '<div class="no-sla-link">No tiers defined.</div>';
+
+  const unit = rule.metricUnit || '';
+  const isOpen = (to) => to === null || to === undefined || to === '';
+  const model = rule.calculationModel || 'DIRECT_PCT';
+
+  return tiers.map(t => {
+    /* Resolve the effective LD% shown in the preview (single-measurement view) */
+    let pct = 0;
+    if(model === 'POINTS'){
+      const sev = severityOfTier(t);
+      pct = pointsToLdPct(pointsForSeverity(sev, rule));
+    } else {
+      pct = Number(t.ldPercent || 0);
+    }
+    let cond;
+    if(Number(t.from) === 0 && Number(t.to) === 0){
+      cond = (unit === 'days' || unit === 'day') ? 'On time' : `0${unit ? ' ' + unit : ''}`;
+    } else if(isOpen(t.to)){
+      cond = `${t.from}+${unit ? ' ' + unit : ''}`;
+    } else {
+      cond = `${t.from}–${t.to}${unit ? ' ' + unit : ''}`;
+    }
+    let icon = '✓', iconCls = 'ok';
+    if(pct >= 3){ icon = '✗'; iconCls = 'bad'; }
+    else if(pct > 0){ icon = '⚠'; iconCls = 'warn'; }
+
+    const sevBadge = (model === 'POINTS') ? ` <span class="sev-badge">Sev ${severityOfTier(t)}</span>` : '';
+    return `<div class="ladder-row">
+      <span class="ldicon ${iconCls}">${icon}</span>
+      <span class="ld-cond">${escapeHtml(cond)}${sevBadge}</span>
+      <span class="ld-pct">${pct}% LD</span>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VIEW 1 - SLA RULES LIBRARY
+   ═══════════════════════════════════════════════════════════════ */
+/* Inline editor for the rule's Severity → Points map (POINTS model only).
+   Each rule may override the defaults (e.g. some contracts use different
+   point values per severity). Backend persists rule.severityToPoints. */
+function renderSeverityPointsConfig(rule, ro){
+  const map = rule.severityToPoints || { ...SEVERITY_TO_POINTS };
+  /* Ensure rule has its own copy so edits stick */
+  if(!rule.severityToPoints){
+    rule.severityToPoints = { ...SEVERITY_TO_POINTS };
+  }
+
+  const cells = [0,1,2,3,4].map(sev => `
+    <div class="sev-points-cell">
+      <label><span class="sev-num">Severity ${sev}</span></label>
+      <input type="number" step="1" value="${map[sev] ?? SEVERITY_TO_POINTS[sev]}" ${ro?'disabled':''}
+        onchange="onSeverityPointsChange(${sev}, this.value)">
+      <div style="font-size:11px;color:var(--text-soft);margin-top:4px;">points</div>
+    </div>
+  `).join('');
+
+  /* Default-restore button */
+  const restoreBtn = ro ? '' : `
+    <button type="button" class="link-btn" style="margin-top:6px;" onclick="restoreDefaultSevPoints()"></button>`;
+
+  return `
+    <div style="margin-top:14px;">
+      <h4 style="font-size:13px;font-weight:700;color:var(--navy);margin:0 0 4px;">Severity → Points</h4>
+      <p class="step-hint" style="margin-bottom:6px;">Set how many points each severity level adds (or subtracts) per measurement. Per-measurement cap is Severity 4.</p>
+      <div class="sev-points-grid">${cells}</div>
+      ${restoreBtn}
+      <div class="points-ld-table">
+        <b>Points → LD %</b> &nbsp;(fixed; total points across measurements map to LD %):<br>
+        ≥ 8 points → <b>4 %</b>  ·  6 points → <b>3 %</b>  ·  4 points → <b>2 %</b>  ·  2 points → <b>1 %</b>  ·  ≤ 0 points → <b>0 %</b>
+      </div>
+    </div>
+  `;
+}
+
+function onSeverityPointsChange(sev, value){
+  if(!editingRule) return;
+  if(!editingRule.severityToPoints) editingRule.severityToPoints = { ...SEVERITY_TO_POINTS };
+  editingRule.severityToPoints[sev] = Number(value);
+  renderRuleEditor();
+}
+
+function restoreDefaultSevPoints(){
+  if(!editingRule) return;
+  editingRule.severityToPoints = { ...SEVERITY_TO_POINTS };
+  renderRuleEditor();
+}
+
+function showSlaRules(){
+  currentView = 'rules';
+  setActiveNav('navRules');
+
+  const cardsHtml = slaRuleStore.length === 0
+    ? `<div class="no-activities">No SLA rules yet. <a href="#" onclick="showRuleEditor(null,false); return false;">Create one</a>.</div>`
+    : `<div class="rule-grid-simple">${slaRuleStore.map(r => `
+        <div class="rule-card-simple">
+          <div class="rcs-head">
+            <div>
+              <div class="rcs-id">${escapeHtml(r.ruleId)}</div>
+              <div class="rcs-name">${escapeHtml(r.name)}</div>
+            </div>
+            ${contractPillHtml(r.contractTypeId)}
+          </div>
+          <div class="rcs-ladder">${buildLadderPreview(r)}</div>
+          <div class="rcs-actions">
+            <button class="btn small-btn cancel" onclick="showRuleEditor('${escapeHtml(r.ruleId)}',false)">Edit</button>
+            <button class="btn small-btn delete-btn" onclick="confirmDeleteRule('${escapeHtml(r.ruleId)}')">Delete</button>
+          </div>
+        </div>
+      `).join('')}</div>`;
+
+  contentArea.innerHTML = `
+    <div class="page-header-simple">
+      <h2 class="ph-title">SLA Rules</h2>
+      <button class="btn" onclick="showRuleEditor(null,false)">+ New Rule</button>
+    </div>
+    ${cardsHtml}
+  `;
+}
+
+let editingRule = null;
+let editingRuleReadOnly = false;
+
+function showRuleEditor(ruleId, readOnly){
+  editingRuleReadOnly = !!readOnly;
+  if(ruleId){
+    const r = slaRuleStore.find(x => x.ruleId === ruleId);
+    if(!r){ showMessage('Rule not found.'); return; }
+    /* Deep clone */
+    editingRule = JSON.parse(JSON.stringify(r));
+  } else {
+    /* New rule defaults */
+    editingRule = {
+      ruleId: nextRuleId(),
+      name: '',
+      description: '',
+      contractTypeId: contractTypes[0]?.id || '',
+      metricId: 'DELAY_DAYS',
+      metricLabel: 'Days late',
+      metricUnit: 'days',
+      measureMode: 'AUTO_DELAY',
+      calculationModel: 'POINTS',
+      tiers: [
+        { from:0, to:0,    severity:0 },
+        { from:1, to:null, severity:4 }
+      ],
+      extraPerDay: 0,
+      graceDays: 0,
+      perSlaCapPercent: 10,
+      measurementInterval: 'ONE_TIME',
+      reportingInterval: 'QUARTERLY',
+      createdAt: todayISO(),
+      createdBy: 'Current User'
+    };
+  }
+  currentView = 'rule-editor';
+  renderRuleEditor();
+}
+
+function renderRuleEditor(){
+  const r = editingRule;
+  const ro = editingRuleReadOnly;
+  const isNew = !slaRuleStore.find(x => x.ruleId === r.ruleId);
+
+  /* Contract type radio cards */
+  const contractCards = contractTypes.map(ct => `
+    <label class="contract-choice ${r.contractTypeId===ct.id?'selected':''}" ${ro?'style="cursor:not-allowed;opacity:.7;"':''}>
+      <input type="radio" name="ct" value="${ct.id}" ${r.contractTypeId===ct.id?'checked':''} ${ro?'disabled':''}
+        onclick="editingRule.contractTypeId='${ct.id}'; renderRuleEditor();">
+      <div class="contract-choice-title">${contractPillHtml(ct.id)}</div>
+      <div class="contract-choice-desc">${escapeHtml(ct.description || '')}</div>
+      ${ro ? '' : `
+        <div class="contract-choice-actions">
+          <button type="button" class="link-btn" title="Edit" onclick="event.preventDefault(); event.stopPropagation(); openEditContractTypeModal('${ct.id}');">Edit</button>
+          <button type="button" class="link-btn danger" title="Delete" onclick="event.preventDefault(); event.stopPropagation(); confirmDeleteContractType('${ct.id}');">Delete</button>
+        </div>
+      `}
+    </label>
+  `).join('') + (ro ? '' : `
+    <label class="contract-choice add-new" onclick="openAddContractTypeModal()" style="cursor:pointer;border-style:dashed;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div style="font-size:24px;color:var(--cyan);margin-bottom:4px;">+</div>
+      <div class="contract-choice-title" style="color:var(--navy);">Add Contract Type</div>
+      <div class="contract-choice-desc">For contracts beyond the listed ones</div>
+    </label>`);
+
+  /* Tier editor — input differs based on calculation model */
+  const model = r.calculationModel || 'DIRECT_PCT';
+  const tiersHtml = (r.tiers || []).map((t, idx) => {
+    const isOpen = t.to === null || t.to === undefined || t.to === '';
+
+    /* The "result" column depends on the model */
+    let resultCol;
+    if(model === 'POINTS'){
+      const sev = Number(t.severity ?? 0);
+      const pts = pointsForSeverity(sev, r);
+      const ld  = pointsToLdPct(pts);
+      resultCol = `
+        <select ${ro?'disabled':''}
+          onchange="editingRule.tiers[${idx}].severity = Number(this.value); renderRuleEditor();">
+          ${[0,1,2,3,4].map(s => `<option value="${s}" ${sev===s?'selected':''}>Severity ${s}</option>`).join('')}
+        </select>
+        <span class="tier-derived" title="Single-measurement LD %. With multiple measurements, points accumulate.">→ ${pts} pts → ${ld}% LD</span>
+      `;
+    } else {
+      resultCol = `
+        <input type="number" step="0.01" min="0" value="${t.ldPercent ?? 0}" ${ro?'disabled':''}
+          placeholder="LD %"
+          onchange="editingRule.tiers[${idx}].ldPercent = Number(this.value); renderRuleEditor();">
+        <span class="tier-pct-label">% LD</span>
+      `;
+    }
+
+    return `
+      <div class="tier-row">
+        <input type="number" step="0.01" value="${t.from ?? 0}" ${ro?'disabled':''}
+          placeholder="From"
+          onchange="editingRule.tiers[${idx}].from = Number(this.value); renderRuleEditor();">
+        <span class="tier-sep">to</span>
+        <input type="number" step="0.01" placeholder="(blank = no upper limit)" value="${isOpen?'':t.to}" ${ro?'disabled':''}
+          onchange="editingRule.tiers[${idx}].to = (this.value===''?null:Number(this.value)); renderRuleEditor();">
+        <span class="tier-unit">${escapeHtml(r.metricUnit || '')}</span>
+        <span class="tier-sep">→</span>
+        ${resultCol}
+        ${ro ? '' : `<button type="button" class="icon-btn" title="Remove this tier" onclick="removeRuleTier(${idx})">✕</button>`}
+      </div>
+    `;
+  }).join('');
+
+  /* Example calc */
+  const sampleValue = r._sampleValue ?? (r.measureMode === 'AUTO_DELAY' ? 5 : (r.metricUnit==='%' ? 99.5 : 1));
+  const samplePayment = r._samplePayment ?? 1000000;
+  const exampleCalc = computeExample(r, sampleValue, samplePayment);
+
+  contentArea.innerHTML = `
+    <div class="page-header-simple">
+      <h2 class="ph-title">${ro ? 'View SLA Rule' : (isNew ? 'New SLA Rule' : 'Edit SLA Rule')} <span class="rcs-id" style="margin-left:8px;">${escapeHtml(r.ruleId)}</span></h2>
+      <div style="display:flex;gap:8px;">
+        ${ro ? `<button class="btn" onclick="editingRuleReadOnly=false; renderRuleEditor();">Edit</button>` : ''}
+        <button class="btn cancel" onclick="showSlaRules()">Back</button>
+        ${ro ? '' : `<button class="btn" onclick="saveRule()">Save Rule</button>`}
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Name &amp; description</h3>
+        <div class="field">
+          <label>Rule name <span class="required">*</span></label>
+          <input type="text" value="${escapeHtml(r.name)}" ${ro?'disabled':''}
+            placeholder="e.g. Activity completion on schedule"
+            oninput="editingRule.name = this.value">
+        </div>
+        <div class="field">
+          <label>Description</label>
+          <input type="text" value="${escapeHtml(r.description || '')}" ${ro?'disabled':''}
+            placeholder="One line about when this rule applies"
+            oninput="editingRule.description = this.value">
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Contract type</h3>
+        <p class="step-hint">Just a label for grouping. Calculation is fully controlled by the tiers below.</p>
+        <div class="contract-choice-grid">${contractCards}</div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>What is measured?</h3>
+        <div class="field">
+          <label>Metric <span class="required">*</span></label>
+          <select ${ro?'disabled':''} onchange="onMetricCatalogChange(this.value)">
+            ${metricCatalog.map(mc => `<option value="${mc.id}" ${r.metricId===mc.id?'selected':''}>${escapeHtml(mc.label)}${mc.unit?` (${mc.unit})`:''}</option>`).join('')}
+          </select>
+          ${r.metricId === 'DELAY_DAYS'
+            ? `<div class="hint-inline">Days late are computed automatically from the activity's planned vs. actual end date.</div>`
+            : `<div class="hint-inline">Measured value is entered manually each measurement.</div>`}
+        </div>
+        ${r.metricId === 'CUSTOM' ? `
+          <div class="grid">
+            <div class="field">
+              <label>Custom metric name <span class="required">*</span></label>
+              <input type="text" value="${escapeHtml(r.metricLabel || '')}" ${ro?'disabled':''}
+                placeholder="e.g. Patches applied"
+                oninput="editingRule.metricLabel = this.value; renderRuleEditor();">
+            </div>
+            <div class="field">
+              <label>Unit</label>
+              <input type="text" value="${escapeHtml(r.metricUnit || '')}" ${ro?'disabled':''}
+                placeholder="e.g. count, hours, %"
+                oninput="editingRule.metricUnit = this.value; renderRuleEditor();">
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>How is LD calculated?</h3>
+        <p class="step-hint">Choose the calculation method that matches the contract.</p>
+        <div class="choice-pair">
+          ${CALCULATION_MODELS.map(cm => {
+            const isSelected = (r.calculationModel || 'DIRECT_PCT') === cm.id;
+            return `
+              <label class="choice-card ${isSelected?'selected':''}" ${ro?'style="cursor:not-allowed;opacity:.7;"':''}>
+                <input type="radio" name="calcModel" value="${cm.id}" ${isSelected?'checked':''} ${ro?'disabled':''}
+                  onclick="onCalculationModelChange('${cm.id}')">
+                <div class="choice-card-body">
+                  <div class="choice-card-title">${escapeHtml(cm.label)}</div>
+                  <div class="choice-card-desc">${escapeHtml(cm.description)}</div>
+                </div>
+              </label>
+            `;
+          }).join('')}
+        </div>
+        ${(r.calculationModel || 'DIRECT_PCT') === 'POINTS' ? renderSeverityPointsConfig(r, ro) : ''}
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <h3>Penalty tiers</h3>
+        <p class="step-hint">${(r.calculationModel || 'DIRECT_PCT') === 'POINTS'
+          ? 'For each range of the measured value, assign a Severity Level. The LD % is computed automatically from the points table.'
+          : 'For each range of the measured value, set the LD percentage. Leave the upper bound blank in the last tier for "no upper limit".'}</p>
+        <div class="tier-list">${tiersHtml}</div>
+        ${ro ? '' : `<button class="btn cancel small-btn" style="margin-top:8px;" onclick="addRuleTier()">+ Add tier</button>`}
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <h3>Optional — extra penalty per day late</h3>
+        <p class="step-hint">Use this when the contract adds a small per-day penalty on top of the tier penalty (set to 0 to disable).</p>
+        <div class="grid">
+          <div class="field">
+            <label>Extra LD % per day</label>
+            <input type="number" step="0.01" min="0" value="${r.extraPerDay ?? 0}" ${ro?'disabled':''}
+              onchange="editingRule.extraPerDay = Number(this.value); renderRuleEditor();">
+          </div>
+          <div class="field">
+            <label>Grace days (no extra penalty until exceeded)</label>
+            <input type="number" min="0" value="${r.graceDays ?? 0}" ${ro?'disabled':''}
+              onchange="editingRule.graceDays = Number(this.value); renderRuleEditor();">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">7</div>
+      <div class="step-body">
+        <h3>Cap &amp; schedule</h3>
+        <div class="grid">
+          <div class="field">
+            <label>Maximum penalty for this rule (% of payment)</label>
+            <input type="number" step="0.01" min="0" max="100" value="${r.perSlaCapPercent ?? 10}" ${ro?'disabled':''}
+              list="commonCaps"
+              onchange="editingRule.perSlaCapPercent = Number(this.value); renderRuleEditor();">
+            <datalist id="commonCaps">${COMMON_CAPS.map(c => `<option value="${c}">`).join('')}</datalist>
+          </div>
+          <div class="field">
+            <label>How often is it measured?</label>
+            <select ${ro?'disabled':''} onchange="editingRule.measurementInterval = this.value; renderRuleEditor();">
+              ${MEASUREMENT_INTERVALS.map(i => `<option value="${i.id}" ${r.measurementInterval===i.id?'selected':''}>${escapeHtml(i.label)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field">
+            <label>How often is it reported?</label>
+            <select ${ro?'disabled':''} onchange="editingRule.reportingInterval = this.value; renderRuleEditor();">
+              ${REPORTING_INTERVALS.map(i => `<option value="${i.id}" ${r.reportingInterval===i.id?'selected':''}>${escapeHtml(i.label)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card preview-card">
+      <div class="step-num">8</div>
+      <div class="step-body">
+        <h3>Live example</h3>
+        <p class="step-hint">Try a value to see how the rule would calculate.</p>
+        <div class="grid">
+          <div class="field">
+            <label>Sample ${escapeHtml((r.metricLabel || 'value').toLowerCase())}</label>
+            <input type="number" step="0.01" value="${sampleValue}"
+              oninput="editingRule._sampleValue = Number(this.value); renderRuleEditor();">
+          </div>
+          <div class="field">
+            <label>Sample quarterly payment</label>
+            <input type="number" step="1000" value="${samplePayment}"
+              oninput="editingRule._samplePayment = Number(this.value); renderRuleEditor();">
+          </div>
+        </div>
+        <div class="preview-result">
+          <div><b>Penalty:</b> ${exampleCalc.ldPct.toFixed(2)}% = <b>${fmtMoney(exampleCalc.ldAmount)}</b></div>
+          <div class="preview-note">${escapeHtml(exampleCalc.note)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* Live preview calculation — same logic as calculateLink */
+function computeExample(rule, value, payment){
+  if(value === null || value === undefined || isNaN(value)){
+    return { ldPct:0, ldAmount:0, note:'Enter a sample value.' };
+  }
+  const tier = matchRange(rule, value);
+  if(!tier) return { ldPct:0, ldAmount:0, note:'Value does not fall in any defined tier.' };
+
+  const model = rule.calculationModel || 'DIRECT_PCT';
+  let base = 0;
+  let note = '';
+
+  if(model === 'POINTS'){
+    const sev = severityOfTier(tier);
+    const pts = pointsForSeverity(sev, rule);
+    base = pointsToLdPct(pts);
+    const upper = (tier.to===null||tier.to===undefined||tier.to==='') ? `${tier.from}+` : `${tier.from}–${tier.to}`;
+    note = `Tier ${upper} → Severity ${sev} → ${pts} points → ${base}% LD (single measurement; with multiple measurements, points accumulate).`;
+  } else {
+    base = Number(tier.ldPercent || 0);
+    const upper = (tier.to===null||tier.to===undefined||tier.to==='') ? `${tier.from}+` : `${tier.from}–${tier.to}`;
+    note = `Tier ${upper} → ${base}% LD`;
+  }
+
+  const extraPerDay = Number(rule.extraPerDay || 0);
+  const graceDays   = Number(rule.graceDays || 0);
+  let extraDays = 0, extraPct = 0;
+  if(base > 0 && extraPerDay > 0 && value > 0){
+    extraDays = Math.max(0, value - graceDays);
+    extraPct = extraDays * extraPerDay;
+  }
+  const raw = base + extraPct;
+  const cap = Number(rule.perSlaCapPercent || 10);
+  const capped = Math.min(raw, cap);
+  const amt = (capped / 100) * Number(payment || 0);
+
+  if(extraPct > 0) note += `, plus ${extraDays} day(s) × ${extraPerDay}% = +${extraPct.toFixed(2)}%`;
+  if(capped < raw) note += `, capped at ${cap}%`;
+  return { ldPct: capped, ldAmount: amt, note };
+}
+
+function onMetricCatalogChange(newMetricId){
+  if(!editingRule) return;
+  const mc = metricCatalog.find(x => x.id === newMetricId);
+  if(!mc) return;
+  editingRule.metricId = newMetricId;
+  if(newMetricId !== 'CUSTOM'){
+    editingRule.metricLabel = mc.label.replace(/\s*\([^)]*\)$/, ''); /* drop " (FNIR/FPIR)" parenthetical */
+    editingRule.metricUnit = mc.unit;
+    editingRule.measureMode = mc.defaultMode;
+  } else {
+    /* Keep current label/unit if user was editing; otherwise blank */
+    if(!editingRule.metricLabel) editingRule.metricLabel = '';
+    if(!editingRule.metricUnit)  editingRule.metricUnit = '';
+  }
+  renderRuleEditor();
+}
+
+function onCalculationModelChange(newModel){
+  if(!editingRule) return;
+  editingRule.calculationModel = newModel;
+  /* Migrate tier fields when switching models. */
+  (editingRule.tiers || []).forEach(t => {
+    if(newModel === 'POINTS'){
+      if(t.severity === undefined || t.severity === null){
+        const ld = Number(t.ldPercent || 0);
+        if(ld === 0)      t.severity = 0;
+        else if(ld <= 1)  t.severity = 1;
+        else if(ld <= 2)  t.severity = 2;
+        else if(ld <= 3)  t.severity = 3;
+        else              t.severity = 4;
+      }
+      delete t.ldPercent;
+    } else {
+      if(t.ldPercent === undefined || t.ldPercent === null){
+        const sev = Number(t.severity || 0);
+        const pts = pointsForSeverity(sev, editingRule);
+        t.ldPercent = pointsToLdPct(pts);
+      }
+      delete t.severity;
+    }
+  });
+  renderRuleEditor();
+}
+
+function addRuleTier(){
+  if(!editingRule) return;
+  const last = editingRule.tiers[editingRule.tiers.length-1];
+  const newFrom = last ? Number(last.from)+1 : 0;
+  const newTier = { from: newFrom, to: null };
+  if((editingRule.calculationModel || 'DIRECT_PCT') === 'POINTS'){
+    newTier.severity = 0;
+  } else {
+    newTier.ldPercent = 0;
+  }
+  editingRule.tiers.push(newTier);
+  renderRuleEditor();
+}
+
+function removeRuleTier(idx){
+  if(!editingRule) return;
+  editingRule.tiers.splice(idx, 1);
+  renderRuleEditor();
+}
+
+function nextRuleId(){
+  const max = slaRuleStore.reduce((acc, r) => {
+    const m = String(r.ruleId).match(/^SLA-RULE-(\d+)$/i);
+    return m ? Math.max(acc, parseInt(m[1], 10)) : acc;
+  }, 0);
+  return 'SLA-RULE-' + String(max+1).padStart(3, '0');
+}
+
+function saveRule(){
+  if(!editingRule) return;
+  if(!editingRule.name?.trim()){ showMessage('Please enter a rule name.'); return; }
+  if(!editingRule.contractTypeId){ showMessage('Please select a contract type.'); return; }
+  if(!editingRule.metricId){ showMessage('Please select a metric.'); return; }
+  if(editingRule.metricId === 'CUSTOM'){
+    if(!editingRule.metricLabel?.trim()){ showMessage('Please enter a custom metric name.'); return; }
+  }
+  if(!editingRule.tiers?.length){ showMessage('Please add at least one tier.'); return; }
+
+  /* Strip preview-only fields */
+  delete editingRule._sampleValue;
+  delete editingRule._samplePayment;
+
+  const existing = slaRuleStore.findIndex(r => r.ruleId === editingRule.ruleId);
+  if(existing >= 0){
+    slaRuleStore[existing] = editingRule;
+  } else {
+    slaRuleStore.push(editingRule);
+  }
+  showMessage('Rule saved.');
+  showSlaRules();
+}
+
+function confirmDeleteRule(ruleId){
+  const usedBy = projectSlaLinks.filter(l => l.ruleId === ruleId).length;
+  if(usedBy > 0){
+    showMessage(`Cannot delete: this rule is still linked to ${usedBy} ${usedBy===1?'activity':'activities'}. Remove those links first.`);
+    return;
+  }
+  showConfirm(`Delete rule ${ruleId}?`, () => {
+    const idx = slaRuleStore.findIndex(r => r.ruleId === ruleId);
+    if(idx >= 0) slaRuleStore.splice(idx, 1);
+    showSlaRules();
+  });
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   VIEW 2 - PROJECT SLA LINKAGE  (accordion-grouped, card layout)
+   ═══════════════════════════════════════════════════════════════ */
+
+let selectedLinkageProjectId = '';
+let newLinkForm = null;
+let collapsedMilestones = new Set();   /* uids of collapsed milestone cards */
+
+/* Friendly status label for an activity-level breach */
+function activityStatusBadge(mode){
+  switch(mode){
+    case 'completed-on-time':   return '<span class="act-status ok">✓ Completed on time</span>';
+    case 'completed-late':      return '<span class="act-status bad">✗ Completed late</span>';
+    case 'in-progress-ok':      return '<span class="act-status info">⏳ In progress</span>';
+    case 'in-progress-late':    return '<span class="act-status warn">⚠ In progress — overdue</span>';
+    case 'measured':            return '<span class="act-status info">✓ Measured</span>';
+    case 'not-measured':        return '<span class="act-status neutral">○ Not measured yet</span>';
+    case 'no-baseline':         return '<span class="act-status neutral">○ No baseline date</span>';
+    default:                    return '<span class="act-status neutral">—</span>';
+  }
+}
+
+/* Friendly one-line summary of the breach + LD for one linked SLA */
+function buildSlaMiniLine(calc){
+  const rule = calc.rule;
+  const breach = calc.breach;
+  const unit = rule.metricUnit || '';
+
+  /* "What happened" piece */
+  let what = '';
+  if(breach.value === null){
+    what = 'Awaiting measurement.';
+  } else if(rule.measureMode === 'AUTO_DELAY'){
+    if(breach.value === 0)      what = `On time.`;
+    else                        what = `${breach.value} day${breach.value===1?'':'s'} late.`;
+  } else {
+    what = `Measured ${(rule.metricLabel||'value').toLowerCase()}: ${breach.value}${unit ? ' ' + unit : ''}.`;
+  }
+
+  /* "What it triggers" piece */
+  let triggers = '';
+  if(breach.value === null){
+    triggers = '';
+  } else if(calc.cappedLdPct > 0){
+    triggers = ` → ${fmtPct(calc.cappedLdPct)} penalty = <span class="ld-amount">${fmtMoney(calc.ldAmount)}</span>`;
+  } else {
+    triggers = ` → <span class="ld-amount zero">No penalty</span>`;
+  }
+  return what + triggers;
+}
+
+let selectedQuarterId = '';
+
+function showProjectSlas(){
+  currentView = 'projects';
+  setActiveNav('navProj');
+
+  if(!selectedLinkageProjectId){
+    const pub = demoProjects.find(p => p.status === 'PUBLISHED');
+    selectedLinkageProjectId = pub ? pub.projectId : (demoProjects[0]?.projectId || '');
+  }
+
+  const projectOptions = demoProjects.map(p =>
+    `<option value="${escapeHtml(p.projectId)}" ${selectedLinkageProjectId===p.projectId?'selected':''}>${escapeHtml(p.projectId)} — ${escapeHtml(p.projectName)}</option>`
+  ).join('');
+
+  const project = findProject(selectedLinkageProjectId);
+
+  /* Resolve which quarter to view: stored selection if it belongs to this
+     project, else the active (today's) quarter, else first quarter. */
+  const quarters = getQuarters(project);
+  let activeQuarter = quarters.find(q => q.id === selectedQuarterId);
+  if(!activeQuarter) activeQuarter = getActiveQuarter(project);
+  selectedQuarterId = activeQuarter ? activeQuarter.id : '';
+
+  const quarterOptions = quarters.map(q => {
+    const isToday = todayISO() >= q.startDate && todayISO() <= q.endDate;
+    return `<option value="${escapeHtml(q.id)}" ${selectedQuarterId===q.id?'selected':''}>${escapeHtml(q.label || q.id)}${isToday ? ' (current)' : ''} — ${fmtMoney(q.amount)}</option>`;
+  }).join('');
+
+  const summary = project ? calculateProjectAggregate(selectedLinkageProjectId, selectedQuarterId) : null;
+
+  /* Simple summary — total on its own line; progress bar = LD against 10% cap */
+  const summaryHtml = project && summary && summary.quarter ? (() => {
+    const capAmount = (Number(summary.quarterlyPayment||0)) * 0.1;
+    const capPct = capAmount > 0 ? Math.min(100, (summary.totalLdAmount / capAmount) * 100) : 0;
+    return `
+    <div class="ld-summary">
+      <div class="ld-summary-row">
+        <div class="ld-summary-label">Total LD for ${escapeHtml(summary.quarter.label || summary.quarter.id)}</div>
+        <div class="ld-summary-value ${summary.totalLdAmount > 0 ? 'has-ld' : ''}">${fmtMoney(summary.totalLdAmount)}</div>
+        ${summary.wasCapped ? '<span class="pill warn">capped at 10%</span>' : ''}
+      </div>
+      <div class="ld-cap-row">
+        <div class="ld-cap-label">LD vs maximum cap (10% of quarter payment)</div>
+        <div class="ld-bar ${capPct >= 70 ? 'danger' : ''}">
+          <div style="width:${capPct}%;"></div>
+        </div>
+        <div class="ld-cap-meta">${fmtMoney(summary.totalLdAmount)} of ${fmtMoney(capAmount)} — quarter payment ${fmtMoney(summary.quarterlyPayment)}</div>
+      </div>
+    </div>
+  `;})() : (project ? `<div class="card"><div class="hint">No payment defined for any quarter on this project. Add quarterly payments under Project Management.</div></div>` : '');
+
+  /* Milestones — always expanded, no toggle */
+  let milestonesHtml = '';
+  if(project){
+    if(!project.milestones || project.milestones.length === 0){
+      milestonesHtml = `<div class="no-activities">No activities in this project yet.</div>`;
+    } else {
+      milestonesHtml = project.milestones.map(m => buildMilestoneCard(project, m)).join('');
+    }
+  }
+
+  contentArea.innerHTML = `
+    <div class="page-header-simple">
+      <h2 class="ph-title">Project SLA Linkage</h2>
+    </div>
+
+    <div class="project-picker">
+      <label>Project:</label>
+      <select onchange="selectedLinkageProjectId=this.value; selectedQuarterId=''; newLinkForm=null; showProjectSlas();">
+        ${projectOptions || '<option value="">No projects available</option>'}
+      </select>
+      ${quarters.length > 0 ? `
+        <label style="margin-left:18px;">Quarter:</label>
+        <select onchange="selectedQuarterId=this.value; showProjectSlas();">
+          ${quarterOptions}
+        </select>
+      ` : ''}
+    </div>
+
+    ${summaryHtml}
+
+    ${project ? milestonesHtml : '<div class="card"><div class="hint">Select a project above.</div></div>'}
+  `;
+}
+
+function expandAllMilestones(){ collapsedMilestones.clear(); showProjectSlas(); }
+function collapseAllMilestones(){
+  const project = findProject(selectedLinkageProjectId);
+  if(!project) return;
+  (project.milestones||[]).forEach(m => collapsedMilestones.add(m.uid));
+  showProjectSlas();
+}
+function toggleMilestone(uid){
+  if(collapsedMilestones.has(uid)) collapsedMilestones.delete(uid);
+  else collapsedMilestones.add(uid);
+  showProjectSlas();
+}
+
+/* Build a milestone accordion card (with all its activities inside) */
+function buildMilestoneCard(project, milestone){
+  const activities = milestone.activities || [];
+  const body = activities.length === 0
+    ? `<div class="no-activities">No activities in this milestone.</div>`
+    : activities.map(a => buildActivityBlock(project, milestone, a)).join('');
+
+  return `
+    <div class="ms-card-simple">
+      <div class="ms-head-simple"><span class="ms-id">${escapeHtml(milestone.id)}</span> ${escapeHtml(milestone.name)}</div>
+      ${body}
+    </div>
+  `;
+}
+
+/* Build one activity block (with its linked SLAs inside) */
+function buildActivityBlock(project, milestone, activity){
+  const links = projectSlaLinks.filter(l =>
+    l.projectId === project.projectId && l.activityUid === activity.uid);
+
+  /* Activity status — plain English */
+  let statusText = '', statusClass = '';
+  if(activity.actualEndDate && activity.endDate){
+    const d = diffDays(activity.actualEndDate, activity.endDate);
+    if(d > 0){ statusText = `Completed ${d} day${d===1?'':'s'} late`; statusClass = 'bad'; }
+    else { statusText = 'Completed on time'; statusClass = 'ok'; }
+  } else if(activity.endDate){
+    const d = diffDays(todayISO(), activity.endDate);
+    if(d > 0){ statusText = `In progress, ${d} day${d===1?'':'s'} past due`; statusClass = 'warn'; }
+    else { statusText = 'In progress, on track'; statusClass = 'ok'; }
+  } else {
+    statusText = 'No planned date';
+    statusClass = 'info';
+  }
+
+  /* SLA lines — one compact line per linked SLA */
+  let slaHtml;
+  if(links.length === 0){
+    slaHtml = `<div class="act-no-sla">No SLA linked.</div>`;
+  } else {
+    slaHtml = links.map(link => {
+      const calc = calculateLink(link, selectedQuarterId);
+      const rule = calc.rule;
+      const needsMeasure = rule.measureMode !== 'AUTO_DELAY';
+      const ldAmount = calc.ldAmount || 0;
+      return `
+        <div class="sla-line">
+          <div class="sla-line-main">
+            <div class="sla-line-name">${escapeHtml(rule.name)}</div>
+            <div class="sla-line-amt ${ldAmount>0?'has-ld':'no-ld'}">
+              ${ldAmount > 0
+                ? `Penalty: <b>${fmtMoney(ldAmount)}</b> (${fmtPct(calc.cappedLdPct)})`
+                : `No penalty`}
+            </div>
+          </div>
+          <div class="sla-line-actions">
+            <button class="btn small-btn cancel" onclick="viewLinkDetail('${escapeHtml(link.linkId)}')">Details</button>
+            ${needsMeasure ? `<button class="btn small-btn cancel" onclick="openMeasurementForm('${escapeHtml(link.linkId)}')">${link.actualMetricValue===null||link.actualMetricValue===undefined?'Enter value':'Update value'}</button>` : ''}
+            <button class="btn small-btn delete-btn" onclick="confirmDeleteLink('${escapeHtml(link.linkId)}')">Remove</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  return `
+    <div class="act-block-simple">
+      <div class="act-row">
+        <div class="act-name"><span class="act-id">${escapeHtml(activity.id)}</span> ${escapeHtml(activity.name)}</div>
+        <span class="act-status-simple ${statusClass}">${escapeHtml(statusText)}</span>
+      </div>
+      ${slaHtml}
+      <button class="add-sla-btn" onclick="openAddLinkForm('${escapeHtml(milestone.uid)}','${escapeHtml(activity.uid)}')">
+        + Link an SLA
+      </button>
+    </div>
+  `;
+}
+
+function openAddLinkForm(milestoneUid, activityUid){
+  newLinkForm = { milestoneUid, activityUid, ruleId: slaRuleStore[0]?.ruleId || '', actualMetricValue:'' };
+  renderAddLinkModal();
+  document.getElementById('addLinkModal').classList.add('open');
+}
+
+function closeAddLinkModal(){
+  document.getElementById('addLinkModal').classList.remove('open');
+  newLinkForm = null;
+}
+
+function renderAddLinkModal(){
+  const body = document.getElementById('addLinkModalBody');
+  if(!body) return;
+  body.innerHTML = renderAddLinkForm();
+}
+
+function renderAddLinkForm(){
+  if(!newLinkForm) return '';
+  const project = findProject(selectedLinkageProjectId);
+  if(!project) return '';
+
+  const milestone = findMilestone(project, newLinkForm.milestoneUid);
+  const activity = findActivity(project, newLinkForm.milestoneUid, newLinkForm.activityUid);
+
+  /* Group rule options by contract type for cleaner dropdown */
+  const ruleOptions = contractTypes.map(ct => {
+    const rulesInCt = slaRuleStore.filter(r => r.contractTypeId === ct.id);
+    if(rulesInCt.length === 0) return '';
+    const opts = rulesInCt.map(r =>
+      `<option value="${escapeHtml(r.ruleId)}" ${newLinkForm.ruleId===r.ruleId?'selected':''}>${escapeHtml(r.ruleId)} — ${escapeHtml(r.name)}</option>`
+    ).join('');
+    return `<optgroup label="${escapeHtml(ct.label)}">${opts}</optgroup>`;
+  }).join('');
+  /* Also include rules whose contractTypeId isn't in contractTypes (custom) */
+  const orphanRules = slaRuleStore.filter(r => !contractTypes.find(ct => ct.id === r.contractTypeId));
+  const orphanOpts = orphanRules.length ? `<optgroup label="Other">${orphanRules.map(r =>
+    `<option value="${escapeHtml(r.ruleId)}" ${newLinkForm.ruleId===r.ruleId?'selected':''}>${escapeHtml(r.ruleId)} — ${escapeHtml(r.name)}</option>`
+  ).join('')}</optgroup>` : '';
+
+  const selectedRule = findRule(newLinkForm.ruleId);
+  const needsValue = selectedRule && selectedRule.measureMode !== 'AUTO_DELAY';
+
+  const previewHtml = selectedRule ? `
+    <div class="rcs-ladder" style="margin-top:8px;">
+      ${buildLadderPreview(selectedRule)}
+    </div>
+  ` : '';
+
+  return `
+    <div class="modal-context">
+      <div class="modal-context-row"><span>Project:</span> <b>${escapeHtml(project.projectId)} — ${escapeHtml(project.projectName)}</b></div>
+      <div class="modal-context-row"><span>Milestone:</span> <b>${escapeHtml(milestone?.id || '')} ${escapeHtml(milestone?.name || '')}</b></div>
+      <div class="modal-context-row"><span>Activity:</span> <b>${escapeHtml(activity?.id || '')} ${escapeHtml(activity?.name || '')}</b></div>
+    </div>
+
+    <div class="field" style="margin-top:14px;">
+      <label>SLA Rule <span class="required">*</span></label>
+      <select onchange="newLinkForm.ruleId=this.value; renderAddLinkModal();">
+        <option value="">— Select an SLA Rule —</option>
+        ${ruleOptions}${orphanOpts}
+        ${!ruleOptions && !orphanOpts ? '<option value="" disabled>No SLA rules defined</option>' : ''}
+      </select>
+      ${previewHtml}
+    </div>
+
+    ${needsValue ? `
+      <div class="field" style="margin-top:10px;">
+        <label>Measured ${escapeHtml((selectedRule.metricLabel||'value').toLowerCase())} <span class="required">*</span></label>
+        <input type="number" step="0.0001" placeholder="e.g. 99.85"
+          value="${escapeHtml(String(newLinkForm.actualMetricValue))}"
+          oninput="newLinkForm.actualMetricValue=this.value">
+      </div>
+    ` : selectedRule ? `
+      <div class="hint" style="margin-top:8px;">Days late are computed automatically from the activity's actual end date — no manual entry needed.</div>
+    ` : ''}
+  `;
+}
+
+function saveNewLink(){
+  if(!newLinkForm) return;
+  if(!newLinkForm.milestoneUid){ showMessage('Please select a Milestone.'); return; }
+  if(!newLinkForm.activityUid){ showMessage('Please select an Activity.'); return; }
+  if(!newLinkForm.ruleId){ showMessage('Please select an SLA Rule.'); return; }
+
+  /* Check duplicate: same project + activity + rule */
+  const exists = projectSlaLinks.find(l =>
+    l.projectId === selectedLinkageProjectId &&
+    l.activityUid === newLinkForm.activityUid &&
+    l.ruleId === newLinkForm.ruleId);
+  if(exists){ showMessage('This SLA rule is already linked to this activity.'); return; }
+
+  const linkId = nextLinkId();
+  const rule = findRule(newLinkForm.ruleId);
+  const actualMetricValue = (rule && rule.measureMode !== 'AUTO_DELAY')
+    ? (newLinkForm.actualMetricValue === '' ? null : Number(newLinkForm.actualMetricValue))
+    : null;
+
+  projectSlaLinks.push({
+    linkId,
+    projectId: selectedLinkageProjectId,
+    milestoneUid: newLinkForm.milestoneUid,
+    activityUid: newLinkForm.activityUid,
+    ruleId: newLinkForm.ruleId,
+    actualMetricValue,
+    createdAt: todayISO()
+  });
+  newLinkForm = null;
+  document.getElementById('addLinkModal')?.classList.remove('open');
+  showMessage('SLA linked to activity successfully.');
+  showProjectSlas();
+}
+
+function nextLinkId(){
+  const max = projectSlaLinks.reduce((acc, l) => {
+    const m = String(l.linkId).match(/^LNK-(\d+)$/i);
+    return m ? Math.max(acc, parseInt(m[1], 10)) : acc;
+  }, 0);
+  return `LNK-${String(max+1).padStart(3,'0')}`;
+}
+
+function confirmDeleteLink(linkId){
+  showConfirm(`Unlink this SLA from the activity? The SLA Rule itself will remain in the library.`, () => {
+    const idx = projectSlaLinks.findIndex(l => l.linkId === linkId);
+    if(idx >= 0) projectSlaLinks.splice(idx, 1);
+    showProjectSlas();
+  });
+}
+
+/* ── View link detail (inline) ── */
+let viewingLinkId = null;
+function viewLinkDetail(linkId){
+  const link = projectSlaLinks.find(l => l.linkId === linkId);
+  if(!link) return;
+  viewingLinkId = linkId;
+  const calc = calculateLink(link, selectedQuarterId);
+  if(calc.error){ showMessage(calc.error); return; }
+
+  currentView = 'linkDetail';
+  const rule = calc.rule;
+  const activity = calc.activity;
+  const milestone = calc.milestone;
+  const project = calc.project;
+  const unit = rule.metricUnit || '';
+
+  /* Tier table — highlight the matched tier */
+  const tiersTable = `<table class="table" style="margin-top:8px;">
+    <thead><tr>
+      <th>From</th><th>To</th><th class="right">Penalty %</th>
+    </tr></thead>
+    <tbody>
+      ${(rule.tiers||[]).map(t => {
+        const isMatched = (calc.tier && t.from === calc.tier.from && t.to === calc.tier.to);
+        const upper = (t.to===null||t.to===undefined||t.to==='') ? 'no upper limit' : t.to;
+        return `<tr ${isMatched ? 'style="background:#fff7ea;font-weight:600;"' : ''}>
+          <td>${t.from}${unit ? ' ' + unit : ''}</td>
+          <td>${upper}${unit && upper !== 'no upper limit' ? ' ' + unit : ''}</td>
+          <td class="num">${fmtPct(t.ldPercent ?? 0)}</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+
+  const stepsHtml = (calc.calcSteps||[]).map((s, idx) => `<li>${escapeHtml(s)}</li>`).join('');
+  const breachDisplay = calc.breach.value === null ? 'Not measured yet' : calc.breach.value + (unit ? ' ' + unit : '');
+
+  contentArea.innerHTML = `
+    <div class="page-header-simple">
+      <h2 class="ph-title">SLA Calculation <span class="rcs-id" style="margin-left:8px;">${escapeHtml(link.linkId)}</span></h2>
+      <button class="btn cancel" onclick="showProjectSlas()">Back</button>
+    </div>
+
+    <div class="card">
+      <h3 class="card-section-title">Context</h3>
+      <div class="grid">
+        <div><b>Project:</b> ${escapeHtml(project.projectId)} — ${escapeHtml(project.projectName)}</div>
+        <div><b>Milestone:</b> ${escapeHtml(milestone.id)} — ${escapeHtml(milestone.name)}</div>
+        <div><b>Activity:</b> ${escapeHtml(activity.id)} — ${escapeHtml(activity.name)}</div>
+        <div><b>Rule:</b> <span class="link" onclick="showRuleEditor('${escapeHtml(rule.ruleId)}',true)">${escapeHtml(rule.ruleId)} — ${escapeHtml(rule.name)}</span></div>
+        <div><b>Contract:</b> ${contractPillHtml(rule.contractTypeId)}</div>
+        <div><b>Measures:</b> ${escapeHtml(rule.metricLabel || '')}${unit ? ' (' + unit + ')' : ''}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="card-section-title">Result</h3>
+      <div class="grid">
+        ${rule.measureMode === 'AUTO_DELAY' ? `
+          <div><b>Planned End Date:</b> ${formatDateDisplay(activity.endDate)}</div>
+          <div><b>Actual End Date:</b> ${activity.actualEndDate ? formatDateDisplay(activity.actualEndDate) : '<i>Not completed yet</i>'}</div>
+        ` : ''}
+        <div><b>Measured value:</b> <span style="font-size:16px;font-weight:700;color:${calc.cappedLdPct>0?'var(--red)':'var(--green)'};">${escapeHtml(breachDisplay)}</span></div>
+        <div><b>Tier penalty:</b> ${fmtPct(calc.tier?.ldPercent || 0)}</div>
+        ${calc.extraPct > 0 ? `<div><b>Extra per-day:</b> ${calc.extraDays} day(s) × ${rule.extraPerDay}% = +${fmtPct(calc.extraPct)}</div>` : ''}
+        <div><b>Total penalty %:</b> ${fmtPct(calc.cappedLdPct)}${calc.cappedLdPct < calc.rawLdPct ? ` <span class="pill warn" style="margin-left:6px;">capped at ${calc.perSlaCap}%</span>` : ''}</div>
+        <div><b>Quarterly Payment:</b> ${fmtMoney(calc.quarterlyPayment)}</div>
+        <div><b>Penalty Amount:</b> <b style="color:${calc.ldAmount>0?'var(--red)':'var(--green)'};">${fmtMoney(calc.ldAmount)}</b></div>
+      </div>
+
+      <div class="section-head">How it was calculated</div>
+      <ol style="margin-left:20px;line-height:1.9;">${stepsHtml || '<li>No calculation steps available.</li>'}</ol>
+    </div>
+
+    <div class="card">
+      <h3 class="card-section-title">Rule tiers</h3>
+      <div class="hint" style="margin-bottom:6px;">The highlighted row is the tier that matched.</div>
+      ${tiersTable}
+    </div>
+  `;
+}
+
+/* ── Measurement form for manually-measured rules ── */
+function openMeasurementForm(linkId){
+  const link = projectSlaLinks.find(l => l.linkId === linkId);
+  if(!link) return;
+  const rule = findRule(link.ruleId);
+  if(!rule) return;
+
+  const cur = (link.actualMetricValue === null || link.actualMetricValue === undefined) ? '' : String(link.actualMetricValue);
+  const unit = rule.metricUnit || '';
+  const label = rule.metricLabel || 'value';
+
+  document.getElementById('messageModalTitle').textContent = `Enter measurement — ${rule.name}`;
+  document.getElementById('messageModalBody').innerHTML = `
+    <div style="margin-bottom:8px;">${escapeHtml(label)}${unit?` (in ${unit})`:''}:</div>
+    <input id="measureInput" type="number" step="0.0001" value="${escapeHtml(cur)}" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);font:inherit;" placeholder="e.g. 99.85">
+  `;
+  const okBtn = document.querySelector('#messageModal .btn');
+  okBtn.textContent = 'Save measurement';
+  okBtn.onclick = () => {
+    const newVal = document.getElementById('measureInput').value;
+    if(newVal === '' || newVal === null){
+      link.actualMetricValue = null;
+    } else {
+      link.actualMetricValue = Number(newVal);
+    }
+    link.measurementDate = todayISO();
+    closeMessageModal();
+    /* Reset the OK button for future use */
+    okBtn.textContent = 'OK';
+    okBtn.onclick = closeMessageModal;
+    showProjectSlas();
+  };
+  document.getElementById('messageModal').classList.add('open');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VIEW 3 - LD REPORT
+   ═══════════════════════════════════════════════════════════════ */
+function showLdReport(){
+  currentView = 'report';
+  setActiveNav('navReport');
+
+  const projectIds = [...new Set(projectSlaLinks.map(l => l.projectId))];
+
+  contentArea.innerHTML = `
+    <div class="page-header-simple">
+      <h2 class="ph-title">LD Report</h2>
+    </div>
+
+    ${projectIds.length === 0
+      ? '<div class="card"><div class="hint center" style="padding:20px;">No projects have linked SLAs yet. Go to <b>Project SLA Linkage</b> to attach SLA rules to activities.</div></div>'
+      : projectIds.map(pid => {
+          const summary = calculateProjectAggregate(pid);
+          if(!summary) return '';
+          return `
+            <div class="card">
+              <h3 class="card-section-title">${escapeHtml(summary.project.projectId)} — ${escapeHtml(summary.project.projectName)}</h3>
+              <div class="grid-4">
+                <div><b>Status:</b> ${escapeHtml(summary.project.status)}</div>
+                <div><b>SLAs:</b> ${summary.calcs.length}</div>
+                <div><b>Quarter:</b> ${escapeHtml(summary.quarter?.label || summary.quarter?.id || '—')}</div>
+                <div><b>Payment:</b> ${fmtMoney(summary.quarterlyPayment)}</div>
+                <div><b>Total LD:</b> <span style="color:var(--red); font-weight:700;">${fmtMoney(summary.totalLdAmount)}</span></div>
+              </div>
+              <div class="note-box" style="margin-top:10px;">
+                Sum of penalty %: ${fmtPct(summary.sumLdPct)} →
+                After cap: <b>${fmtPct(summary.cappedSumLdPct)}</b>
+                ${summary.wasCapped ? '<span class="pill warn" style="margin-left:8px;">Capped at 10%</span>' : ''}
+              </div>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>SLA</th>
+                      <th>Milestone</th>
+                      <th>Activity</th>
+                      <th>Contract</th>
+                      <th class="right">Measured</th>
+                      <th class="right">Penalty %</th>
+                      <th class="right">Penalty Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${summary.calcs.length === 0
+                      ? '<tr><td colspan="7" class="center">No SLAs.</td></tr>'
+                      : summary.calcs.map(c => {
+                          const unit = c.rule?.metricUnit || '';
+                          const breachDisp = c.breach.value === null ? '-' : c.breach.value + (unit ? ' ' + unit : '');
+                          return `
+                            <tr>
+                              <td>${escapeHtml(c.rule?.ruleId || '')}<br><span class="muted" style="font-size:11px;">${escapeHtml(c.rule?.name || '')}</span></td>
+                              <td>${escapeHtml(c.milestone?.id || '')}</td>
+                              <td>${escapeHtml(c.activity?.id || '')}</td>
+                              <td>${c.rule ? contractPillHtml(c.rule.contractTypeId) : ''}</td>
+                              <td class="num">${escapeHtml(breachDisp)}</td>
+                              <td class="num">${fmtPct(c.cappedLdPct)}</td>
+                              <td class="num">${fmtMoney(c.ldAmount)}</td>
+                            </tr>`;
+                        }).join('')}
+                  </tbody>
+                  <tfoot>
+                    <tr style="background:#f7faff;font-weight:700;">
+                      <td colspan="6" class="right">PROJECT TOTAL (capped at 10%)</td>
+                      <td class="num">${fmtMoney(summary.totalLdAmount)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          `;
+        }).join('')
+    }
+
+    ${projectIds.length > 0 ? `
+      <div class="card">
+        <h3 class="card-section-title">Grand Total — All Projects (Current Quarter)</h3>
+        <div class="info-box">
+          <b>Total LD across all projects: ${fmtMoney(projectIds.reduce((acc,pid) => acc + (calculateProjectAggregate(pid)?.totalLdAmount || 0), 0))}</b>
+        </div>
+      </div>
+    ` : ''}
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MESSAGE / CONFIRM MODAL HELPERS
+   ═══════════════════════════════════════════════════════════════ */
+function showMessage(text, title){
+  document.getElementById('messageModalTitle').textContent = title || 'Notice';
+  document.getElementById('messageModalBody').textContent = text;
+  document.getElementById('messageModal').classList.add('open');
+}
+function closeMessageModal(){
+  document.getElementById('messageModal').classList.remove('open');
+}
+function showConfirm(text, onOk, title){
+  document.getElementById('confirmModalTitle').textContent = title || 'Confirm';
+  document.getElementById('confirmModalBody').textContent = text;
+  document.getElementById('confirmModalOk').onclick = () => {
+    closeConfirmModal();
+    if(typeof onOk === 'function') onOk();
+  };
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeConfirmModal(){
+  document.getElementById('confirmModal').classList.remove('open');
+}
+
+/* ── Add / Edit / Delete Contract Type ───────────────────────────── */
+function openAddContractTypeModal(){
+  document.getElementById('ctModalTitle').textContent = 'Add Contract Type';
+  document.getElementById('ct_name').value = '';
+  document.getElementById('ct_desc').value = '';
+  document.getElementById('ct_editing_id').value = '';
+  document.getElementById('addContractTypeModal').classList.add('open');
+  setTimeout(() => document.getElementById('ct_name').focus(), 50);
+}
+function openEditContractTypeModal(contractTypeId){
+  const ct = contractTypes.find(c => c.id === contractTypeId);
+  if(!ct){ showMessage('Contract type not found.'); return; }
+  document.getElementById('ctModalTitle').textContent = 'Edit Contract Type';
+  document.getElementById('ct_name').value = ct.label || '';
+  document.getElementById('ct_desc').value = ct.description || '';
+  document.getElementById('ct_editing_id').value = ct.id;
+  document.getElementById('addContractTypeModal').classList.add('open');
+  setTimeout(() => document.getElementById('ct_name').focus(), 50);
+}
+function closeAddContractTypeModal(){
+  document.getElementById('addContractTypeModal').classList.remove('open');
+}
+function saveContractType(){
+  const name = document.getElementById('ct_name').value.trim();
+  const desc = document.getElementById('ct_desc').value.trim();
+  const editingId = document.getElementById('ct_editing_id').value;
+  if(!name){ showMessage('Please enter a contract type name.'); return; }
+
+  if(editingId){
+    /* Edit mode */
+    const ct = contractTypes.find(c => c.id === editingId);
+    if(!ct){ showMessage('Contract type not found.'); return; }
+    ct.label = name;
+    ct.description = desc;
+    closeAddContractTypeModal();
+    if(editingRule) renderRuleEditor();
+    showMessage('Contract type updated.');
+    return;
+  }
+
+  /* Create mode */
+  const baseId = 'CT_' + name.toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,40);
+  let id = baseId, n = 1;
+  while(contractTypes.find(c => c.id === id)){ n++; id = baseId + '_' + n; }
+  /* Auto-assign a colour in round-robin */
+  const pillClass = PILL_COLOUR_POOL[contractTypes.length % PILL_COLOUR_POOL.length];
+  contractTypes.push({ id, label: name, pillClass, description: desc || '' });
+  closeAddContractTypeModal();
+  if(editingRule){
+    editingRule.contractTypeId = id;
+    renderRuleEditor();
+  }
+  showMessage('Contract type added.');
+}
+function confirmDeleteContractType(contractTypeId){
+  const ct = contractTypes.find(c => c.id === contractTypeId);
+  if(!ct) return;
+  const usedBy = slaRuleStore.filter(r => r.contractTypeId === contractTypeId).length;
+  if(usedBy > 0){
+    showMessage(`Cannot delete "${ct.label}" — it's still used by ${usedBy} ${usedBy===1?'rule':'rules'}. Reassign those rules to another contract type first.`);
+    return;
+  }
+  if(contractTypes.length <= 1){
+    showMessage('At least one contract type must remain.');
+    return;
+  }
+  showConfirm(`Delete contract type "${ct.label}"?`, () => {
+    const idx = contractTypes.findIndex(c => c.id === contractTypeId);
+    if(idx >= 0) contractTypes.splice(idx, 1);
+    if(editingRule && editingRule.contractTypeId === contractTypeId){
+      editingRule.contractTypeId = contractTypes[0].id;
+    }
+    if(editingRule) renderRuleEditor();
+    showMessage('Contract type deleted.');
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR / HEADER WIRING
+   ═══════════════════════════════════════════════════════════════ */
+document.getElementById('toggleBtn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+});
+document.getElementById('homeBtn').addEventListener('click', () => {
+  alert('Home - see Home Screen.');
+});
+document.getElementById('pmToggle').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('pmSub').classList.toggle('open');
+  const arr = document.querySelector('#pmToggle .submenu-arrow');
+  if(arr) arr.textContent = document.getElementById('pmSub').classList.contains('open') ? '▼' : '▶';
+});
+document.getElementById('slaToggle').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('slaSub').classList.toggle('open');
+  const arr = document.querySelector('#slaToggle .submenu-arrow');
+  if(arr) arr.textContent = document.getElementById('slaSub').classList.contains('open') ? '▼' : '▶';
+});
+document.getElementById('profileBtn').addEventListener('click', () => {
+  document.getElementById('profileBtn').classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  const p = document.getElementById('profileBtn');
+  if(!p.contains(e.target)) p.classList.remove('open');
+});
+
+/* Font resizer */
+let fontScale = 1;
+function applyFontScale(){ document.documentElement.style.fontSize = (fontScale*16)+'px'; }
+document.getElementById('frIncrease').onclick = () => { fontScale = Math.min(1.3, fontScale+0.05); applyFontScale(); };
+document.getElementById('frReset').onclick    = () => { fontScale = 1; applyFontScale(); };
+document.getElementById('frDecrease').onclick = () => { fontScale = Math.max(0.85, fontScale-0.05); applyFontScale(); };
+
+/* Close modals by clicking outside */
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => {
+    if(e.target === m) m.classList.remove('open');
+  });
+});
+
+/* Initial render */
+showSlaRules();
+</script>
+
+</body>
+</html>
