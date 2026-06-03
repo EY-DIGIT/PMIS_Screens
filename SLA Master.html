@@ -211,6 +211,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       </div>
       <div class="page-header-actions">
         <button class="btn cancel" onclick="loadSlas()">🔄 Refresh</button>
+        <button class="btn cancel" onclick="seedDefaultSlas()" title="One-shot bulk seed of the 36 RFP-default SLAs">🌱 Seed Defaults</button>
         <button class="btn" onclick="openOnboardModal()">+ Onboard New SLA</button>
       </div>
     </div>
@@ -408,6 +409,37 @@ async function checkHealth(){
     document.getElementById('hdot').className='status-dot err';
     document.getElementById('hstatus').textContent='unreachable';
   }
+}
+
+/* ====== Seed defaults ====== */
+async function seedDefaultSlas(){
+  // Optional: prompt for contract subset; empty = all.
+  const subset = prompt(
+    'Seed which contract types? Comma-separated (BSP, MSAP, MSIP, PMU)\nLeave blank to seed ALL 36 RFP-default SLAs:',
+    ''
+  );
+  if(subset === null) return; // user cancelled
+  const payload = {};
+  if(subset.trim()){
+    payload.contract_types = subset.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+  }
+  try{
+    const r = await fetch(API() + '/api/v3/sla-masters/seed-defaults', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if(!r.ok){
+      const t = await r.text();
+      toast('Seed failed', 'HTTP '+r.status+' '+t.slice(0,200), 'error');
+      return;
+    }
+    const body = await r.json();
+    const s = body.data || body;
+    toast('Seeded',
+      `${s.seeded||0} new, ${s.skipped_existing||0} already there, ${(s.failed||[]).length} failed`,
+      'success');
+    loadSlas();
+  }catch(e){ toast('Network error', e.message, 'error'); }
 }
 
 /* ====== List ====== */

@@ -383,7 +383,7 @@ async function loadAll(){
 
 async function loadActivity(aid){
   try{
-    const r = await fetch(A_P() + '/project/activities/' + encodeURIComponent(aid));
+    const r = await fetch(A_P() + '/api/v3/activities/' + encodeURIComponent(aid));
     if(!r.ok){ markActivityUnknown(aid, 'HTTP '+r.status); return; }
     const body = await r.json();
     activity = body.data || body;
@@ -408,7 +408,7 @@ function markActivityUnknown(aid, reason){
 
 async function loadProject(pid){
   try{
-    const r = await fetch(A_P() + '/project/projects/' + encodeURIComponent(pid));
+    const r = await fetch(A_P() + '/api/v3/projects/' + encodeURIComponent(pid));
     if(!r.ok) return;
     const body = await r.json();
     project = body.data || body;
