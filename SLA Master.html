@@ -364,6 +364,41 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
   </div>
 </div>
 
+<!-- ─── Seed defaults modal ─── -->
+<div class="modal" id="seedModal">
+  <div class="modal-box narrow">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">🌱 Seed RFP-Default SLAs</div>
+        <div class="modal-sub">Idempotent &mdash; existing SLAs are skipped, never overwritten.</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('seedModal')">&times;</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin:10px 0;">
+      <label class="seed-check" style="font-weight:800;color:var(--navy);padding:8px 10px;background:#eef6fb;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" id="seedAll" onchange="onSeedAllToggle()" checked> All contract types (36 SLAs)
+      </label>
+      <div style="border-top:1px dashed var(--border-soft);margin:2px 0;"></div>
+      <label class="seed-check" style="padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" class="seed-ct" value="BSP" onchange="onSeedCtToggle()"> BSP &mdash; Biometric Solution Provider <span style="margin-left:auto;font-size:11px;color:var(--text-muted);">10 SLAs</span>
+      </label>
+      <label class="seed-check" style="padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" class="seed-ct" value="MSAP" onchange="onSeedCtToggle()"> MSAP &mdash; Managed Services App <span style="margin-left:auto;font-size:11px;color:var(--text-muted);">10 SLAs</span>
+      </label>
+      <label class="seed-check" style="padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" class="seed-ct" value="MSIP" onchange="onSeedCtToggle()"> MSIP &mdash; Managed Services Infra <span style="margin-left:auto;font-size:11px;color:var(--text-muted);">10 SLAs</span>
+      </label>
+      <label class="seed-check" style="padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" class="seed-ct" value="PMU" onchange="onSeedCtToggle()"> PMU &mdash; Programme Mgmt Unit <span style="margin-left:auto;font-size:11px;color:var(--text-muted);">6 SLAs</span>
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn cancel" onclick="closeModal('seedModal')">Cancel</button>
+      <button class="btn" id="seedRunBtn" onclick="runSeed()">Seed</button>
+    </div>
+  </div>
+</div>
+
 <!-- ─── Delete confirm ─── -->
 <div class="modal" id="confirmModal">
   <div class="modal-box narrow">
@@ -412,17 +447,53 @@ async function checkHealth(){
 }
 
 /* ====== Seed defaults ====== */
-async function seedDefaultSlas(){
-  // Optional: prompt for contract subset; empty = all.
-  const subset = prompt(
-    'Seed which contract types? Comma-separated (BSP, MSAP, MSIP, PMU)\nLeave blank to seed ALL 36 RFP-default SLAs:',
-    ''
-  );
-  if(subset === null) return; // user cancelled
-  const payload = {};
-  if(subset.trim()){
-    payload.contract_types = subset.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+function seedDefaultSlas(){
+  // Reset state — All is on by default.
+  document.getElementById('seedAll').checked = true;
+  document.querySelectorAll('.seed-ct').forEach(cb => cb.checked = false);
+  document.getElementById('seedRunBtn').textContent = 'Seed All (36)';
+  openModal('seedModal');
+}
+
+function onSeedAllToggle(){
+  const all = document.getElementById('seedAll').checked;
+  if(all){
+    // Clear per-type checkboxes so the selection is unambiguous.
+    document.querySelectorAll('.seed-ct').forEach(cb => cb.checked = false);
   }
+  refreshSeedButtonLabel();
+}
+
+function onSeedCtToggle(){
+  // Any per-type click means "subset mode" — turn off the All shortcut.
+  document.getElementById('seedAll').checked = false;
+  refreshSeedButtonLabel();
+}
+
+function refreshSeedButtonLabel(){
+  const all = document.getElementById('seedAll').checked;
+  const chosen = Array.from(document.querySelectorAll('.seed-ct:checked')).map(cb => cb.value);
+  const COUNTS = {BSP:10, MSAP:10, MSIP:10, PMU:6};
+  let n;
+  if(all){ n = 36; }
+  else { n = chosen.reduce((a,c) => a + (COUNTS[c]||0), 0); }
+  const btn = document.getElementById('seedRunBtn');
+  btn.disabled = (!all && chosen.length === 0);
+  btn.textContent = all ? 'Seed All (36)'
+                        : (chosen.length ? `Seed ${chosen.join(', ')} (${n})`
+                                         : 'Pick at least one');
+}
+
+async function runSeed(){
+  const all = document.getElementById('seedAll').checked;
+  const chosen = Array.from(document.querySelectorAll('.seed-ct:checked')).map(cb => cb.value);
+  if(!all && chosen.length === 0){
+    toast('Nothing selected', 'Tick "All" or at least one contract type.', 'error');
+    return;
+  }
+  // Backend accepts either ["all"] or a list of codes; both are equivalent on
+  // an empty list, but being explicit keeps the request log readable.
+  const payload = { contract_types: all ? ['all'] : chosen };
   try{
     const r = await fetch(API() + '/api/v3/sla-masters/seed-defaults', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -438,6 +509,7 @@ async function seedDefaultSlas(){
     toast('Seeded',
       `${s.seeded||0} new, ${s.skipped_existing||0} already there, ${(s.failed||[]).length} failed`,
       'success');
+    closeModal('seedModal');
     loadSlas();
   }catch(e){ toast('Network error', e.message, 'error'); }
 }
