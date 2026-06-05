@@ -105,6 +105,17 @@ input:focus,select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 
 .add-row{margin-top:8px;display:flex;justify-content:flex-end;}
 .flex-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 .muted{color:var(--text-muted);font-size:12px;}
+/* Tabs */
+.tab-bar{display:flex;gap:2px;margin:8px 0 14px;border-bottom:2px solid var(--border);}
+.tab-btn{background:transparent;border:none;padding:10px 18px;font-size:13px;font-weight:700;color:var(--text-soft);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s;font-family:inherit;}
+.tab-btn:hover{color:var(--navy);}
+.tab-btn.active{color:var(--navy);border-bottom-color:var(--cyan);}
+.tab-btn .tab-pill{display:inline-block;padding:1px 8px;border-radius:999px;background:#eef6fb;color:var(--navy);font-size:11px;font-weight:700;margin-left:6px;}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+.kv-grid{display:grid;grid-template-columns:auto 1fr;column-gap:14px;row-gap:6px;font-size:13px;align-items:baseline;}
+.kv-grid dt{font-weight:600;color:var(--text-soft);}
+.kv-grid dd{margin:0;color:var(--text);font-weight:700;}
 @media (max-width:760px){.sidebar{display:none;}.grid{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -178,6 +189,15 @@ input:focus,select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 
       </div>
     </div>
 
+    <!-- Tab bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="severity" onclick="switchTab('severity')">Severity Master <span class="tab-pill" id="tabBadgeSev">0</span></button>
+      <button class="tab-btn" data-tab="ld" onclick="switchTab('ld')">LD Bands <span class="tab-pill" id="tabBadgeLd">0</span></button>
+      <button class="tab-btn" data-tab="onboard" onclick="switchTab('onboard')">Onboard SLAs</button>
+    </div>
+
+    <!-- ============ TAB 1: SEVERITY MASTER ============ -->
+    <div class="tab-pane active" id="pane-severity">
     <!-- Severity Master -->
     <div class="card">
       <div class="flex-row" style="justify-content:space-between;">
@@ -202,6 +222,10 @@ input:focus,select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 
       </div>
     </div>
 
+    </div><!-- /pane-severity -->
+
+    <!-- ============ TAB 2: LD BANDS ============ -->
+    <div class="tab-pane" id="pane-ld">
     <!-- LD Bands -->
     <div class="card">
       <div class="flex-row" style="justify-content:space-between;">
@@ -231,6 +255,64 @@ input:focus,select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 
         <button class="btn small-btn cancel" onclick="addLdRow()">+ Add band</button>
       </div>
     </div>
+    </div><!-- /pane-ld -->
+
+    <!-- ============ TAB 3: ONBOARD SLAs ============ -->
+    <div class="tab-pane" id="pane-onboard">
+    <div class="card">
+      <div class="flex-row" style="justify-content:space-between;">
+        <div>
+          <div class="card-title" style="margin-bottom:2px;">Bootstrap this project</div>
+          <div class="card-sub">Detected contract type drives the SLA bundle. Severity + LD defaults come from RFP §5.28 (PMU baseline).</div>
+        </div>
+      </div>
+
+      <!-- Project facts -->
+      <div style="margin-top:6px;padding:12px 14px;background:#f6fbff;border:1px solid var(--border-soft);border-radius:8px;">
+        <dl class="kv-grid">
+          <dt>Project</dt>          <dd id="obProjectName">—</dd>
+          <dt>Project ID</dt>       <dd id="obProjectId" style="font-family:Consolas,Menlo,monospace;font-size:12px;">—</dd>
+          <dt>Contract type</dt>    <dd id="obContractType">—</dd>
+          <dt>Severity rows</dt>    <dd id="obSeverityCount">—</dd>
+          <dt>LD-band rows</dt>     <dd id="obLdCount">—</dd>
+          <dt>SLAs onboarded (this contract type)</dt><dd id="obSlaCount">—</dd>
+        </dl>
+      </div>
+
+      <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <!-- Action A: seed project policy -->
+        <div style="border:1px solid var(--border-soft);border-radius:10px;padding:14px;background:#fff;">
+          <div style="font-weight:800;color:var(--navy);margin-bottom:6px;">① Seed severity + LD defaults</div>
+          <div class="muted" style="margin-bottom:10px;">
+            One-shot bootstrap. Writes 5 severity rows and 5 LD-band rows from RFP §5.28.1.
+            Skips whichever table is already populated.
+          </div>
+          <button class="btn seed-btn" onclick="actionSeedProjectDefaults()" style="width:100%;">⚡ Seed defaults for this project</button>
+        </div>
+
+        <!-- Action B: seed SLA templates for the contract type -->
+        <div style="border:1px solid var(--border-soft);border-radius:10px;padding:14px;background:#fff;">
+          <div style="font-weight:800;color:var(--navy);margin-bottom:6px;">② Seed SLA templates</div>
+          <div class="muted" style="margin-bottom:10px;">
+            Onboards the RFP-default SLAs for the detected contract type
+            (<span id="obContractTypeInline" style="font-weight:800;color:var(--navy);">—</span>).
+            Templates are reusable across activities.
+          </div>
+          <button class="btn" onclick="actionSeedSlaTemplates()" style="width:100%;">🌱 Seed SLA templates for contract type</button>
+        </div>
+      </div>
+
+      <!-- Result panel -->
+      <div id="onboardResult" style="margin-top:14px;display:none;border:1px solid var(--border-soft);border-radius:10px;padding:14px;background:#fafcff;">
+      </div>
+
+      <div style="margin-top:18px;font-size:12px;color:var(--text-muted);line-height:1.55;">
+        Once both actions are done, switch to <a href="Activity SLAs.html" class="link" style="font-weight:700;">Activity SLAs</a>
+        and start mapping the templates to this project's activities. The mapping page
+        prefills the override fields from each activity's planned and actual dates.
+      </div>
+    </div>
+    </div><!-- /pane-onboard -->
 
   </main>
 </div>
@@ -280,6 +362,16 @@ function toast(title, msg, kind='success'){
 
 function esc(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+// Shared state for the onboarding tab — what we know about the loaded project.
+let projectFacts = { id: null, name: null, contractType: null, slasOfContractType: 0 };
+const PROJECT_API_BASE = 'http://localhost:9000/projects';
+
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + name));
+  if(name === 'onboard') refreshOnboardTab();
+}
+
 async function loadAll(){
   if(!PID()){ toast('Project ID required', 'Paste a project_id and click Load.', 'error'); return; }
   document.getElementById('hdot').className='status-dot';
@@ -295,6 +387,12 @@ async function loadAll(){
     ldBands  = ldBody  ? (ldBody?.data?._embedded?.elements  || []).map(el => el.data || el) : [];
     severity.sort((a,b) => a.level - b.level);
     ldBands.sort((a,b) => Number(a.points_threshold) - Number(b.points_threshold));
+    // Update tab badges
+    document.getElementById('tabBadgeSev').textContent = severity.length;
+    document.getElementById('tabBadgeLd').textContent = ldBands.length;
+    // Fetch project facts for the onboarding tab (best effort — failures don't block the page)
+    await loadProjectFacts(PID());
+    refreshOnboardTab();
     renderSeverity();
     renderLd();
     document.getElementById('hdot').className='status-dot ok';
@@ -432,6 +530,104 @@ function addLdRow(){
 function removeLdRow(i){
   ldBands.splice(i,1);
   renderLd();
+}
+
+/* ─── Onboarding tab ─────────────────────────────────────────────── */
+
+async function loadProjectFacts(pid){
+  // Reset to neutral state so a partial failure doesn't show stale data.
+  projectFacts = { id: pid, name: null, contractType: null, slasOfContractType: 0 };
+  try{
+    const r = await fetch(PROJECT_API_BASE + '/api/v3/projects/' + encodeURIComponent(pid));
+    if(r.ok){
+      const body = await r.json();
+      const d = body.data || body;
+      projectFacts.name = d.name || d.title || null;
+      projectFacts.contractType = (d.contractType || d.contract_type || '').toUpperCase() || null;
+    }
+  }catch(e){
+    // Project management unreachable — that's OK, user can still see contract API state.
+  }
+  // SLAs currently onboarded for this contract type (best-effort count)
+  if(projectFacts.contractType){
+    try{
+      const r = await fetch(A() + '/api/v3/sla-masters?contract_type=' + encodeURIComponent(projectFacts.contractType) + '&pageSize=200');
+      if(r.ok){
+        const body = await r.json();
+        const els = (body?.data?._embedded?.elements || []);
+        projectFacts.slasOfContractType = els.length;
+      }
+    }catch(e){}
+  }
+}
+
+function refreshOnboardTab(){
+  document.getElementById('obProjectId').textContent = projectFacts.id || '—';
+  document.getElementById('obProjectName').textContent = projectFacts.name || '— (project-mgmt unavailable or unknown)';
+  const ct = projectFacts.contractType;
+  document.getElementById('obContractType').textContent = ct || '— (not set on the project)';
+  document.getElementById('obContractTypeInline').textContent = ct || '?';
+  document.getElementById('obSeverityCount').textContent = `${severity.length} / 5 (RFP default)`;
+  document.getElementById('obLdCount').textContent = `${ldBands.length} / 5 (RFP default)`;
+  document.getElementById('obSlaCount').textContent = ct ? String(projectFacts.slasOfContractType) : '—';
+}
+
+async function actionSeedProjectDefaults(){
+  if(!PID()){ toast('Load a project first', '', 'error'); return; }
+  try{
+    const r = await fetch(A() + '/api/v3/projects/' + encodeURIComponent(PID()) + '/seed-master-defaults', {
+      method: 'POST', headers: {'Content-Type':'application/json'}
+    });
+    const body = await r.json().catch(()=>({}));
+    if(!r.ok){
+      showOnboardResult('error', 'Seed failed', body?.error?.message || ('HTTP ' + r.status));
+      return;
+    }
+    const d = body.data || body;
+    showOnboardResult('success', 'Project policy seeded',
+      `<strong>${d.severity_levels||0}</strong> severity rows · <strong>${d.ld_bands||0}</strong> LD-band rows now on this project.`);
+    loadAll();
+  }catch(e){
+    showOnboardResult('error', 'Network error', e.message);
+  }
+}
+
+async function actionSeedSlaTemplates(){
+  const ct = projectFacts.contractType;
+  if(!ct){
+    showOnboardResult('error', 'Contract type unknown',
+      'The project does not have a contract_type set in PMIS-project-management, or that service is unreachable. Set the project\'s contract type (BSP / MSAP / MSIP / PMU) and retry.');
+    return;
+  }
+  try{
+    const r = await fetch(A() + '/api/v3/sla-masters/seed-defaults', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ contract_types: [ct] })
+    });
+    const body = await r.json().catch(()=>({}));
+    if(!r.ok){
+      showOnboardResult('error', 'Seed failed', body?.error?.message || ('HTTP ' + r.status));
+      return;
+    }
+    const d = body.data || body;
+    const failed = (d.failed || []).length;
+    showOnboardResult('success', `SLA templates seeded for ${ct}`,
+      `<strong>${d.seeded||0}</strong> new · <strong>${d.skipped_existing||0}</strong> already present · <strong>${failed}</strong> failed · of <strong>${d.total_candidates||0}</strong> candidates.`);
+    // Refresh the per-contract-type counter
+    await loadProjectFacts(PID());
+    refreshOnboardTab();
+  }catch(e){
+    showOnboardResult('error', 'Network error', e.message);
+  }
+}
+
+function showOnboardResult(kind, title, html){
+  const el = document.getElementById('onboardResult');
+  el.style.display = 'block';
+  el.style.borderColor = kind === 'error' ? 'var(--red)' : '#1a7f37';
+  el.style.background = kind === 'error' ? '#fdecec' : '#e8f7ee';
+  el.innerHTML = `<div style="font-weight:800;color:${kind==='error'?'var(--red)':'#1a7f37'};font-size:14px;margin-bottom:4px;">${esc(title)}</div>
+                  <div style="font-size:13px;color:var(--text);">${html}</div>`;
 }
 </script>
 </body>
