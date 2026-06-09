@@ -231,7 +231,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       <div class="kpi"><div class="kpi-label">Total SLAs</div><div class="kpi-value" id="kpiTotal">0</div></div>
       <div class="kpi"><div class="kpi-label">Active</div><div class="kpi-value" id="kpiActive">0</div></div>
       <div class="kpi"><div class="kpi-label">Contract Types</div><div class="kpi-value" id="kpiCt">0</div></div>
-      <div class="kpi"><div class="kpi-label">Formula Types</div><div class="kpi-value" id="kpiFt">0</div></div>
+      <div class="kpi"><div class="kpi-label">Categories</div><div class="kpi-value" id="kpiCategories">0</div></div>
     </div>
 
     <!-- List card -->
@@ -248,7 +248,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
               <option value="">All</option><option>BSP</option><option>MSAP</option><option>MSIP</option><option>PMU</option>
             </select>
           </div>
-          <div class="field"><label>Formula Type</label>
+          <div class="field"><label>Category</label>
+            <select id="filterCategory" onchange="renderTable()">
+              <option value="">All</option>
+              <!-- Populated dynamically from GET /api/v3/sla-categories -->
+            </select>
+          </div>
+          <div class="field" style="display:none"><label>Formula Type (hidden)</label>
             <select id="filterFt" onchange="renderTable()">
               <option value="">All</option>
               <option value="band_accumulation">Band Accumulation</option>
@@ -268,7 +274,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       <div class="table-wrap">
         <table class="table">
           <thead><tr>
-            <th>SLA Ref</th><th>Name</th><th>Contract</th><th>Formula</th><th>Status</th><th>Updated</th><th>Actions</th>
+            <th>SLA Number</th><th>Title</th><th>Contract</th><th>Category</th><th>Status</th><th>Updated</th><th>Actions</th>
           </tr></thead>
           <tbody id="slaTbody">
             <tr class="empty-row"><td colspan="7">No SLAs loaded yet. Click <strong>Check</strong> to test the API, then <strong>Refresh</strong>.</td></tr>
@@ -286,60 +292,118 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
     <div class="modal-head">
       <div>
         <div class="modal-title" id="onboardTitle">Onboard New SLA</div>
-        <div class="modal-sub">Fill the form below — no YAML required.</div>
+        <div class="modal-sub">Fields follow UIDAI RFP §5.28 — the same rows you see in the contract document.</div>
       </div>
       <button class="modal-close" onclick="closeModal('onboardModal')">×</button>
     </div>
 
-    <!-- Basics -->
+    <!-- 1. Identification -->
     <div class="subsection">
-      <div class="subsection-head"><div class="subsection-title">① Basics</div></div>
+      <div class="subsection-head"><div class="subsection-title">SLA Identification</div></div>
       <div class="grid">
-        <div class="field"><label>SLA Ref <span class="required">*</span></label><input id="f_sla_ref" placeholder="MSAP-SLA001"></div>
-        <div class="field"><label>Name <span class="required">*</span></label><input id="f_name" placeholder="Mobilization on time"></div>
+        <div class="field"><label>SLA Number <span class="required">*</span></label><input id="f_sla_ref" placeholder="PMU-SLA001"></div>
+        <div class="field"><label>Title <span class="required">*</span></label><input id="f_name" placeholder="Non-submission of deliverable"></div>
         <div class="field"><label>Contract Type <span class="required">*</span></label>
           <select id="f_ct"><option>BSP</option><option>MSAP</option><option>MSIP</option><option>PMU</option></select>
         </div>
-        <div class="field"><label>Formula Type <span class="required">*</span></label>
-          <select id="f_ft" onchange="toggleFormulaSections()">
-            <option value="band_accumulation">Band Accumulation</option>
-            <option value="point_accumulation">Point Accumulation</option>
-            <option value="fixed_escalation">Fixed Escalation</option>
-            <option value="wac">WAC</option>
+        <div class="field"><label>SLA Category <span class="required">*</span></label>
+          <select id="f_category" onchange="onCategoryChange()">
+            <!-- Options loaded dynamically from GET /api/v3/sla-categories -->
           </select>
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">
+            Category picks the calculation engine: <span id="f_categoryHint" style="font-weight:700;color:var(--navy);">—</span>.
+          </div>
         </div>
-        <div class="field full"><label>Description</label><textarea id="f_desc" placeholder="When and how this SLA applies..."></textarea></div>
       </div>
     </div>
 
-    <!-- Metrics -->
+    <!-- 2. Definition + Scope (RFP table rows) -->
     <div class="subsection">
-      <div class="subsection-head"><div class="subsection-title">② Metrics</div><button class="btn small-btn" onclick="addRow('metricsBody', metricRowTemplate)">+ Add metric</button></div>
+      <div class="subsection-head"><div class="subsection-title">Definition &amp; Scope</div></div>
+      <div class="grid">
+        <div class="field full"><label>Definition of SLA</label><textarea id="f_desc" placeholder="One-sentence summary of what this SLA covers (RFP &quot;Definition of SLA&quot; row)."></textarea></div>
+        <div class="field full"><label>Scope of SLA</label><textarea id="f_scope" placeholder="Who or what this SLA applies to (RFP &quot;Scope of SLA&quot; row)."></textarea></div>
+      </div>
+    </div>
+
+    <!-- 3. Source of Data + Calculation -->
+    <div class="subsection">
+      <div class="subsection-head"><div class="subsection-title">Source &amp; Calculation</div></div>
+      <div class="grid">
+        <div class="field"><label>Source of Data</label><input id="f_dataSource" placeholder='e.g. Manual — UIDAI biometric attendance system'></div>
+        <div class="field"><label>Reports submitted to</label><input id="f_reportsTo" placeholder="Technology Management Division, UIDAI HO"></div>
+        <div class="field full"><label>SLA Calculation</label><textarea id="f_calc" placeholder='Plain-English description of how this SLA is computed (RFP "SLA calculation" row).'></textarea></div>
+      </div>
+    </div>
+
+    <!-- 4. Cadence + LD base -->
+    <div class="subsection">
+      <div class="subsection-head"><div class="subsection-title">Cadence &amp; Applied On</div></div>
+      <div class="grid">
+        <div class="field"><label>Measurement Interval</label>
+          <select id="f_measInt"><option>DAILY</option><option>WEEKLY</option><option selected>MONTHLY</option><option>QUARTERLY</option><option>ONE_TIME</option></select>
+        </div>
+        <div class="field"><label>Reporting Interval</label>
+          <select id="f_repInt"><option>WEEKLY</option><option>MONTHLY</option><option selected>QUARTERLY</option><option>ANNUAL</option></select>
+        </div>
+        <div class="field"><label>Applied On</label>
+          <select id="f_ldBase">
+            <option value="QUARTERLY_PAYMENT">Net Planned Quarterly Payment (NPQP)</option>
+            <option value="ANNUAL_PAYMENT">Annual Contract Value</option>
+            <option value="FIXED_AMOUNT">Deliverable Cost (set per mapping)</option>
+          </select>
+        </div>
+        <div class="field"><label>Active From <span class="required">*</span></label><input id="f_effFrom" type="date" value="2024-04-01"></div>
+      </div>
+    </div>
+
+    <!-- 5. What is measured -->
+    <div class="subsection">
+      <div class="subsection-head">
+        <div class="subsection-title">What is measured</div>
+        <button class="btn small-btn" onclick="addRow('metricsBody', metricRowTemplate)">+ Add measurement</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Most SLAs have one measurement (e.g. <em>days delayed</em>, <em>resource business days</em>). Compound SLAs (RFP §5.28.3.e) can have two.</div>
       <div id="metricsBody"></div>
     </div>
 
-    <!-- Bands (band_accumulation + point_accumulation) -->
+    <!-- 6. Target — severity thresholds (covers bands) -->
     <div class="subsection" id="secBands">
-      <div class="subsection-head"><div class="subsection-title">③ Severity Bands</div><button class="btn small-btn" onclick="addRow('bandsBody', bandRowTemplate)">+ Add band</button></div>
+      <div class="subsection-head">
+        <div class="subsection-title">Target — severity threshold table</div>
+        <button class="btn small-btn" onclick="addRow('bandsBody', bandRowTemplate)">+ Add severity row</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">This is the same "Target" sub-table the RFP shows for each SLA — one row per severity level with its threshold range.</div>
       <div id="bandsBody"></div>
     </div>
 
-    <!-- Lookup tiers (fixed_escalation + point_accumulation extras) -->
+    <!-- 7. Target — linear escalation tiers (covers lookup) -->
     <div class="subsection" id="secLookup">
-      <div class="subsection-head"><div class="subsection-title">④ Lookup Tiers</div><button class="btn small-btn" onclick="addRow('lookupBody', lookupRowTemplate)">+ Add tier</button></div>
+      <div class="subsection-head">
+        <div class="subsection-title">Target — linear escalation tiers</div>
+        <button class="btn small-btn" onclick="addRow('lookupBody', lookupRowTemplate)">+ Add tier</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">For deliverable / query SLAs that escalate LD% per unit time instead of by severity.</div>
       <div id="lookupBody"></div>
     </div>
 
-    <!-- Parameters -->
+    <!-- Advanced (collapsible) -->
     <div class="subsection">
-      <div class="subsection-head"><div class="subsection-title">⑤ Parameters</div><button class="btn small-btn" onclick="addRow('paramsBody', paramRowTemplate)">+ Add parameter</button></div>
-      <div id="paramsBody"></div>
-    </div>
+      <div class="subsection-head" style="cursor:pointer;" onclick="toggleAdvanced()">
+        <div class="subsection-title"><span id="advArrow">▶</span> Advanced (rarely needed)</div>
+        <div style="font-size:11px;color:var(--text-muted);">Internal parameters and guard conditions used by specific calculation engines.</div>
+      </div>
+      <div id="advancedBody" style="display:none;">
+        <div style="margin-top:10px;font-weight:700;color:var(--navy);font-size:12px;">Parameters</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Key/value knobs the engine reads (e.g. <code>grace_days</code>, <code>variance_step_percent</code>).</div>
+        <div style="text-align:right;margin-bottom:6px;"><button class="btn small-btn cancel" onclick="addRow('paramsBody', paramRowTemplate)">+ Add parameter</button></div>
+        <div id="paramsBody"></div>
 
-    <!-- Guards -->
-    <div class="subsection">
-      <div class="subsection-head"><div class="subsection-title">⑥ Guards (optional)</div><button class="btn small-btn" onclick="addRow('guardsBody', guardRowTemplate)">+ Add guard</button></div>
-      <div id="guardsBody"></div>
+        <div style="margin-top:14px;font-weight:700;color:var(--navy);font-size:12px;">Guards</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Skip / exclude conditions (e.g. "exclude period if observation count &lt; 10").</div>
+        <div style="text-align:right;margin-bottom:6px;"><button class="btn small-btn cancel" onclick="addRow('guardsBody', guardRowTemplate)">+ Add guard</button></div>
+        <div id="guardsBody"></div>
+      </div>
     </div>
 
     <div class="modal-actions">
@@ -531,32 +595,48 @@ function renderKpis(){
   document.getElementById('kpiTotal').textContent = slas.length;
   document.getElementById('kpiActive').textContent = slas.filter(s => (s.status||'ACTIVE')==='ACTIVE').length;
   document.getElementById('kpiCt').textContent = new Set(slas.map(s=>s.contract_type)).size;
-  document.getElementById('kpiFt').textContent = new Set(slas.map(s=>s.formula_type)).size;
+  document.getElementById('kpiCategories').textContent = new Set(slas.map(s=>s.category || categoryFromFormula(s.formula_type))).size;
+}
+
+// Used when an older SLA row lacks a stored category — derive the display
+// label from the engine key so the table still shows something meaningful.
+function categoryFromFormula(ft){
+  return Object.entries(CATEGORY_TO_FORMULA).find(([_k,v]) => v===ft)?.[0] || ft || '—';
 }
 
 function renderTable(){
   const q = document.getElementById('searchInput').value.toLowerCase();
   const ct = document.getElementById('filterCt').value;
-  const ft = document.getElementById('filterFt').value;
+  const cat = document.getElementById('filterCategory').value;
   const st = document.getElementById('filterStatus').value;
-  const filtered = slas.filter(s =>
-    (!q || (s.sla_ref||'').toLowerCase().includes(q) || (s.name||'').toLowerCase().includes(q)) &&
-    (!ct || s.contract_type===ct) &&
-    (!ft || s.formula_type===ft) &&
-    (!st || (s.status||'ACTIVE')===st)
-  );
+  const filtered = slas.filter(s => {
+    const slaCategory = s.category || categoryFromFormula(s.formula_type);
+    const titleOrName = (s.title || s.name || '').toLowerCase();
+    return (!q || (s.sla_ref||'').toLowerCase().includes(q) || titleOrName.includes(q)) &&
+      (!ct || s.contract_type===ct) &&
+      (!cat || slaCategory===cat) &&
+      (!st || (s.status||'ACTIVE')===st);
+  });
   const tbody = document.getElementById('slaTbody');
   if(filtered.length===0){
     tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No matching SLAs.</td></tr>';
     return;
   }
-  const fmtBadge = {band_accumulation:'badge', point_accumulation:'badge purple', fixed_escalation:'badge orange', wac:'badge green'};
-  tbody.innerHTML = filtered.map(s => `
+  const categoryBadgeColor = {
+    'Deliverable Submission': 'badge orange',
+    'Query Resolution':       'badge orange',
+    'Recommendation Quality': 'badge purple',
+    'Resource Management':    'badge purple',
+    'Governance Tool':        'badge green',
+  };
+  tbody.innerHTML = filtered.map(s => {
+    const slaCategory = s.category || categoryFromFormula(s.formula_type);
+    return `
     <tr>
       <td><span class="link" onclick='viewSla("${s.id}")'>${esc(s.sla_ref||'-')}</span></td>
-      <td>${esc(s.name||'-')}</td>
+      <td>${esc(s.title || s.name || '-')}</td>
       <td><span class="badge grey">${esc(s.contract_type||'-')}</span></td>
-      <td><span class="${fmtBadge[s.formula_type]||'badge'}">${esc(s.formula_type||'-')}</span></td>
+      <td><span class="${categoryBadgeColor[slaCategory] || 'badge'}">${esc(slaCategory)}</span></td>
       <td><span class="badge ${ (s.status||'ACTIVE')==='ACTIVE'?'green':(s.status==='RETIRED'?'red':'orange') }">${esc(s.status||'ACTIVE')}</span></td>
       <td>${esc((s.updated_at||s.created_at||'').slice(0,10))}</td>
       <td class="actions-cell">
@@ -564,12 +644,12 @@ function renderTable(){
         <button class="btn small-btn icon-btn cancel" onclick='editSla("${s.id}")'>✎ Edit</button>
         <button class="btn small-btn icon-btn delete-btn" onclick='askDelete("${s.id}","${esc(s.sla_ref||"")}")'>🗑 Delete</button>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 }
 
 function resetFilters(){
-  ['filterCt','filterFt','filterStatus'].forEach(id => document.getElementById(id).value='');
+  ['filterCt','filterCategory','filterStatus'].forEach(id => document.getElementById(id).value='');
   document.getElementById('searchInput').value='';
   renderTable();
 }
@@ -583,24 +663,91 @@ const lookupRowTemplate = () => ({sort_order:'', tier_label:'', threshold:'', ld
 const paramRowTemplate  = () => ({param_key:'', param_value:'', param_type:'number'});
 const guardRowTemplate  = () => ({guard_key:'', guard_op:'<', threshold:'', message:''});
 
+// Category catalog comes from the backend (GET /api/v3/sla-categories). The
+// map below starts empty; loadSlaCategories() populates it at page load and
+// after a Refresh. The fallback constant only kicks in if the API is
+// unreachable so the form is never completely broken.
+let CATEGORY_TO_FORMULA = {};          // display_name -> formula_type
+let CATEGORIES = [];                   // [{code, display_name, formula_type, description}]
+const _FALLBACK_CATEGORIES = [
+  {code:'DELIVERABLE_SUBMISSION', display_name:'Deliverable Submission', formula_type:'fixed_escalation'},
+  {code:'QUERY_RESOLUTION',       display_name:'Query Resolution',       formula_type:'fixed_escalation'},
+  {code:'RECOMMENDATION_QUALITY', display_name:'Recommendation Quality', formula_type:'point_accumulation'},
+  {code:'RESOURCE_MANAGEMENT',    display_name:'Resource Management',    formula_type:'point_accumulation'},
+  {code:'GOVERNANCE_TOOL',        display_name:'Governance Tool',        formula_type:'point_accumulation'},
+];
+
+async function loadSlaCategories(){
+  let items = [];
+  try{
+    const r = await fetch(API() + '/api/v3/sla-categories');
+    if(r.ok){
+      const body = await r.json();
+      const els = (body?.data?._embedded?.elements || []);
+      items = els.map(el => el.data || el);
+    }
+  }catch(e){}
+  if(!items.length) items = _FALLBACK_CATEGORIES;
+  CATEGORIES = items;
+  CATEGORY_TO_FORMULA = Object.fromEntries(items.map(c => [c.display_name, c.formula_type]));
+  // Repopulate the onboarding picker
+  const sel = document.getElementById('f_category');
+  if(sel){
+    const current = sel.value;
+    sel.innerHTML = items.map(c =>
+      `<option value="${esc(c.display_name)}" data-formula="${esc(c.formula_type)}">${esc(c.display_name)}</option>`
+    ).join('');
+    if(current && items.find(c => c.display_name === current)) sel.value = current;
+  }
+  // Repopulate the list-page filter
+  const filt = document.getElementById('filterCategory');
+  if(filt){
+    const current = filt.value;
+    filt.innerHTML = '<option value="">All</option>' +
+      items.map(c => `<option value="${esc(c.display_name)}">${esc(c.display_name)}</option>`).join('');
+    if(current) filt.value = current;
+  }
+}
+
 function openOnboardModal(){
   editingId = null;
   document.getElementById('onboardTitle').textContent = 'Onboard New SLA';
   document.getElementById('submitSlaBtn').textContent = 'Onboard SLA';
-  ['f_sla_ref','f_name','f_desc'].forEach(id => document.getElementById(id).value='');
-  document.getElementById('f_ct').value = 'MSAP';
-  document.getElementById('f_ft').value = 'band_accumulation';
+  ['f_sla_ref','f_name','f_desc','f_scope','f_dataSource','f_calc','f_reportsTo'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('f_ct').value = 'PMU';
+  document.getElementById('f_category').value = 'Resource Management';
+  document.getElementById('f_measInt').value = 'MONTHLY';
+  document.getElementById('f_repInt').value = 'QUARTERLY';
+  document.getElementById('f_ldBase').value = 'QUARTERLY_PAYMENT';
+  document.getElementById('f_effFrom').value = '2024-04-01';
   ['metricsBody','bandsBody','lookupBody','paramsBody','guardsBody'].forEach(id => document.getElementById(id).innerHTML='');
   addRow('metricsBody', metricRowTemplate);
   addRow('bandsBody', bandRowTemplate);
-  toggleFormulaSections();
+  // Advanced collapsed by default
+  document.getElementById('advancedBody').style.display = 'none';
+  document.getElementById('advArrow').textContent = '▶';
+  onCategoryChange();
   openModal('onboardModal');
 }
 
-function toggleFormulaSections(){
-  const ft = document.getElementById('f_ft').value;
+function onCategoryChange(){
+  // The user picks a Category; we derive the engine (formula_type) behind the
+  // scenes and show / hide the Target sections accordingly.
+  const category = document.getElementById('f_category').value;
+  const ft = CATEGORY_TO_FORMULA[category] || 'point_accumulation';
+  document.getElementById('f_categoryHint').textContent = ft;
   document.getElementById('secBands').style.display   = (ft==='band_accumulation' || ft==='point_accumulation' || ft==='wac') ? '' : 'none';
   document.getElementById('secLookup').style.display  = (ft==='fixed_escalation' || ft==='point_accumulation') ? '' : 'none';
+}
+
+function toggleAdvanced(){
+  const body = document.getElementById('advancedBody');
+  const arrow = document.getElementById('advArrow');
+  const open = body.style.display === 'none';
+  body.style.display = open ? 'block' : 'none';
+  arrow.textContent = open ? '▼' : '▶';
 }
 
 function addRow(containerId, tpl){
@@ -613,29 +760,29 @@ function addRow(containerId, tpl){
   let html = '';
   if(containerId==='metricsBody'){
     html = `
-      <div class="field"><label>Key</label><input data-k="metric_key" placeholder="rate"></div>
-      <div class="field"><label>Label</label><input data-k="metric_label" placeholder="Failure rate"></div>
-      <div class="field"><label>Unit</label><input data-k="unit" placeholder="%"></div>
-      <div class="field"><label>Shape</label><select data-k="observation_shape"><option>SINGLE_VALUE</option><option>DAILY_VALUES</option><option>BAND_COUNTS</option><option>WAC_BREAKDOWN</option></select></div>
-      <div class="field"><label>Primary</label><select data-k="is_primary"><option value="true">Yes</option><option value="false" selected>No</option></select></div>
+      <div class="field"><label>Internal key</label><input data-k="metric_key" placeholder="days_delayed"></div>
+      <div class="field"><label>Display name</label><input data-k="display_name" placeholder="Days delayed"></div>
+      <div class="field"><label>Unit</label><input data-k="unit" placeholder="days"></div>
+      <div class="field"><label>Direction</label><select data-k="direction"><option value="LOWER_BETTER">Lower is better</option><option value="HIGHER_BETTER">Higher is better</option></select></div>
+      <div class="field"><label>Primary?</label><select data-k="is_primary"><option value="true">Yes</option><option value="false" selected>No</option></select></div>
       <div class="field"></div>
     `;
   } else if(containerId==='bandsBody'){
     html = `
       <div class="field"><label>Order</label><input data-k="sort_order" type="number" placeholder="1"></div>
-      <div class="field"><label>Label</label><input data-k="label" placeholder="L1"></div>
-      <div class="field"><label>Low</label><input data-k="range_low" placeholder="0.10"></div>
-      <div class="field"><label>High</label><input data-k="range_high" placeholder="0.20"></div>
-      <div class="field"><label>Severity</label><input data-k="severity_level" type="number" placeholder="1"></div>
-      <div class="field"><label>LD %</label><input data-k="ld_percent" placeholder="1"></div>
+      <div class="field"><label>Threshold label</label><input data-k="band_label" placeholder="L0 On-time"></div>
+      <div class="field"><label>Metric key</label><input data-k="metric_key" placeholder="days_delayed"></div>
+      <div class="field"><label>From (exclusive)</label><input data-k="range_min" placeholder="0"></div>
+      <div class="field"><label>To (inclusive)</label><input data-k="range_max" placeholder="7"></div>
+      <div class="field"><label>Severity (0-4)</label><input data-k="severity_level" type="number" min="0" max="4" placeholder="1"></div>
     `;
   } else if(containerId==='lookupBody'){
     html = `
       <div class="field"><label>Order</label><input data-k="sort_order" type="number" placeholder="1"></div>
-      <div class="field"><label>Tier label</label><input data-k="tier_label" placeholder="Tier-1"></div>
-      <div class="field"><label>Threshold</label><input data-k="threshold" placeholder="2"></div>
-      <div class="field"><label>LD %</label><input data-k="ld_percent" placeholder="0.5"></div>
-      <div class="field"><label>LD ₹</label><input data-k="ld_amount" placeholder=""></div>
+      <div class="field"><label>Tier label</label><input data-k="lookup_key" placeholder="week_1"></div>
+      <div class="field"><label>LD %</label><input data-k="lookup_value" placeholder="0.5"></div>
+      <div class="field"></div>
+      <div class="field"></div>
       <div class="field"></div>
     `;
   } else if(containerId==='paramsBody'){
@@ -673,19 +820,33 @@ function collectRows(containerId){
 }
 
 async function submitSla(){
+  const category = document.getElementById('f_category').value;
+  const formula_type = CATEGORY_TO_FORMULA[category] || 'point_accumulation';
   const payload = {
     sla_ref: document.getElementById('f_sla_ref').value.trim(),
-    name: document.getElementById('f_name').value.trim(),
+    title: document.getElementById('f_name').value.trim(),
     contract_type: document.getElementById('f_ct').value,
-    formula_type: document.getElementById('f_ft').value,
+    // formula_type stays on the wire (evaluator dispatch key) but the user
+    // never sees it directly — it's derived from the category they picked.
+    formula_type,
+    // RFP-native presentation fields. Backend has dedicated columns for these.
+    category,
+    scope_text: document.getElementById('f_scope').value.trim() || null,
+    data_source: document.getElementById('f_dataSource').value.trim() || null,
+    calculation_method: document.getElementById('f_calc').value.trim() || null,
+    reports_submitted_to: document.getElementById('f_reportsTo').value.trim() || null,
     description: document.getElementById('f_desc').value.trim() || null,
+    measurement_interval: document.getElementById('f_measInt').value,
+    reporting_interval: document.getElementById('f_repInt').value,
+    ld_computation_base: document.getElementById('f_ldBase').value,
+    effective_from: document.getElementById('f_effFrom').value,
     metrics: collectRows('metricsBody'),
-    bands: collectRows('bandsBody'),
-    lookup_rows: collectRows('lookupBody'),
+    condition_bands: collectRows('bandsBody'),
+    lookup_table: collectRows('lookupBody'),
     parameters: collectRows('paramsBody'),
-    guards: collectRows('guardsBody'),
+    guard_conditions: collectRows('guardsBody'),
   };
-  if(!payload.sla_ref || !payload.name){ toast('Missing fields', 'SLA Ref and Name are required', 'error'); return; }
+  if(!payload.sla_ref || !payload.title){ toast('Missing fields', 'SLA Number and Title are required', 'error'); return; }
   try{
     const url = editingId ? API()+'/api/v3/sla-masters/'+editingId : API()+'/api/v3/sla-masters';
     const r = await fetch(url, {
@@ -711,8 +872,10 @@ async function viewSla(id){
     if(!r.ok){ toast('Load failed', 'HTTP '+r.status, 'error'); return; }
     const body = await r.json();
     const d = body.data || body;
-    document.getElementById('viewTitle').textContent = d.name || d.sla_ref || 'SLA';
-    document.getElementById('viewSub').textContent = `${d.sla_ref||''} · ${d.contract_type||''} · ${d.formula_type||''}`;
+    const category = d.category || categoryFromFormula(d.formula_type);
+    document.getElementById('viewTitle').textContent = d.title || d.name || d.sla_ref || 'SLA';
+    document.getElementById('viewSub').textContent =
+      `${d.sla_ref||''}  ·  ${d.contract_type||''}  ·  ${category}`;
     const mappings = await loadSlaMappings(id);
     document.getElementById('viewBody').innerHTML = renderViewBody(d, mappings);
     openModal('viewModal');
@@ -728,39 +891,148 @@ async function loadSlaMappings(slaId){
   }catch(e){ return []; }
 }
 
+// Friendly label for ld_computation_base in the RFP view.
+const APPLIED_ON_LABEL = {
+  'QUARTERLY_PAYMENT': 'Net Planned Quarterly Payment (NPQP)',
+  'ANNUAL_PAYMENT':    'Annual Contract Value',
+  'FIXED_AMOUNT':      'Deliverable Cost (set per mapping)',
+};
+
+// Format the "Target — severity threshold" sub-table the way the RFP shows it.
+// Each band becomes one row: severity + plain-English threshold derived from
+// (range_min, range_max, range_unit) so users see "≥ 16 days" rather than
+// "range_min: 16, range_max: null".
+function renderTargetTable(bands, lookup){
+  if((!bands || !bands.length) && (!lookup || !lookup.length)){
+    return '<div style="color:var(--text-muted);font-style:italic;font-size:12px;">No target table defined.</div>';
+  }
+  let rows = '';
+  if(bands && bands.length){
+    rows += bands.slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).map(b => {
+      const unit = b.range_unit || '';
+      const lo = b.range_min, hi = b.range_max;
+      let threshold;
+      if(lo==null && hi!=null) threshold = `≤ ${hi} ${unit}`.trim();
+      else if(lo!=null && hi==null) threshold = `> ${lo} ${unit}`.trim();
+      else if(lo!=null && hi!=null) threshold = `${lo}${unit?' '+unit:''} < x ≤ ${hi}${unit?' '+unit:''}`;
+      else threshold = '—';
+      return `<tr>
+        <td><strong>Severity ${esc(b.severity_level ?? '—')}</strong></td>
+        <td>${esc(threshold)}</td>
+        <td>${esc(b.band_label || '')}</td>
+        <td>${esc(b.metric_key || '')}</td>
+      </tr>`;
+    }).join('');
+  }
+  if(lookup && lookup.length){
+    rows += lookup.slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).map(l => `
+      <tr>
+        <td><strong>Tier ${esc(l.sort_order ?? '—')}</strong></td>
+        <td>${esc(l.lookup_value ?? l.threshold ?? '')}%</td>
+        <td>${esc(l.lookup_key || l.tier_label || '')}</td>
+        <td>linear escalation</td>
+      </tr>
+    `).join('');
+  }
+  return `<div class="table-wrap"><table class="table" style="min-width:auto;">
+    <thead><tr>
+      <th style="width:120px;">Severity</th>
+      <th>Threshold</th>
+      <th>Label</th>
+      <th>Measure</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+function rfpRow(label, value, mono){
+  const v = (value == null || value === '') ? '<span style="color:var(--text-muted);font-style:italic;">—</span>' : esc(value);
+  const valStyle = mono ? 'font-family:Consolas,Menlo,monospace;font-size:12px;' : '';
+  return `<tr>
+    <th style="width:200px;background:#f1f6fd;padding:10px 12px;text-align:left;vertical-align:top;color:var(--navy);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">${esc(label)}</th>
+    <td style="padding:10px 12px;vertical-align:top;line-height:1.5;${valStyle}">${v}</td>
+  </tr>`;
+}
+
 function renderViewBody(d, mappings){
-  const part = (title, rows, cols) => `
-    <div class="subsection"><div class="subsection-title">${title}</div>
-    ${(rows && rows.length) ? `<div class="table-wrap"><table class="table"><thead><tr>${cols.map(c=>`<th>${c.h}</th>`).join('')}</tr></thead>
-      <tbody>${rows.map(r=>`<tr>${cols.map(c=>`<td>${esc(r[c.k] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
-      : `<div style="color:var(--text-muted);font-style:italic;font-size:12px;">None defined.</div>`}
-    </div>`;
-  let html = `
-    <div class="grid">
-      <div class="field"><label>SLA Ref</label><div>${esc(d.sla_ref||'-')}</div></div>
-      <div class="field"><label>Name</label><div>${esc(d.name||'-')}</div></div>
-      <div class="field"><label>Contract</label><div>${esc(d.contract_type||'-')}</div></div>
-      <div class="field"><label>Formula</label><div>${esc(d.formula_type||'-')}</div></div>
-      <div class="field full"><label>Description</label><div>${esc(d.description||'-')}</div></div>
+  const category = d.category || categoryFromFormula(d.formula_type);
+  const appliedOn = APPLIED_ON_LABEL[d.ld_computation_base] || d.ld_computation_base || '—';
+
+  // RFP-style table (single 2-column table mirroring the contract document).
+  const rfp = `
+    <div class="table-wrap" style="margin-top:8px;">
+      <table class="table" style="min-width:auto;border-collapse:collapse;">
+        <tbody>
+          ${rfpRow('SLA Number', d.sla_ref, true)}
+          ${rfpRow('Title', d.title || d.name)}
+          ${rfpRow('Category', category)}
+          ${rfpRow('Contract Type', d.contract_type)}
+          ${rfpRow('Definition of SLA', d.description)}
+          ${rfpRow('Scope of SLA', d.scope_text)}
+          ${rfpRow('Source of Data', d.data_source)}
+          ${rfpRow('SLA Calculation', d.calculation_method)}
+          <tr>
+            <th style="background:#f1f6fd;padding:10px 12px;text-align:left;vertical-align:top;color:var(--navy);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Target (severity thresholds)</th>
+            <td style="padding:10px 12px;">${renderTargetTable(d.condition_bands, d.lookup_table)}</td>
+          </tr>
+          ${rfpRow('Measurement Interval', d.measurement_interval)}
+          ${rfpRow('Reporting Interval', d.reporting_interval)}
+          ${rfpRow('Applied On', appliedOn)}
+          ${rfpRow('Reports submitted to', d.reports_submitted_to)}
+          ${rfpRow('Active From', (d.effective_from||'').slice(0,10))}
+          ${rfpRow('Active Until', d.effective_until ? d.effective_until.slice(0,10) : null)}
+          ${rfpRow('Status', d.status)}
+        </tbody>
+      </table>
     </div>
   `;
-  html += part('Metrics', d.metrics, [{h:'Key',k:'metric_key'},{h:'Label',k:'metric_label'},{h:'Unit',k:'unit'},{h:'Shape',k:'observation_shape'},{h:'Primary',k:'is_primary'}]);
-  html += part('Severity Bands', d.bands, [{h:'Order',k:'sort_order'},{h:'Label',k:'label'},{h:'Low',k:'range_low'},{h:'High',k:'range_high'},{h:'Severity',k:'severity_level'},{h:'LD %',k:'ld_percent'}]);
-  html += part('Lookup Tiers', d.lookup_rows, [{h:'Order',k:'sort_order'},{h:'Label',k:'tier_label'},{h:'Threshold',k:'threshold'},{h:'LD %',k:'ld_percent'},{h:'LD ₹',k:'ld_amount'}]);
-  html += part('Parameters', d.parameters, [{h:'Key',k:'param_key'},{h:'Value',k:'param_value'},{h:'Type',k:'param_type'}]);
-  html += part('Guards', d.guards, [{h:'Key',k:'guard_key'},{h:'Op',k:'guard_op'},{h:'Threshold',k:'threshold'},{h:'Message',k:'message'}]);
-  // Mapped activities / projects
-  html += `<div class="subsection"><div class="subsection-head"><div class="subsection-title">Mapped Activities & Projects</div></div>
-    ${mappings.length===0 ? '<div style="color:var(--text-muted);font-style:italic;font-size:12px;">Not mapped to any activity yet.</div>' :
-    `<div class="table-wrap"><table class="table"><thead><tr>
-      <th>Activity ID</th><th>Project</th><th>Status</th><th>Effective From</th><th>Effective Until</th><th>Action</th>
-    </tr></thead><tbody>${mappings.map(m=>`
-      <tr><td>${esc(m.activity_id||'-')}</td><td>${esc(m.project_id||m.project_name||'—')}</td>
-      <td><span class="badge ${m.status==='ACTIVE'?'green':(m.status==='RETIRED'?'red':'orange')}">${esc(m.status||'-')}</span></td>
-      <td>${esc((m.effective_from||'').slice(0,10))}</td><td>${esc((m.effective_until||'').slice(0,10))}</td>
-      <td><a class="link" href="Activity SLAs.html?activity_id=${encodeURIComponent(m.activity_id||'')}">Open Activity →</a></td></tr>`).join('')}</tbody></table></div>`}
-  </div>`;
-  return html;
+
+  // Mapped activities — list of where this SLA template is actively in use.
+  const mappingsBlock = `
+    <div class="subsection" style="margin-top:18px;">
+      <div class="subsection-title">Mapped Activities &amp; Projects</div>
+      ${mappings.length===0
+        ? '<div style="color:var(--text-muted);font-style:italic;font-size:12px;">Not yet attached to any activity. Use the Activity SLAs page to map this template.</div>'
+        : `<div class="table-wrap"><table class="table"><thead><tr>
+            <th>Activity ID</th><th>Project</th><th>Status</th><th>Effective From</th><th>Effective Until</th><th>Action</th>
+          </tr></thead><tbody>${mappings.map(m => `
+            <tr>
+              <td style="font-family:Consolas,Menlo,monospace;font-size:12px;">${esc(m.activity_id||'-')}</td>
+              <td>${esc(m.project_id||m.project_name||'—')}</td>
+              <td><span class="badge ${m.status==='ACTIVE'?'green':(m.status==='RETIRED'?'red':'orange')}">${esc(m.status||'-')}</span></td>
+              <td>${esc((m.effective_from||'').slice(0,10))}</td>
+              <td>${esc((m.effective_until||'').slice(0,10))}</td>
+              <td><a class="link" href="Activity SLAs.html?activity_id=${encodeURIComponent(m.activity_id||'')}">Open Activity →</a></td>
+            </tr>`).join('')}
+          </tbody></table></div>`}
+    </div>
+  `;
+
+  // Advanced (parameters + guards) — collapsed by default, only for power users.
+  const params = d.parameters || [];
+  const guards = d.guard_conditions || d.guards || [];
+  const metrics = d.metrics || [];
+  const advancedBlock = (params.length || guards.length || metrics.length > 1)
+    ? `<details style="margin-top:14px;">
+        <summary style="cursor:pointer;font-weight:700;color:var(--navy);padding:8px 0;">Advanced — measurements, parameters, guards (${metrics.length} measurement${metrics.length===1?'':'s'}, ${params.length} param${params.length===1?'':'s'}, ${guards.length} guard${guards.length===1?'':'s'})</summary>
+        <div style="margin-top:8px;">
+          ${metrics.length ? `<div style="font-weight:700;color:var(--navy);font-size:12px;margin-top:6px;">Measurements</div>
+            <div class="table-wrap"><table class="table" style="min-width:auto;"><thead><tr><th>Internal key</th><th>Display name</th><th>Unit</th><th>Direction</th><th>Primary</th></tr></thead><tbody>
+            ${metrics.map(m => `<tr><td>${esc(m.metric_key)}</td><td>${esc(m.display_name)}</td><td>${esc(m.unit)}</td><td>${esc(m.direction)}</td><td>${m.is_primary ? '✓' : ''}</td></tr>`).join('')}
+            </tbody></table></div>` : ''}
+          ${params.length ? `<div style="font-weight:700;color:var(--navy);font-size:12px;margin-top:10px;">Parameters</div>
+            <div class="table-wrap"><table class="table" style="min-width:auto;"><thead><tr><th>Key</th><th>Value</th></tr></thead><tbody>
+            ${params.map(p => `<tr><td>${esc(p.param_key)}</td><td>${esc(p.param_value)}</td></tr>`).join('')}
+            </tbody></table></div>` : ''}
+          ${guards.length ? `<div style="font-weight:700;color:var(--navy);font-size:12px;margin-top:10px;">Guards</div>
+            <div class="table-wrap"><table class="table" style="min-width:auto;"><thead><tr><th>Metric</th><th>Operator</th><th>Threshold</th><th>Action</th><th>Description</th></tr></thead><tbody>
+            ${guards.map(g => `<tr><td>${esc(g.metric_key)}</td><td>${esc(g.operator)}</td><td>${esc(g.threshold_value)}</td><td>${esc(g.action)}</td><td>${esc(g.action_description||'')}</td></tr>`).join('')}
+            </tbody></table></div>` : ''}
+        </div>
+      </details>`
+    : '';
+
+  return rfp + mappingsBlock + advancedBlock;
 }
 
 /* ====== Edit ====== */
@@ -774,17 +1046,37 @@ async function editSla(id){
     document.getElementById('onboardTitle').textContent = 'Edit SLA — ' + (d.sla_ref||'');
     document.getElementById('submitSlaBtn').textContent = 'Save Changes';
     document.getElementById('f_sla_ref').value = d.sla_ref||'';
-    document.getElementById('f_name').value = d.name||'';
-    document.getElementById('f_ct').value = d.contract_type||'MSAP';
-    document.getElementById('f_ft').value = d.formula_type||'band_accumulation';
+    document.getElementById('f_name').value = d.title || d.name || '';
+    document.getElementById('f_ct').value = d.contract_type||'PMU';
+    // Pick the category that maps to this SLA's formula_type. If the row
+    // already has a category persisted, prefer that.
+    let category = d.category;
+    if(!category){
+      const ft = d.formula_type || 'point_accumulation';
+      category = Object.entries(CATEGORY_TO_FORMULA).find(([_k,v]) => v===ft)?.[0] || 'Resource Management';
+    }
+    document.getElementById('f_category').value = category;
     document.getElementById('f_desc').value = d.description||'';
+    document.getElementById('f_scope').value = d.scope_text||'';
+    document.getElementById('f_dataSource').value = d.data_source||'';
+    document.getElementById('f_calc').value = d.calculation_method||'';
+    document.getElementById('f_reportsTo').value = d.reports_submitted_to||'';
+    document.getElementById('f_measInt').value = d.measurement_interval || 'MONTHLY';
+    document.getElementById('f_repInt').value = d.reporting_interval || 'QUARTERLY';
+    document.getElementById('f_ldBase').value = d.ld_computation_base || 'QUARTERLY_PAYMENT';
+    document.getElementById('f_effFrom').value = (d.effective_from||'2024-04-01').slice(0,10);
     ['metricsBody','bandsBody','lookupBody','paramsBody','guardsBody'].forEach(id => document.getElementById(id).innerHTML='');
     (d.metrics||[]).forEach(m => fillRow('metricsBody', metricRowTemplate, m));
-    (d.bands||[]).forEach(b => fillRow('bandsBody', bandRowTemplate, b));
-    (d.lookup_rows||[]).forEach(l => fillRow('lookupBody', lookupRowTemplate, l));
+    (d.condition_bands||d.bands||[]).forEach(b => fillRow('bandsBody', bandRowTemplate, b));
+    (d.lookup_table||d.lookup_rows||[]).forEach(l => fillRow('lookupBody', lookupRowTemplate, l));
     (d.parameters||[]).forEach(p => fillRow('paramsBody', paramRowTemplate, p));
-    (d.guards||[]).forEach(g => fillRow('guardsBody', guardRowTemplate, g));
-    toggleFormulaSections();
+    (d.guard_conditions||d.guards||[]).forEach(g => fillRow('guardsBody', guardRowTemplate, g));
+    // Auto-open Advanced if any parameter or guard exists, so power users see them
+    if((d.parameters||[]).length || (d.guard_conditions||d.guards||[]).length){
+      document.getElementById('advancedBody').style.display = 'block';
+      document.getElementById('advArrow').textContent = '▼';
+    }
+    onCategoryChange();
     openModal('onboardModal');
   }catch(e){ toast('Load failed', e.message, 'error'); }
 }
@@ -823,6 +1115,8 @@ function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
 /* Init */
+// Boot: fetch the SLA category catalog (typed master) before the rest.
+loadSlaCategories();
 checkHealth();
 </script>
 </body>

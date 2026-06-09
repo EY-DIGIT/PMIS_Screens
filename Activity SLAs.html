@@ -453,8 +453,8 @@ function renderMappings(){
     const sevHtml = (sev===0||sev>0) ? `<span class="sev-pill s${sev}">L${sev}</span>` : '<span class="badge grey">—</span>';
     return `<tr>
       <td><strong>${esc(sla.sla_ref || m.sla_ref || '-')}</strong></td>
-      <td>${esc(sla.name || '-')}</td>
-      <td><span class="badge purple">${esc(sla.formula_type || m.formula_type || '-')}</span></td>
+      <td>${esc(sla.title || sla.name || '-')}</td>
+      <td><span class="badge purple">${esc(sla.category || sla.formula_type || m.formula_type || '-')}</span></td>
       <td>${esc(fmtDate(m.effective_from))} → ${esc(fmtDate(m.effective_until))}</td>
       <td><span class="badge ${m.status==='ACTIVE'?'green':(m.status==='RETIRED'?'red':'orange')}">${esc(m.status||'-')}</span></td>
       <td>${sevHtml}</td>
@@ -474,7 +474,10 @@ function openAddSlaModal(){
   if(!ACTID()){ toast('Activity ID required', 'Load an activity first.', 'error'); return; }
   const sel = document.getElementById('m_sla');
   sel.innerHTML = '<option value="">— Select an SLA —</option>' +
-    slaCatalog.map(s => `<option value="${s.id}">${esc(s.sla_ref||'?')} — ${esc(s.name||'')} (${esc(s.contract_type||'')}/${esc(s.formula_type||'')})</option>`).join('');
+    slaCatalog.map(s => {
+      const catLabel = s.category || s.formula_type || '';
+      return `<option value="${s.id}">${esc(s.sla_ref||'?')} — ${esc(s.title||s.name||'')} (${esc(s.contract_type||'')}/${esc(catLabel)})</option>`;
+    }).join('');
   // Prefill from activity if loaded
   const today = new Date().toISOString().slice(0,10);
   document.getElementById('m_eff_from').value = (activity?.startDate || activity?.start_date || today).slice(0,10);
@@ -551,8 +554,9 @@ function openEvaluate(mappingId){
   const m = mappings.find(x => x.id === mappingId);
   if(!m){ toast('Mapping not found', '', 'error'); return; }
   const sla = slaCatalog.find(s => s.id === m.sla_id) || {};
+  const catLabel = sla.category || sla.formula_type || '';
   document.getElementById('evalTitle').textContent = 'Evaluate — ' + (sla.sla_ref || '');
-  document.getElementById('evalSub').textContent = `${sla.name||''} · ${sla.formula_type||''}`;
+  document.getElementById('evalSub').textContent = `${sla.title || sla.name || ''} · ${catLabel}`;
   document.getElementById('e_start').value = (activity?.startDate || activity?.start_date || '').slice(0,10);
   document.getElementById('e_end').value = (activity?.endDate || activity?.end_date || '').slice(0,10);
   document.getElementById('e_ld_base').value = '';
@@ -565,25 +569,27 @@ function buildObservationForm(sla){
   const ft = sla.formula_type || 'band_accumulation';
   const primary = (sla.metrics||[]).find(m => m.is_primary) || (sla.metrics||[])[0] || {metric_key:'value'};
   const mkey = primary.metric_key || 'value';
+  const pname = primary.display_name || primary.metric_label || mkey;
+  const punit = primary.unit ? ` (${primary.unit})` : '';
   const area = document.getElementById('obsArea');
-  document.getElementById('obsTitle').textContent = `Observations (formula: ${ft}, primary metric: ${mkey})`;
+  document.getElementById('obsTitle').textContent = `Measured Values — what is the value of "${pname}" for the reporting period?`;
   if(ft === 'band_accumulation'){
     area.innerHTML = `
       <div class="grid">
-        <div class="field"><label>Period type</label>
+        <div class="field"><label>How will you enter the values?</label>
           <select id="obs_period_kind" onchange="toggleDailyVsBand()">
-            <option value="DAILY_VALUES">Daily values</option>
-            <option value="BAND_COUNTS">Band counts</option>
+            <option value="DAILY_VALUES">As daily readings</option>
+            <option value="BAND_COUNTS">As pre-counted days per band</option>
           </select>
         </div>
       </div>
       <div id="dailyBox" class="subsection">
-        <div class="subsection-title">Daily values (comma or newline separated)</div>
+        <div class="subsection-title">Daily readings of ${esc(pname)}${esc(punit)} (comma or newline separated)</div>
         <textarea id="obs_daily" placeholder="0.05, 0.06, 0.40, 0.42, ..." style="height:90px;"></textarea>
         <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Tip: ~90 entries = a quarter (one per day).</div>
       </div>
       <div id="bandBox" class="subsection hidden">
-        <div class="subsection-title">Band counts</div>
+        <div class="subsection-title">Days spent in each band</div>
         <div class="grid-3">
           <div class="field"><label>L1 days</label><input id="obs_b1" type="number" value="0"></div>
           <div class="field"><label>L2 days</label><input id="obs_b2" type="number" value="0"></div>
@@ -592,12 +598,12 @@ function buildObservationForm(sla){
       </div>`;
   } else if(ft === 'point_accumulation'){
     area.innerHTML = `
-      <div class="grid"><div class="field"><label>Observation value</label><input id="obs_single" placeholder="85.0"></div></div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Single value gets bucketed into a severity band by the evaluator.</div>`;
+      <div class="grid"><div class="field"><label>${esc(pname)}${esc(punit)} for this period</label><input id="obs_single" placeholder="85.0"></div></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">This value is matched against the SLA's severity threshold table to determine the severity level.</div>`;
   } else if(ft === 'fixed_escalation'){
     area.innerHTML = `
-      <div class="grid"><div class="field"><label>Delay (days)</label><input id="obs_single" type="number" placeholder="2"></div></div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Evaluator picks the lookup tier where sort_order ≥ delay.</div>`;
+      <div class="grid"><div class="field"><label>${esc(pname)}${esc(punit)}</label><input id="obs_single" type="number" placeholder="2"></div></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Used to pick a tier from the linear escalation table.</div>`;
   } else if(ft === 'wac'){
     area.innerHTML = `
       <div class="subsection-title" style="margin-top:0;">WAC Breakdown</div>
