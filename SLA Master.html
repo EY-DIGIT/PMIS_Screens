@@ -357,52 +357,105 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       </div>
     </div>
 
-    <!-- 5. What is measured -->
+    <!-- 5. What is measured (RFP-friendly, technical bits auto-derived) -->
     <div class="subsection">
       <div class="subsection-head">
         <div class="subsection-title">What is measured</div>
-        <button class="btn small-btn" onclick="addRow('metricsBody', metricRowTemplate)">+ Add measurement</button>
       </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Most SLAs have one measurement (e.g. <em>days delayed</em>, <em>resource business days</em>). Compound SLAs (RFP §5.28.3.e) can have two.</div>
-      <div id="metricsBody"></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">
+        The value the system reads at evaluate time. Examples from PMU RFP: <em>"Days delayed"</em>, <em>"Resource business days"</em>, <em>"Failure count"</em>.
+      </div>
+      <div class="grid">
+        <div class="field"><label>What is being measured? <span class="required">*</span></label>
+          <input id="rf_measure_name" placeholder="e.g. Days delayed">
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Plain English — same wording as the RFP would use.</div>
+        </div>
+        <div class="field"><label>Unit</label>
+          <input id="rf_measure_unit" placeholder="e.g. days, weeks, %, count">
+        </div>
+        <div class="field"><label>Target / threshold (optional)</label>
+          <input id="rf_measure_target" placeholder="e.g. 0">
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Reference number from the RFP; shown for context only.</div>
+        </div>
+      </div>
+      <details style="margin-top:8px;">
+        <summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--navy);">+ Add a second measurement (only for compound SLAs like PMU-SLA007)</summary>
+        <div class="grid" style="margin-top:8px;">
+          <div class="field"><label>Second measurement name</label>
+            <input id="rf_measure2_name" placeholder="e.g. Hours logged">
+          </div>
+          <div class="field"><label>Unit</label>
+            <input id="rf_measure2_unit" placeholder="e.g. hours">
+          </div>
+          <div class="field"><label>Target / threshold (optional)</label>
+            <input id="rf_measure2_target" placeholder="e.g. 144">
+          </div>
+        </div>
+      </details>
     </div>
 
-    <!-- 6. Target — severity thresholds (covers bands) -->
+    <!-- 6. Target — severity threshold table (RFP-style, one row per severity) -->
     <div class="subsection" id="secBands">
       <div class="subsection-head">
         <div class="subsection-title">Target — severity threshold table</div>
-        <button class="btn small-btn" onclick="addRow('bandsBody', bandRowTemplate)">+ Add severity row</button>
+        <button class="btn small-btn cancel" onclick="addRfpTargetRow()">+ Add row</button>
       </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">This is the same "Target" sub-table the RFP shows for each SLA — one row per severity level with its threshold range.</div>
-      <div id="bandsBody"></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
+        Copy this directly from the RFP's <strong>"Target"</strong> sub-table. Each row maps one severity level to the threshold for the measurement above.
+      </div>
+      <div id="rfpTargetHeader" style="display:grid;grid-template-columns:1fr 2fr 1fr 1fr auto;gap:8px;align-items:center;padding:6px 8px;background:#f1f6fd;border-radius:6px;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;">
+        <span>Severity</span>
+        <span>Threshold (as written in RFP)</span>
+        <span>From <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(exclusive)</span></span>
+        <span>To <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(inclusive)</span></span>
+        <span></span>
+      </div>
+      <div id="rfpTargetBody"></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">
+        Leave "From" or "To" blank for unbounded sides (e.g. <em>"&le; 7 days"</em> = leave From blank).
+      </div>
     </div>
 
-    <!-- 7. Target — linear escalation tiers (covers lookup) -->
+    <!-- 7. Linear LD escalation (Deliverable / Query categories only — concise summary form) -->
     <div class="subsection" id="secLookup">
       <div class="subsection-head">
-        <div class="subsection-title">Target — linear escalation tiers</div>
-        <button class="btn small-btn" onclick="addRow('lookupBody', lookupRowTemplate)">+ Add tier</button>
+        <div class="subsection-title">Linear LD escalation</div>
       </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">For deliverable / query SLAs that escalate LD% per unit time instead of by severity.</div>
-      <div id="lookupBody"></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
+        For deliverable / query SLAs the RFP states LD% as a per-unit rate (e.g. <em>"0.5% per week"</em>, <em>"0.1% per day after 3 working days"</em>). Just fill those three numbers — the system expands them behind the scenes.
+      </div>
+      <div class="grid-3">
+        <div class="field"><label>Rate per unit (%) <span class="required">*</span></label>
+          <input id="rf_lin_rate" type="number" step="0.01" placeholder="0.5">
+        </div>
+        <div class="field"><label>Unit</label>
+          <select id="rf_lin_unit"><option value="week">week</option><option value="day">day</option><option value="month">month</option></select>
+        </div>
+        <div class="field"><label>Grace period (units before LD starts)</label>
+          <input id="rf_lin_grace" type="number" min="0" value="0" placeholder="0">
+        </div>
+      </div>
     </div>
 
-    <!-- Advanced (collapsible) -->
-    <div class="subsection">
+    <!-- Advanced (collapsible) — only visible in edit mode, hidden for new SLAs -->
+    <div class="subsection" id="advancedSection" style="display:none;">
       <div class="subsection-head" style="cursor:pointer;" onclick="toggleAdvanced()">
-        <div class="subsection-title"><span id="advArrow">▶</span> Advanced (rarely needed)</div>
-        <div style="font-size:11px;color:var(--text-muted);">Internal parameters and guard conditions used by specific calculation engines.</div>
+        <div class="subsection-title"><span id="advArrow">▶</span> Advanced (editing existing SLA)</div>
+        <div style="font-size:11px;color:var(--text-muted);">Internal parameters and guard conditions on this SLA. New SLAs onboard without these.</div>
       </div>
       <div id="advancedBody" style="display:none;">
         <div style="margin-top:10px;font-weight:700;color:var(--navy);font-size:12px;">Parameters</div>
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Key/value knobs the engine reads (e.g. <code>grace_days</code>, <code>variance_step_percent</code>).</div>
-        <div style="text-align:right;margin-bottom:6px;"><button class="btn small-btn cancel" onclick="addRow('paramsBody', paramRowTemplate)">+ Add parameter</button></div>
         <div id="paramsBody"></div>
 
         <div style="margin-top:14px;font-weight:700;color:var(--navy);font-size:12px;">Guards</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Skip / exclude conditions (e.g. "exclude period if observation count &lt; 10").</div>
-        <div style="text-align:right;margin-bottom:6px;"><button class="btn small-btn cancel" onclick="addRow('guardsBody', guardRowTemplate)">+ Add guard</button></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Skip / exclude conditions.</div>
         <div id="guardsBody"></div>
+
+        <!-- Original metrics + bands + lookup data kept around in hidden bodies for edit-mode round-trip -->
+        <div id="metricsBody" style="display:none;"></div>
+        <div id="bandsBody" style="display:none;"></div>
+        <div id="lookupBody" style="display:none;"></div>
       </div>
     </div>
 
@@ -709,6 +762,31 @@ async function loadSlaCategories(){
   }
 }
 
+// Category → starter rows for the "Target — severity threshold table".
+// These mirror the RFP exactly so the user only types the threshold text and
+// numeric bounds. Order matches the RFP tables in §5.28.
+const CATEGORY_TEMPLATES = {
+  'Recommendation Quality': [
+    {severity: 0, threshold_label: 'No occurrence',     from_value: null, to_value: 0},
+    {severity: 2, threshold_label: '1 occurrence',      from_value: 0,    to_value: 1},
+    {severity: 3, threshold_label: '2 occurrences',     from_value: 1,    to_value: 2},
+    {severity: 4, threshold_label: 'More than 2',       from_value: 2,    to_value: null},
+  ],
+  'Resource Management': [
+    {severity: 0, threshold_label: 'Within target',     from_value: null, to_value: 21},
+    {severity: 2, threshold_label: 'Just past target',  from_value: 21,   to_value: 28},
+    {severity: 4, threshold_label: 'Significantly past',from_value: 28,   to_value: null},
+  ],
+  'Governance Tool': [
+    {severity: 0, threshold_label: 'On time (≤ T)',     from_value: null, to_value: 0},
+    {severity: 1, threshold_label: 'T to T+7 days',     from_value: 0,    to_value: 7},
+    {severity: 2, threshold_label: 'T+8 to T+14 days',  from_value: 7,    to_value: 14},
+    {severity: 3, threshold_label: 'T+15 to T+21 days', from_value: 14,   to_value: 21},
+    {severity: 4, threshold_label: 'More than T+21',    from_value: 21,   to_value: null},
+  ],
+  // Deliverable Submission + Query Resolution use linear escalation, no severity rows.
+};
+
 function openOnboardModal(){
   editingId = null;
   document.getElementById('onboardTitle').textContent = 'Onboard New SLA';
@@ -717,29 +795,89 @@ function openOnboardModal(){
     const el = document.getElementById(id); if(el) el.value='';
   });
   document.getElementById('f_ct').value = 'PMU';
-  document.getElementById('f_category').value = 'Resource Management';
+  if(document.getElementById('f_category').options.length){
+    document.getElementById('f_category').value = 'Resource Management';
+  }
   document.getElementById('f_measInt').value = 'MONTHLY';
   document.getElementById('f_repInt').value = 'QUARTERLY';
   document.getElementById('f_ldBase').value = 'QUARTERLY_PAYMENT';
   document.getElementById('f_effFrom').value = '2024-04-01';
-  ['metricsBody','bandsBody','lookupBody','paramsBody','guardsBody'].forEach(id => document.getElementById(id).innerHTML='');
-  addRow('metricsBody', metricRowTemplate);
-  addRow('bandsBody', bandRowTemplate);
-  // Advanced collapsed by default
+  // Reset the RFP form fields.
+  ['rf_measure_name','rf_measure_unit','rf_measure_target',
+   'rf_measure2_name','rf_measure2_unit','rf_measure2_target',
+   'rf_lin_rate','rf_lin_grace'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('rf_lin_unit').value = 'week';
+  document.getElementById('rf_lin_grace').value = '0';
+  document.getElementById('rfpTargetBody').innerHTML = '';
+  // Edit-only sub-tables (hidden from new SLA flow).
+  ['metricsBody','bandsBody','lookupBody','paramsBody','guardsBody'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.innerHTML = '';
+  });
+  document.getElementById('advancedSection').style.display = 'none';
   document.getElementById('advancedBody').style.display = 'none';
-  document.getElementById('advArrow').textContent = '▶';
+  if(document.getElementById('advArrow')) document.getElementById('advArrow').textContent = '▶';
   onCategoryChange();
   openModal('onboardModal');
 }
 
 function onCategoryChange(){
   // The user picks a Category; we derive the engine (formula_type) behind the
-  // scenes and show / hide the Target sections accordingly.
+  // scenes, swap which Target section is shown, and pre-fill severity rows
+  // from a category-specific template so the user starts from a real example
+  // instead of a blank table.
   const category = document.getElementById('f_category').value;
   const ft = CATEGORY_TO_FORMULA[category] || 'point_accumulation';
   document.getElementById('f_categoryHint').textContent = ft;
-  document.getElementById('secBands').style.display   = (ft==='band_accumulation' || ft==='point_accumulation' || ft==='wac') ? '' : 'none';
-  document.getElementById('secLookup').style.display  = (ft==='fixed_escalation' || ft==='point_accumulation') ? '' : 'none';
+  const isLinear = (category === 'Deliverable Submission' || category === 'Query Resolution');
+  document.getElementById('secBands').style.display  = isLinear ? 'none' : '';
+  document.getElementById('secLookup').style.display = isLinear ? '' : 'none';
+  // Auto-pick "Applied On" the way the RFP does: deliverable cost for
+  // Deliverable Submission, NPQP for everything else.
+  document.getElementById('f_ldBase').value =
+    (category === 'Deliverable Submission') ? 'FIXED_AMOUNT' : 'QUARTERLY_PAYMENT';
+
+  // Only auto-populate template rows for NEW SLAs (editingId === null) and
+  // only when the user hasn't manually edited the table yet.
+  if(editingId !== null) return;
+  const body = document.getElementById('rfpTargetBody');
+  const hasUserContent = Array.from(body.querySelectorAll('input')).some(i => i.value.trim() !== '');
+  if(hasUserContent && !confirm('Replace the current severity rows with the "' + category + '" template?')) return;
+  body.innerHTML = '';
+  if(!isLinear){
+    (CATEGORY_TEMPLATES[category] || []).forEach(addRfpTargetRow);
+  }
+}
+
+/* ─── Target row builder for the simple RFP-shape form */
+function addRfpTargetRow(prefill){
+  prefill = prefill || {severity: 0, threshold_label: '', from_value: null, to_value: null};
+  const body = document.getElementById('rfpTargetBody');
+  const row = document.createElement('div');
+  row.className = 'rfp-target-row';
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 2fr 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:6px;';
+  row.innerHTML = `
+    <select data-k="severity">
+      ${[0,1,2,3,4].map(s => `<option value="${s}" ${prefill.severity===s?'selected':''}>Severity ${s}</option>`).join('')}
+    </select>
+    <input data-k="threshold_label" placeholder="e.g. ≤ 21 days" value="${esc(prefill.threshold_label||'')}">
+    <input data-k="from_value" type="number" step="any" placeholder="—" value="${prefill.from_value==null?'':prefill.from_value}">
+    <input data-k="to_value"   type="number" step="any" placeholder="—" value="${prefill.to_value==null?'':prefill.to_value}">
+    <button type="button" class="btn small-btn delete-btn" title="Remove this row" onclick="this.parentElement.remove()">✕</button>
+  `;
+  body.appendChild(row);
+}
+
+function collectRfpTargetRows(){
+  return Array.from(document.querySelectorAll('#rfpTargetBody .rfp-target-row')).map(r => {
+    const obj = {};
+    r.querySelectorAll('[data-k]').forEach(el => {
+      const v = el.value.trim();
+      if(el.dataset.k === 'severity') obj.severity = Number(v);
+      else if(el.dataset.k === 'threshold_label') obj.threshold_label = v || null;
+      else obj[el.dataset.k] = v === '' ? null : Number(v);
+    });
+    return obj;
+  });
 }
 
 function toggleAdvanced(){
@@ -821,32 +959,121 @@ function collectRows(containerId){
 
 async function submitSla(){
   const category = document.getElementById('f_category').value;
+  // Use the new RFP-shape endpoint for fresh SLAs (the friendly form),
+  // and the existing PATCH endpoint for edits (which expects the full schema).
+  if(editingId){
+    return submitSlaEdit();
+  }
+  // Build the RFP-shape payload — backend handles all technical translation.
+  const sla_ref = document.getElementById('f_sla_ref').value.trim();
+  const title = document.getElementById('f_name').value.trim();
+  if(!sla_ref || !title){ toast('Missing fields', 'SLA Number and Title are required', 'error'); return; }
+  // Look up the master category record so we can send its code (the API
+  // takes a code, not a display name — display_name is what the user sees).
+  const catRec = (CATEGORIES || []).find(c => c.display_name === category) || {code: category};
+  const isLinear = (category === 'Deliverable Submission' || category === 'Query Resolution');
+  const measureName = document.getElementById('rf_measure_name').value.trim();
+  const measureUnit = document.getElementById('rf_measure_unit').value.trim();
+  const measureTarget = document.getElementById('rf_measure_target').value.trim();
+  if(!measureName){ toast('Missing fields', '"What is measured" is required', 'error'); return; }
+  const measurement = {
+    display_name: measureName,
+    unit: measureUnit,
+  };
+  if(measureTarget) measurement.target_value = measureTarget;
+  const secondaryName = document.getElementById('rf_measure2_name').value.trim();
+  let secondary = null;
+  if(secondaryName){
+    const u = document.getElementById('rf_measure2_unit').value.trim();
+    const t = document.getElementById('rf_measure2_target').value.trim();
+    secondary = {display_name: secondaryName, unit: u};
+    if(t) secondary.target_value = t;
+  }
+  const payload = {
+    sla_ref,
+    title,
+    contract_type: document.getElementById('f_ct').value,
+    category_code: catRec.code,
+    definition: document.getElementById('f_desc').value.trim() || null,
+    scope: document.getElementById('f_scope').value.trim() || null,
+    data_source: document.getElementById('f_dataSource').value.trim() || null,
+    calculation: document.getElementById('f_calc').value.trim() || null,
+    reports_submitted_to: document.getElementById('f_reportsTo').value.trim() || null,
+    measurement_interval: document.getElementById('f_measInt').value,
+    reporting_interval: document.getElementById('f_repInt').value,
+    applied_on: document.getElementById('f_ldBase').value,
+    effective_from: document.getElementById('f_effFrom').value,
+    measurement,
+    secondary_measurement: secondary,
+  };
+  if(isLinear){
+    const rate = document.getElementById('rf_lin_rate').value.trim();
+    if(!rate){ toast('Missing fields', 'Rate per unit is required for linear escalation', 'error'); return; }
+    payload.linear_escalation = {
+      rate_per_unit_percent: rate,
+      unit: document.getElementById('rf_lin_unit').value,
+      grace_units: Number(document.getElementById('rf_lin_grace').value || 0),
+      max_units: 20,
+    };
+    payload.target_rows = [];
+  } else {
+    payload.target_rows = collectRfpTargetRows().filter(r => r.threshold_label || r.from_value != null || r.to_value != null);
+    if(!payload.target_rows.length){
+      toast('Missing fields', 'At least one severity row is required', 'error');
+      return;
+    }
+  }
+  try{
+    const r = await fetch(API() + '/api/v3/sla-masters/from-rfp', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+    if(!r.ok){
+      const t = await r.text();
+      toast('Save failed', 'HTTP '+r.status+' '+t.slice(0,200), 'error');
+      return;
+    }
+    toast('Saved', 'SLA onboarded.', 'success');
+    closeModal('onboardModal');
+    loadSlas();
+  }catch(e){ toast('Network error', e.message, 'error'); }
+}
+
+async function submitSlaEdit(){
+  // PATCH a subset of the existing-schema fields. Sub-tables are not
+  // round-tripped from the simple form on edit — power users can hit the
+  // PATCH endpoint directly when they need to change bands/lookup.
+  const category = document.getElementById('f_category').value;
   const formula_type = CATEGORY_TO_FORMULA[category] || 'point_accumulation';
   const payload = {
-    sla_ref: document.getElementById('f_sla_ref').value.trim(),
     title: document.getElementById('f_name').value.trim(),
-    contract_type: document.getElementById('f_ct').value,
-    // formula_type stays on the wire (evaluator dispatch key) but the user
-    // never sees it directly — it's derived from the category they picked.
-    formula_type,
-    // RFP-native presentation fields. Backend has dedicated columns for these.
     category,
+    description: document.getElementById('f_desc').value.trim() || null,
     scope_text: document.getElementById('f_scope').value.trim() || null,
     data_source: document.getElementById('f_dataSource').value.trim() || null,
     calculation_method: document.getElementById('f_calc').value.trim() || null,
     reports_submitted_to: document.getElementById('f_reportsTo').value.trim() || null,
-    description: document.getElementById('f_desc').value.trim() || null,
     measurement_interval: document.getElementById('f_measInt').value,
     reporting_interval: document.getElementById('f_repInt').value,
     ld_computation_base: document.getElementById('f_ldBase').value,
-    effective_from: document.getElementById('f_effFrom').value,
-    metrics: collectRows('metricsBody'),
-    condition_bands: collectRows('bandsBody'),
-    lookup_table: collectRows('lookupBody'),
-    parameters: collectRows('paramsBody'),
-    guard_conditions: collectRows('guardsBody'),
   };
-  if(!payload.sla_ref || !payload.title){ toast('Missing fields', 'SLA Number and Title are required', 'error'); return; }
+  try{
+    const r = await fetch(API() + '/api/v3/sla-masters/' + editingId, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+    if(!r.ok){
+      const t = await r.text();
+      toast('Save failed', 'HTTP '+r.status+' '+t.slice(0,200), 'error');
+      return;
+    }
+    toast('Saved', 'SLA updated.', 'success');
+    closeModal('onboardModal');
+    loadSlas();
+  }catch(e){ toast('Network error', e.message, 'error'); }
+}
   try{
     const url = editingId ? API()+'/api/v3/sla-masters/'+editingId : API()+'/api/v3/sla-masters';
     const r = await fetch(url, {
@@ -1048,8 +1275,6 @@ async function editSla(id){
     document.getElementById('f_sla_ref').value = d.sla_ref||'';
     document.getElementById('f_name').value = d.title || d.name || '';
     document.getElementById('f_ct').value = d.contract_type||'PMU';
-    // Pick the category that maps to this SLA's formula_type. If the row
-    // already has a category persisted, prefer that.
     let category = d.category;
     if(!category){
       const ft = d.formula_type || 'point_accumulation';
@@ -1065,16 +1290,46 @@ async function editSla(id){
     document.getElementById('f_repInt').value = d.reporting_interval || 'QUARTERLY';
     document.getElementById('f_ldBase').value = d.ld_computation_base || 'QUARTERLY_PAYMENT';
     document.getElementById('f_effFrom').value = (d.effective_from||'2024-04-01').slice(0,10);
+    // Populate the simple "What is measured" fields from the primary metric.
+    const metrics = d.metrics || [];
+    const primary = metrics.find(m => m.is_primary) || metrics[0] || {};
+    document.getElementById('rf_measure_name').value = primary.display_name || '';
+    document.getElementById('rf_measure_unit').value = primary.unit || '';
+    document.getElementById('rf_measure_target').value = primary.target_numeric ?? '';
+    const secondary = metrics.find(m => !m.is_primary);
+    document.getElementById('rf_measure2_name').value = secondary ? secondary.display_name : '';
+    document.getElementById('rf_measure2_unit').value = secondary ? (secondary.unit || '') : '';
+    document.getElementById('rf_measure2_target').value = secondary ? (secondary.target_numeric ?? '') : '';
+    // Populate the severity threshold table from the saved bands.
+    const body = document.getElementById('rfpTargetBody');
+    body.innerHTML = '';
+    (d.condition_bands || d.bands || [])
+      .slice()
+      .sort((a,b) => (a.sort_order||0)-(b.sort_order||0))
+      .forEach(b => addRfpTargetRow({
+        severity: b.severity_level ?? 0,
+        threshold_label: b.band_label || '',
+        from_value: b.range_min,
+        to_value: b.range_max,
+      }));
+    // Linear escalation can't be cleanly reversed from a verbose lookup, so
+    // leave those fields blank on edit. The Advanced section keeps the raw
+    // rows visible for round-trip safety on PATCH (we don't send them back —
+    // PATCH only updates basics — but they're shown for inspection).
+    document.getElementById('rf_lin_rate').value = '';
+    document.getElementById('rf_lin_grace').value = '0';
+    // Show the Advanced section with the original data the FE didn't model
+    // in the simple form (full metrics list, bands, lookup, parameters, guards).
+    document.getElementById('advancedSection').style.display = '';
     ['metricsBody','bandsBody','lookupBody','paramsBody','guardsBody'].forEach(id => document.getElementById(id).innerHTML='');
     (d.metrics||[]).forEach(m => fillRow('metricsBody', metricRowTemplate, m));
     (d.condition_bands||d.bands||[]).forEach(b => fillRow('bandsBody', bandRowTemplate, b));
     (d.lookup_table||d.lookup_rows||[]).forEach(l => fillRow('lookupBody', lookupRowTemplate, l));
     (d.parameters||[]).forEach(p => fillRow('paramsBody', paramRowTemplate, p));
     (d.guard_conditions||d.guards||[]).forEach(g => fillRow('guardsBody', guardRowTemplate, g));
-    // Auto-open Advanced if any parameter or guard exists, so power users see them
     if((d.parameters||[]).length || (d.guard_conditions||d.guards||[]).length){
       document.getElementById('advancedBody').style.display = 'block';
-      document.getElementById('advArrow').textContent = '▼';
+      if(document.getElementById('advArrow')) document.getElementById('advArrow').textContent = '▼';
     }
     onCategoryChange();
     openModal('onboardModal');
