@@ -653,8 +653,17 @@ function renderKpis(){
 
 // Used when an older SLA row lacks a stored category — derive the display
 // label from the engine key so the table still shows something meaningful.
+// Falls back to friendlier labels for unmapped engines (band_accumulation,
+// wac) so users never see the raw enum strings.
+const _LEGACY_FORMULA_LABELS = {
+  band_accumulation:  'Banded Metric',
+  wac:                'Defect WAC',
+  point_accumulation: 'Severity-Banded',
+  fixed_escalation:   'Linear LD',
+};
 function categoryFromFormula(ft){
-  return Object.entries(CATEGORY_TO_FORMULA).find(([_k,v]) => v===ft)?.[0] || ft || '—';
+  const fromMaster = Object.entries(CATEGORY_TO_FORMULA).find(([_k,v]) => v===ft)?.[0];
+  return fromMaster || _LEGACY_FORMULA_LABELS[ft] || ft || '—';
 }
 
 function renderTable(){
@@ -1126,8 +1135,20 @@ function renderTargetTable(bands, lookup){
       else if(lo!=null && hi==null) threshold = `> ${lo} ${unit}`.trim();
       else if(lo!=null && hi!=null) threshold = `${lo}${unit?' '+unit:''} < x ≤ ${hi}${unit?' '+unit:''}`;
       else threshold = '—';
+      // Bands carry EITHER severity_level (point_accumulation SLAs) OR
+      // rate_percent (band_accumulation SLAs) — never both. Show whichever
+      // is actually set so the user sees the real scoring signal, not "—".
+      let outcome;
+      if(b.severity_level != null && b.severity_level !== '')
+        outcome = `<strong>Severity ${esc(b.severity_level)}</strong>`;
+      else if(b.rate_percent != null && b.rate_percent !== '')
+        outcome = `<strong>${esc(b.rate_percent)}%</strong> <span style="color:var(--text-muted);font-size:11px;">LD/day</span>`;
+      else if(b.points_contribution != null)
+        outcome = `<strong>${esc(b.points_contribution)} pts</strong>`;
+      else
+        outcome = '<span style="color:var(--text-muted);">—</span>';
       return `<tr>
-        <td><strong>Severity ${esc(b.severity_level ?? '—')}</strong></td>
+        <td>${outcome}</td>
         <td>${esc(threshold)}</td>
         <td>${esc(b.band_label || '')}</td>
         <td>${esc(b.metric_key || '')}</td>
@@ -1146,7 +1167,7 @@ function renderTargetTable(bands, lookup){
   }
   return `<div class="table-wrap"><table class="table" style="min-width:auto;">
     <thead><tr>
-      <th style="width:120px;">Severity</th>
+      <th style="width:140px;">Scoring</th>
       <th>Threshold</th>
       <th>Label</th>
       <th>Measure</th>
