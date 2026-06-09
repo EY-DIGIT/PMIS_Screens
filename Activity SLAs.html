@@ -451,8 +451,11 @@ function renderMappings(){
     const ev = evaluationCache[m.id] || {};
     const sev = ev.severity_level;
     const sevHtml = (sev===0||sev>0) ? `<span class="sev-pill s${sev}">L${sev}</span>` : '<span class="badge grey">—</span>';
+    // The "SLA Ref" cell links to the full RFP-style detail card so users
+    // can see Definition / Scope / Source / Calculation / Reports submitted
+    // to without leaving the activity context.
     return `<tr>
-      <td><strong>${esc(sla.sla_ref || m.sla_ref || '-')}</strong></td>
+      <td><span class="link" title="Open the RFP-style SLA detail card in a new tab" onclick='openSlaDetail("${m.sla_id}")'><strong>${esc(sla.sla_ref || m.sla_ref || '-')}</strong></span></td>
       <td>${esc(sla.title || sla.name || '-')}</td>
       <td><span class="badge purple">${esc(sla.category || sla.formula_type || m.formula_type || '-')}</span></td>
       <td>${esc(fmtDate(m.effective_from))} → ${esc(fmtDate(m.effective_until))}</td>
@@ -462,11 +465,20 @@ function renderMappings(){
       <td>${ev.ld_percent!==undefined?(Number(ev.ld_percent)).toFixed(2)+'%':'—'}</td>
       <td>${ev.ld_amount!==undefined?'₹ '+Number(ev.ld_amount).toLocaleString('en-IN'):'—'}</td>
       <td class="actions-cell">
+        <button class="btn small-btn icon-btn cancel" title="View RFP-style SLA card" onclick='openSlaDetail("${m.sla_id}")'>📋 Detail</button>
         <button class="btn small-btn icon-btn evaluate-btn" onclick='openEvaluate("${m.id}")'>⚡ Evaluate</button>
         <button class="btn small-btn icon-btn delete-btn" onclick='askRetire("${m.id}","${esc(sla.sla_ref||"")}")'>Retire</button>
       </td>
     </tr>`;
   }).join('');
+}
+
+function openSlaDetail(slaId){
+  // The full RFP-style card lives on SLA Master.html — open that page with a
+  // query param so the View modal auto-opens. Stays in a new tab so the user
+  // doesn't lose their activity context.
+  if(!slaId) return;
+  window.open('SLA Master.html?view=' + encodeURIComponent(slaId), '_blank');
 }
 
 /* ─── Add SLA modal */

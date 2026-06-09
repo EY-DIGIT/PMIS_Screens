@@ -1358,6 +1358,17 @@ function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 // Boot: fetch the SLA category catalog (typed master) before the rest.
 loadSlaCategories();
 checkHealth();
+
+// Deep-link support: ?view=<sla_id> on the URL auto-opens the View modal
+// once the list (and therefore the API base) is resolved. Used by the
+// "SLA Detail" link from the Activity SLAs mapping table.
+(function(){
+  const u = new URL(window.location.href);
+  const id = u.searchParams.get('view');
+  if(!id) return;
+  // Delay so checkHealth() / loadSlas() get a chance to settle the API base.
+  setTimeout(() => viewSla(id), 400);
+})();
 </script>
 </body>
 </html>
