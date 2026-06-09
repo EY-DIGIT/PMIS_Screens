@@ -1074,23 +1074,6 @@ async function submitSlaEdit(){
     loadSlas();
   }catch(e){ toast('Network error', e.message, 'error'); }
 }
-  try{
-    const url = editingId ? API()+'/api/v3/sla-masters/'+editingId : API()+'/api/v3/sla-masters';
-    const r = await fetch(url, {
-      method: editingId ? 'PATCH' : 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    });
-    if(!r.ok){
-      const t = await r.text();
-      toast('Save failed', 'HTTP '+r.status+' '+t.slice(0,200), 'error');
-      return;
-    }
-    toast('Saved', editingId ? 'SLA updated.' : 'SLA onboarded.', 'success');
-    closeModal('onboardModal');
-    loadSlas();
-  }catch(e){ toast('Network error', e.message, 'error'); }
-}
 
 /* ====== View ====== */
 async function viewSla(id){
@@ -1300,9 +1283,11 @@ async function editSla(id){
     document.getElementById('rf_measure2_name').value = secondary ? secondary.display_name : '';
     document.getElementById('rf_measure2_unit').value = secondary ? (secondary.unit || '') : '';
     document.getElementById('rf_measure2_target').value = secondary ? (secondary.target_numeric ?? '') : '';
-    // Populate the severity threshold table from the saved bands.
-    const body = document.getElementById('rfpTargetBody');
-    body.innerHTML = '';
+    // Populate the severity threshold table from the saved bands. Use a
+    // different identifier from the API-response `body` declared earlier
+    // in this function.
+    const targetBodyEl = document.getElementById('rfpTargetBody');
+    targetBodyEl.innerHTML = '';
     (d.condition_bands || d.bands || [])
       .slice()
       .sort((a,b) => (a.sort_order||0)-(b.sort_order||0))
