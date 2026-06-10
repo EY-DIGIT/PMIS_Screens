@@ -243,6 +243,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       <div class="filter-shell">
         <div class="filter-head"><div class="filter-title">Filters</div></div>
         <div class="filter-body">
+          <div class="field"><label>Project</label>
+            <select id="filterProject" onchange="renderTable()">
+              <option value="">All projects</option>
+              <!-- Populated from project-management /api/v3/projects -->
+            </select>
+          </div>
           <div class="field"><label>Contract Type</label>
             <select id="filterCt" onchange="renderTable()">
               <option value="">All</option><option>BSP</option><option>MSAP</option><option>MSIP</option><option>PMU</option>
@@ -274,7 +280,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       <div class="table-wrap">
         <table class="table">
           <thead><tr>
-            <th>SLA Number</th><th>Title</th><th>Contract</th><th>Category</th><th>Status</th><th>Updated</th><th>Actions</th>
+            <th>SLA Number</th><th>Title</th><th>Project</th><th>Contract</th><th>Category</th><th>Status</th><th>Updated</th><th>Actions</th>
           </tr></thead>
           <tbody id="slaTbody">
             <tr class="empty-row"><td colspan="7">No SLAs loaded yet. Click <strong>Check</strong> to test the API, then <strong>Refresh</strong>.</td></tr>
@@ -303,6 +309,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       <div class="grid">
         <div class="field"><label>SLA Number <span class="required">*</span></label><input id="f_sla_ref" placeholder="PMU-SLA001"></div>
         <div class="field"><label>Title <span class="required">*</span></label><input id="f_name" placeholder="Non-submission of deliverable"></div>
+        <div class="field"><label>Project (PMC contract) <span class="required">*</span></label>
+          <select id="f_project">
+            <option value="">— Select a project —</option>
+            <!-- Loaded from pmis-project-management /api/v3/projects -->
+          </select>
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">
+            The PMC contract this SLA belongs to. Lists every active project from project-management.
+          </div>
+        </div>
         <div class="field"><label>Contract Type <span class="required">*</span></label>
           <select id="f_ct"><option>BSP</option><option>MSAP</option><option>MSIP</option><option>PMU</option></select>
         </div>
@@ -442,6 +457,29 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
           <input id="rf_lin_grace" type="number" min="0" value="0" placeholder="0">
         </div>
       </div>
+    </div>
+
+    <!-- 8. Mapping inputs — placeholders the operator fills at attach time -->
+    <div class="subsection">
+      <div class="subsection-head">
+        <div class="subsection-title">What does the operator fill in when attaching this SLA?</div>
+        <button class="btn small-btn cancel" onclick="addPlaceholderRow()">+ Add input</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
+        Most SLAs need <strong>nothing</strong> at attach time — they plug straight onto a milestone.
+        Add a row only when the RFP rule references a value that varies per attachment:
+        <em>"cost of this deliverable"</em>, <em>"T₀ milestone date"</em>, <em>"date of approval (K)"</em>, etc.
+        Each row becomes one input on the mapping form.
+      </div>
+      <div id="rfpPlaceholdersHeader" style="display:none;grid-template-columns:1fr 2fr 0.8fr 0.6fr 1.2fr auto;gap:8px;align-items:center;padding:6px 8px;background:#f1f6fd;border-radius:6px;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;">
+        <span>Key</span>
+        <span>Label (shown to operator)</span>
+        <span>Type</span>
+        <span>Required</span>
+        <span>Autofill from</span>
+        <span></span>
+      </div>
+      <div id="rfpPlaceholdersBody"></div>
     </div>
 
     <!-- Advanced (collapsible) — only visible in edit mode, hidden for new SLAs -->
@@ -673,22 +711,40 @@ function categoryFromFormula(ft){
   return fromMaster || _LEGACY_FORMULA_LABELS[ft] || ft || '—';
 }
 
+// Map project_id -> name from the PROJECTS array loaded on boot. Used so
+// the table can show a readable project label instead of a UUID. Returns
+// pre-escaped HTML so it can be embedded in tbody.innerHTML directly.
+function projectName(pid){
+  if(!pid) return '<span style="color:var(--text-muted);font-style:italic;">— Catalog —</span>';
+  const p = (PROJECTS || []).find(x => x.id === pid);
+  return p ? esc(p.name || p.title || pid) : `<span style="font-family:Consolas,Menlo,monospace;font-size:11px;">${esc(pid).slice(0,8)}…</span>`;
+}
+// Plain-text version (no markup) for places like rfpRow which escape their
+// own input — passing the HTML-flavoured projectName() there would double-escape.
+function _plainProjectName(pid){
+  if(!pid) return '— Catalog —';
+  const p = (PROJECTS || []).find(x => x.id === pid);
+  return p ? (p.name || p.title || pid) : pid;
+}
+
 function renderTable(){
   const q = document.getElementById('searchInput').value.toLowerCase();
   const ct = document.getElementById('filterCt').value;
   const cat = document.getElementById('filterCategory').value;
   const st = document.getElementById('filterStatus').value;
+  const proj = document.getElementById('filterProject').value;
   const filtered = slas.filter(s => {
     const slaCategory = s.category || categoryFromFormula(s.formula_type);
     const titleOrName = (s.title || s.name || '').toLowerCase();
     return (!q || (s.sla_ref||'').toLowerCase().includes(q) || titleOrName.includes(q)) &&
       (!ct || s.contract_type===ct) &&
       (!cat || slaCategory===cat) &&
-      (!st || (s.status||'ACTIVE')===st);
+      (!st || (s.status||'ACTIVE')===st) &&
+      (!proj || s.project_id===proj);
   });
   const tbody = document.getElementById('slaTbody');
   if(filtered.length===0){
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No matching SLAs.</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No matching SLAs.</td></tr>';
     return;
   }
   const categoryBadgeColor = {
@@ -704,6 +760,7 @@ function renderTable(){
     <tr>
       <td><span class="link" onclick='viewSla("${s.id}")'>${esc(s.sla_ref||'-')}</span></td>
       <td>${esc(s.title || s.name || '-')}</td>
+      <td>${projectName(s.project_id)}</td>
       <td><span class="badge grey">${esc(s.contract_type||'-')}</span></td>
       <td><span class="${categoryBadgeColor[slaCategory] || 'badge'}">${esc(slaCategory)}</span></td>
       <td><span class="badge ${ (s.status||'ACTIVE')==='ACTIVE'?'green':(s.status==='RETIRED'?'red':'orange') }">${esc(s.status||'ACTIVE')}</span></td>
@@ -718,7 +775,9 @@ function renderTable(){
 }
 
 function resetFilters(){
-  ['filterCt','filterCategory','filterStatus'].forEach(id => document.getElementById(id).value='');
+  ['filterCt','filterCategory','filterStatus','filterProject'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
   document.getElementById('searchInput').value='';
   renderTable();
 }
@@ -778,6 +837,104 @@ async function loadSlaCategories(){
   }
 }
 
+/* ────────────────────────────────────────────────────────────────────
+ * Project picker (loads from pmis-project-management)
+ * ──────────────────────────────────────────────────────────────────── */
+let PROJECTS = [];
+const PROJECT_MGMT_BASE = 'http://localhost:9000/projects';
+
+async function loadProjects(){
+  let items = [];
+  try{
+    const r = await fetch(PROJECT_MGMT_BASE + '/api/v3/projects?pageSize=200');
+    if(r.ok){
+      const body = await r.json();
+      const els = (body?.data?._embedded?.elements || body?.data?.elements || []);
+      items = els.map(el => el.data || el);
+    }
+  }catch(e){
+    // Project-management unreachable — picker stays empty; user can still
+    // type a project_id manually if they switch to free-form mode later.
+  }
+  PROJECTS = items.filter(p => !p.deletedAt && !p.deleted_at);
+  const sel = document.getElementById('f_project');
+  if(sel){
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Select a project —</option>' +
+      PROJECTS.map(p => `<option value="${esc(p.id)}">${esc(p.name || p.title || p.id)}</option>`).join('');
+    if(current) sel.value = current;
+  }
+  // Same list feeds the list-page filter (added in Phase E).
+  const filt = document.getElementById('filterProject');
+  if(filt){
+    const current = filt.value;
+    filt.innerHTML = '<option value="">All projects</option>' +
+      PROJECTS.map(p => `<option value="${esc(p.id)}">${esc(p.name || p.title || p.id)}</option>`).join('');
+    if(current) filt.value = current;
+  }
+  // Re-render with the project labels filled in.
+  if(typeof renderTable === 'function' && slas.length) renderTable();
+}
+
+/* ────────────────────────────────────────────────────────────────────
+ * Placeholder editor — one row per per-mapping variable the SLA needs
+ * ──────────────────────────────────────────────────────────────────── */
+const _PLACEHOLDER_TYPES = ['money', 'date', 'number', 'text'];
+const _PLACEHOLDER_DEFAULT_SOURCES = [
+  ['',                              '(none — operator types it)'],
+  ['milestone.start_date',          'Milestone start date'],
+  ['milestone.end_date',            'Milestone end date'],
+  ['milestone.actual_start_date',   'Milestone actual start'],
+  ['milestone.actual_end_date',     'Milestone actual end'],
+];
+
+function addPlaceholderRow(prefill){
+  prefill = prefill || {key:'', label:'', type:'money', required:true, default_from:'', help:''};
+  const body = document.getElementById('rfpPlaceholdersBody');
+  document.getElementById('rfpPlaceholdersHeader').style.display = 'grid';
+  const row = document.createElement('div');
+  row.className = 'rfp-ph-row';
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 2fr 0.8fr 0.6fr 1.2fr auto;gap:8px;align-items:center;margin-bottom:6px;';
+  const typeOpts = _PLACEHOLDER_TYPES.map(t => `<option value="${t}" ${t===prefill.type?'selected':''}>${t}</option>`).join('');
+  const srcOpts = _PLACEHOLDER_DEFAULT_SOURCES.map(([v,l]) =>
+    `<option value="${v}" ${v===(prefill.default_from||'')?'selected':''}>${esc(l)}</option>`
+  ).join('');
+  row.innerHTML = `
+    <input data-k="key" placeholder="ld_base_amount" value="${esc(prefill.key||'')}">
+    <input data-k="label" placeholder="Cost of this deliverable (₹)" value="${esc(prefill.label||'')}">
+    <select data-k="type">${typeOpts}</select>
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px;justify-self:center;">
+      <input type="checkbox" data-k="required" ${prefill.required?'checked':''}>
+    </label>
+    <select data-k="default_from">${srcOpts}</select>
+    <button type="button" class="btn small-btn delete-btn" title="Remove" onclick="this.parentElement.remove(); _refreshPlaceholderHeader();">✕</button>
+  `;
+  body.appendChild(row);
+}
+
+function _refreshPlaceholderHeader(){
+  // Hide the column header again when the user removes the last row, so the
+  // section reads as "nothing to fill in" instead of an empty grid.
+  const body = document.getElementById('rfpPlaceholdersBody');
+  document.getElementById('rfpPlaceholdersHeader').style.display =
+    body.children.length ? 'grid' : 'none';
+}
+
+function collectPlaceholders(){
+  return Array.from(document.querySelectorAll('#rfpPlaceholdersBody .rfp-ph-row')).map(r => {
+    const obj = {};
+    r.querySelectorAll('[data-k]').forEach(el => {
+      const k = el.dataset.k;
+      if(k === 'required') obj.required = !!el.checked;
+      else obj[k] = el.value.trim();
+    });
+    // default_from comes through as '' for none — normalise to null.
+    if(!obj.default_from) obj.default_from = null;
+    if(!obj.help) obj.help = null;
+    return obj;
+  }).filter(p => p.key && p.label);
+}
+
 // Category → starter rows for the "Target — severity threshold table".
 // These mirror the RFP exactly so the user only types the threshold text and
 // numeric bounds. Order matches the RFP tables in §5.28.
@@ -819,6 +976,10 @@ function openOnboardModal(){
   document.getElementById('f_ldBase').value = 'QUARTERLY_PAYMENT';
   document.getElementById('f_effFrom').value = '2024-04-01';
   document.getElementById('f_effUntil').value = '';
+  document.getElementById('f_project').value = '';
+  // Reset placeholder editor — no rows by default; most SLAs need none.
+  document.getElementById('rfpPlaceholdersBody').innerHTML = '';
+  _refreshPlaceholderHeader();
   // Reset the RFP form fields.
   ['rf_measure_name','rf_measure_unit','rf_measure_target',
    'rf_measure2_name','rf_measure2_unit','rf_measure2_target',
@@ -1006,9 +1167,15 @@ async function submitSla(){
     secondary = {display_name: secondaryName, unit: u};
     if(t) secondary.target_value = t;
   }
+  const project_id = document.getElementById('f_project').value || null;
+  if(!project_id){
+    toast('Project required', 'Pick which PMC contract this SLA belongs to.', 'error');
+    return;
+  }
   const payload = {
     sla_ref,
     title,
+    project_id,
     contract_type: document.getElementById('f_ct').value,
     category_code: catRec.code,
     definition: document.getElementById('f_desc').value.trim() || null,
@@ -1023,6 +1190,9 @@ async function submitSla(){
     effective_until: document.getElementById('f_effUntil').value || null,
     measurement,
     secondary_measurement: secondary,
+    // Per-mapping inputs declared on the template; the mapping form renders
+    // one input per entry. Empty = the SLA plugs straight onto a milestone.
+    placeholders: collectPlaceholders(),
   };
   if(isLinear){
     const rate = document.getElementById('rf_lin_rate').value.trim();
@@ -1078,6 +1248,10 @@ async function submitSlaEdit(){
     // effective_until is editable on PATCH so an SLA can be sunsetted from
     // the form. effective_from is fixed once onboarded.
     effective_until: document.getElementById('f_effUntil').value || null,
+    project_id: document.getElementById('f_project').value || null,
+    // PATCH semantics: omitting the field leaves it alone; sending an array
+    // replaces it. Always send what's currently on the form.
+    placeholders: collectPlaceholders(),
   };
   try{
     const r = await fetch(API() + '/api/v3/sla-masters/' + editingId, {
@@ -1208,6 +1382,7 @@ function renderViewBody(d, mappings){
         <tbody>
           ${rfpRow('SLA Number', d.sla_ref, true)}
           ${rfpRow('Title', d.title || d.name)}
+          ${rfpRow('Project', d.project_id ? `${_plainProjectName(d.project_id)} (${d.project_id})` : null)}
           ${rfpRow('Category', category)}
           ${rfpRow('Contract Type', d.contract_type)}
           ${rfpRow('Definition of SLA', d.description)}
@@ -1307,6 +1482,11 @@ async function editSla(id){
     document.getElementById('f_ldBase').value = d.ld_computation_base || 'QUARTERLY_PAYMENT';
     document.getElementById('f_effFrom').value = (d.effective_from||'2024-04-01').slice(0,10);
     document.getElementById('f_effUntil').value = d.effective_until ? d.effective_until.slice(0,10) : '';
+    document.getElementById('f_project').value = d.project_id || '';
+    // Populate the placeholder editor from what's stored on the SLA.
+    document.getElementById('rfpPlaceholdersBody').innerHTML = '';
+    (d.placeholders || []).forEach(addPlaceholderRow);
+    _refreshPlaceholderHeader();
     // Populate the simple "What is measured" fields from the primary metric.
     const metrics = d.metrics || [];
     const primary = metrics.find(m => m.is_primary) || metrics[0] || {};
@@ -1389,8 +1569,10 @@ function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
 /* Init */
-// Boot: fetch the SLA category catalog (typed master) before the rest.
+// Boot: fetch the SLA category catalog (typed master) + the active
+// project list (for the Project picker on onboard) before the rest.
 loadSlaCategories();
+loadProjects();
 checkHealth();
 
 // Deep-link support: ?view=<sla_id> on the URL auto-opens the View modal

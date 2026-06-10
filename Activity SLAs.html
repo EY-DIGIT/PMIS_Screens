@@ -289,58 +289,31 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       <div id="m_slaPreview" style="margin-top:8px;display:none;padding:10px 12px;background:#f6fbff;border:1px solid var(--border-soft);border-radius:8px;font-size:12px;color:var(--text);line-height:1.5;"></div>
     </div>
 
-    <!-- 2. When is this mapping active? -->
+    <!-- 2. When does this mapping start? -->
     <div class="subsection">
       <div class="subsection-title">When does this attachment apply?</div>
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
-        These dates bound <strong>this specific attachment</strong> on this activity — not the SLA template's lifetime. Defaults come from the activity's planned start/end.
+        First date this SLA applies. Defaults to the work-unit's planned start. The mapping stays active until you retire it.
       </div>
       <div class="grid">
-        <div class="field"><label>Mapping active from <span class="required">*</span></label>
+        <div class="field full"><label>Mapping active from <span class="required">*</span></label>
           <input id="m_eff_from" type="date">
-          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">First date this SLA applies on this activity.</div>
-        </div>
-        <div class="field"><label>Mapping active until</label>
-          <input id="m_eff_until" type="date">
-          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Leave blank for "until further notice"; the mapping stays active until you retire it.</div>
         </div>
       </div>
     </div>
 
-    <!-- 3. Overrides — per-mapping tweaks -->
-    <div class="subsection">
-      <div class="subsection-title">Per-attachment overrides</div>
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
-        Values that change the SLA's behaviour for this activity only — e.g. binding the SLA's symbolic "T" to a real date, or supplying the deliverable cost when the SLA's <em>Applied On</em> is "Deliverable Cost". Yellow fields are pre-filled from the activity; clear or edit them as needed.
+    <!-- 3. Per-mapping inputs — rendered dynamically from the SLA's `placeholders` -->
+    <div class="subsection" id="m_phSection" style="display:none;">
+      <div class="subsection-title" id="m_phTitle">Values needed by this SLA</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;" id="m_phSub">
+        The SLA template declares these. Yellow inputs are auto-filled from the work-unit's planned/actual dates; clear them only if the RFP context says otherwise.
       </div>
-      <div class="grid">
-        <div class="field prefill">
-          <div class="field-pre">⚡ prefill</div>
-          <label>T Anchor Date</label>
-          <input id="o_t_anchor" type="date">
-          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">
-            Concrete value of the SLA's symbolic "T". Used by milestone SLAs (e.g. PMU-SLA010 "<em>T₀ + 6 months</em>"). Leave blank for SLAs that don't reference T.
-          </div>
-        </div>
-        <div class="field prefill">
-          <div class="field-pre">⚡ prefill</div>
-          <label>Actual Start Date</label>
-          <input id="o_actual_start" type="date">
-          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Overrides the activity's stored actual start when this SLA runs.</div>
-        </div>
-        <div class="field prefill">
-          <div class="field-pre">⚡ prefill</div>
-          <label>Actual End Date</label>
-          <input id="o_actual_end" type="date">
-          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Overrides the activity's stored actual end.</div>
-        </div>
-        <div class="field" id="m_ldBaseField">
-          <label>LD Base Amount (₹) <span id="m_ldBaseReq" class="required" style="display:none;">*</span></label>
-          <input id="o_ld_base" placeholder="e.g. 10000000">
-          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;" id="m_ldBaseHint">
-            Rupee base the LD% is applied against. <strong>Required</strong> when the SLA is "Applied On: Deliverable Cost". Optional otherwise — defaults to the project's quarterly payment or annual contract value.
-          </div>
-        </div>
+      <div id="m_phBody" class="grid"></div>
+    </div>
+    <!-- 3b. "Nothing to fill in" state — shown when the SLA has no placeholders. -->
+    <div class="subsection" id="m_phEmpty" style="display:none;">
+      <div style="padding:10px 12px;background:#e8f7ee;border:1px solid #b6e7c7;border-radius:8px;font-size:12px;color:#1a7f37;">
+        ✓ This SLA needs no per-mapping inputs. Click <strong>Attach SLA</strong> to save.
       </div>
     </div>
 
@@ -545,20 +518,95 @@ function openAddSlaModal(){
       const catLabel = s.category || s.formula_type || '';
       return `<option value="${s.id}">${esc(s.sla_ref||'?')} — ${esc(s.title||s.name||'')} (${esc(s.contract_type||'')}/${esc(catLabel)})</option>`;
     }).join('');
-  // Prefill from activity if loaded
   const today = new Date().toISOString().slice(0,10);
   document.getElementById('m_eff_from').value = (activity?.startDate || activity?.start_date || today).slice(0,10);
-  document.getElementById('m_eff_until').value = (activity?.endDate || activity?.end_date || '').slice(0,10);
-  document.getElementById('o_t_anchor').value = (activity?.startDate || activity?.start_date || '').slice(0,10);
-  document.getElementById('o_actual_start').value = (activity?.actualStartDate || activity?.actual_start_date || '').slice(0,10);
-  document.getElementById('o_actual_end').value = (activity?.actualEndDate || activity?.actual_end_date || '').slice(0,10);
-  document.getElementById('o_ld_base').value = '';
   document.getElementById('addSub').textContent =
     activity ? `Prefilled from activity "${activity.name||''}"` : 'No activity loaded — fill fields manually.';
-  // Clear the SLA preview / LD-base requirement until the user picks an SLA.
+  // Hide the SLA preview / placeholder sections until the user picks an SLA.
   document.getElementById('m_slaPreview').style.display = 'none';
-  document.getElementById('m_ldBaseReq').style.display = 'none';
+  document.getElementById('m_phSection').style.display = 'none';
+  document.getElementById('m_phEmpty').style.display = 'none';
+  document.getElementById('m_phBody').innerHTML = '';
   openModal('addModal');
+}
+
+/* ────────────────────────────────────────────────────────────────────
+ * Dynamic placeholder rendering — driven by the SLA's `placeholders`
+ * array (Phase A-C). The form has no static T-anchor / actual-start /
+ * actual-end / LD-base fields anymore — whatever the SLA declares is
+ * what we render. Empty list = "nothing to fill in" green banner.
+ * ──────────────────────────────────────────────────────────────────── */
+
+// Resolve a placeholder's `default_from` against the loaded activity.
+// Supports the strings used by the seed bundle (activity.*).
+function _resolveDefaultFrom(spec, act){
+  if(!spec || !act) return '';
+  const candidates = {
+    'activity.start_date':         act.startDate || act.start_date,
+    'activity.end_date':           act.endDate || act.end_date,
+    'activity.actual_start_date':  act.actualStartDate || act.actual_start_date,
+    'activity.actual_end_date':    act.actualEndDate || act.actual_end_date,
+  };
+  const v = candidates[spec];
+  return v ? String(v).slice(0,10) : '';
+}
+
+function _phInputHtml(ph, prefillValue){
+  // money inputs accept any positive amount; date inputs use date pickers
+  // pre-filled from the activity when default_from resolves; number /
+  // text fall back to plain inputs.
+  const required = ph.required ? '<span class="required">*</span>' : '';
+  const reqAttr = ph.required ? 'data-required="1"' : '';
+  const help = ph.help ? `<div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">${esc(ph.help)}</div>` : '';
+  const isPrefilled = !!prefillValue;
+  const wrap = isPrefilled ? 'field prefill' : 'field';
+  const pre = isPrefilled ? '<div class="field-pre">⚡ prefilled</div>' : '';
+  let input;
+  if(ph.type === 'date'){
+    input = `<input type="date" data-k="${esc(ph.key)}" data-type="date" ${reqAttr} value="${esc(prefillValue||'')}">`;
+  } else if(ph.type === 'money'){
+    input = `<input type="number" step="0.01" data-k="${esc(ph.key)}" data-type="money" ${reqAttr} placeholder="e.g. 1000000" value="${esc(prefillValue||'')}">`;
+  } else if(ph.type === 'number'){
+    input = `<input type="number" data-k="${esc(ph.key)}" data-type="number" ${reqAttr} value="${esc(prefillValue||'')}">`;
+  } else {
+    input = `<input type="text" data-k="${esc(ph.key)}" data-type="text" ${reqAttr} value="${esc(prefillValue||'')}">`;
+  }
+  return `<div class="${wrap}">${pre}<label>${esc(ph.label)} ${required}</label>${input}${help}</div>`;
+}
+
+function renderPlaceholders(sla){
+  const phs = Array.isArray(sla.placeholders) ? sla.placeholders : [];
+  const body = document.getElementById('m_phBody');
+  const sec = document.getElementById('m_phSection');
+  const empty = document.getElementById('m_phEmpty');
+  if(!phs.length){
+    sec.style.display = 'none';
+    empty.style.display = '';
+    body.innerHTML = '';
+    return;
+  }
+  empty.style.display = 'none';
+  sec.style.display = '';
+  body.innerHTML = phs.map(ph => _phInputHtml(ph, _resolveDefaultFrom(ph.default_from, activity))).join('');
+}
+
+function collectPlaceholderValues(){
+  // Returns {overrides: {...}, missing: ['key1', ...]} so the caller can
+  // both build the request body and flag any required-but-empty inputs.
+  const overrides = {};
+  const missing = [];
+  document.querySelectorAll('#m_phBody [data-k]').forEach(el => {
+    const key = el.dataset.k;
+    const type = el.dataset.type;
+    const v = el.value.trim();
+    if(!v){
+      if(el.dataset.required) missing.push(key);
+      return;
+    }
+    if(type === 'money' || type === 'number') overrides[key] = Number(v);
+    else overrides[key] = v;
+  });
+  return {overrides, missing};
 }
 
 // Surfaces the chosen SLA's category, calculation engine and "Applied On"
@@ -573,10 +621,11 @@ const _MAPPING_APPLIED_ON_LABEL = {
 function onMappingSlaChange(){
   const id = document.getElementById('m_sla').value;
   const preview = document.getElementById('m_slaPreview');
-  const req = document.getElementById('m_ldBaseReq');
   if(!id){
     preview.style.display = 'none';
-    req.style.display = 'none';
+    document.getElementById('m_phSection').style.display = 'none';
+    document.getElementById('m_phEmpty').style.display = 'none';
+    document.getElementById('m_phBody').innerHTML = '';
     return;
   }
   const sla = slaCatalog.find(s => s.id === id) || {};
@@ -593,40 +642,29 @@ function onMappingSlaChange(){
     ${sla.description ? `<div style="margin-top:6px;color:var(--text-soft);">${esc(sla.description).slice(0,200)}${sla.description.length>200?'…':''}</div>` : ''}
   `;
   preview.style.display = 'block';
-  // Mark LD-base required only when the SLA needs it.
-  const needsLdBase = sla.ld_computation_base === 'FIXED_AMOUNT';
-  req.style.display = needsLdBase ? '' : 'none';
+  // Render the dynamic placeholder inputs declared on the template.
+  renderPlaceholders(sla);
 }
 
 async function submitMapping(){
   const sla_id = document.getElementById('m_sla').value;
   if(!sla_id){ toast('Pick an SLA', '', 'error'); return; }
   const eff_from = document.getElementById('m_eff_from').value;
-  const eff_until = document.getElementById('m_eff_until').value;
-  if(!eff_from){ toast('Effective From required', '', 'error'); return; }
-  const overrides = {};
-  const t_anchor = document.getElementById('o_t_anchor').value;
-  const a_start  = document.getElementById('o_actual_start').value;
-  const a_end    = document.getElementById('o_actual_end').value;
-  const ld_base  = document.getElementById('o_ld_base').value;
-  if(t_anchor) overrides.t_anchor_date = t_anchor;
-  if(a_start)  overrides.actual_start_date = a_start;
-  if(a_end)    overrides.actual_end_date = a_end;
-  if(ld_base)  overrides.ld_base_amount = ld_base;
-  // Guard: SLAs computed on Deliverable Cost (FIXED_AMOUNT) cannot evaluate
-  // without an LD base on the mapping. Surface a friendly error before we
-  // POST a payload the backend would silently accept now and trip on later.
-  const selectedSla = slaCatalog.find(s => s.id === sla_id) || {};
-  if(selectedSla.ld_computation_base === 'FIXED_AMOUNT' && !ld_base){
-    toast('LD Base required',
-          'This SLA applies LD on Deliverable Cost — fill in the LD Base Amount (₹) so the evaluator has a rupee base.',
+  if(!eff_from){ toast('Mapping active from required', '', 'error'); return; }
+  // Collect placeholder inputs declared on the SLA template. The form has
+  // no static overrides anymore — every SLA brings its own input set.
+  const {overrides, missing} = collectPlaceholderValues();
+  if(missing.length){
+    toast('Missing required values',
+          'Fill in: ' + missing.join(', '),
           'error');
     return;
   }
   const payload = {
     sla_id, activity_id: ACTID(),
     effective_from: eff_from,
-    effective_until: eff_until || null,
+    // effective_until intentionally not sent — mappings stay active until
+    // retired. The backend treats omitted effective_until as null = open-ended.
     overrides
   };
   try{
