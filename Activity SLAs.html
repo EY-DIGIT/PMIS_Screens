@@ -196,8 +196,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       </div>
       <div class="page-header-actions">
         <button class="btn cancel" onclick="loadAll()">🔄 Refresh</button>
-        <button class="btn evaluate-btn" onclick="openBulkEvaluateInfo()">⚡ Evaluate All</button>
-        <button class="btn ld-btn" onclick="calculateActivityLd()">⚖️ Calculate Activity LD</button>
+        <button class="btn evaluate-btn" onclick="openBulkEvaluateInfo()">⚡ Evaluate All Severity</button>
+        <button class="btn ld-btn" onclick="calculateActivityLd()">⚖️ Calculate Activity Severity Roll-up</button>
       </div>
     </div>
 
@@ -234,12 +234,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       </div>
     </div>
 
-    <!-- LD totals (shown after Calculate Activity LD) -->
+    <!-- Severity totals (shown after Evaluate Severity). LD totals live in
+         the separate LD page (TBD) — this view is severity-only. -->
     <div class="ld-totals hidden" id="ldTotals">
       <div class="ld-tile"><div class="ld-tile-label">Total SLAs Evaluated</div><div class="ld-tile-value" id="ldT1">0</div></div>
       <div class="ld-tile"><div class="ld-tile-label">Total Accumulated Points</div><div class="ld-tile-value" id="ldT2">0</div></div>
-      <div class="ld-tile"><div class="ld-tile-label">Average LD %</div><div class="ld-tile-value" id="ldT3">0%</div></div>
-      <div class="ld-tile"><div class="ld-tile-label">Total LD Amount</div><div class="ld-tile-value" id="ldT4">₹ 0</div><div class="ld-tile-sub" id="ldT4Sub"></div></div>
+      <div class="ld-tile"><div class="ld-tile-label">Highest Severity Hit</div><div class="ld-tile-value" id="ldT3">—</div></div>
+      <div class="ld-tile"><div class="ld-tile-label">Severity Breakdown</div><div class="ld-tile-value" id="ldT4" style="font-size:14px;line-height:1.4;">—</div></div>
     </div>
 
     <!-- Mapped SLAs -->
@@ -252,10 +253,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
         <table class="table">
           <thead><tr>
             <th>SLA Ref</th><th>Name</th><th>Formula</th><th>Effective</th><th>Status</th>
-            <th>Severity</th><th>Points</th><th>LD %</th><th>LD ₹</th><th>Actions</th>
+            <th>Severity</th><th>Points</th><th>Actions</th>
           </tr></thead>
           <tbody id="mapTbody">
-            <tr class="empty-row"><td colspan="10">Enter activity ID and click <strong>Load</strong>.</td></tr>
+            <tr class="empty-row"><td colspan="8">Enter activity ID and click <strong>Load</strong>.</td></tr>
           </tbody>
         </table>
       </div>
@@ -324,20 +325,19 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
   </div>
 </div>
 
-<!-- ─── Evaluate modal ─── -->
+<!-- ─── Evaluate Severity modal ─── -->
 <div class="modal" id="evalModal">
   <div class="modal-box wide">
     <div class="modal-head">
       <div>
-        <div class="modal-title" id="evalTitle">Evaluate SLA</div>
-        <div class="modal-sub" id="evalSub"></div>
+        <div class="modal-title" id="evalTitle">Evaluate Severity</div>
+        <div class="modal-sub" id="evalSub">Classifies the SLA breach into a severity band. LD calculation lives in a separate API.</div>
       </div>
       <button class="modal-close" onclick="closeModal('evalModal')">×</button>
     </div>
     <div class="grid">
       <div class="field"><label>Period Start <span class="required">*</span></label><input id="e_start" type="date"></div>
       <div class="field"><label>Period End <span class="required">*</span></label><input id="e_end" type="date"></div>
-      <div class="field full"><label>LD Base Amount Override (optional)</label><input id="e_ld_base" placeholder="leave blank to use mapping"></div>
     </div>
     <div class="subsection">
       <div class="subsection-title" id="obsTitle">Observations</div>
@@ -490,11 +490,9 @@ function renderMappings(){
       <td><span class="badge ${m.status==='ACTIVE'?'green':(m.status==='RETIRED'?'red':'orange')}">${esc(m.status||'-')}</span></td>
       <td>${sevHtml}</td>
       <td>${ev.accumulated_points!==undefined?esc(ev.accumulated_points):'—'}</td>
-      <td>${ev.ld_percent!==undefined?(Number(ev.ld_percent)).toFixed(2)+'%':'—'}</td>
-      <td>${ev.ld_amount!==undefined?'₹ '+Number(ev.ld_amount).toLocaleString('en-IN'):'—'}</td>
       <td class="actions-cell">
         <button class="btn small-btn icon-btn cancel" title="View RFP-style SLA card" onclick='openSlaDetail("${m.sla_id}")'>📋 Detail</button>
-        <button class="btn small-btn icon-btn evaluate-btn" onclick='openEvaluate("${m.id}")'>⚡ Evaluate</button>
+        <button class="btn small-btn icon-btn evaluate-btn" onclick='openEvaluate("${m.id}")'>⚡ Evaluate Severity</button>
         <button class="btn small-btn icon-btn delete-btn" onclick='askRetire("${m.id}","${esc(sla.sla_ref||"")}")'>Retire</button>
       </td>
     </tr>`;
@@ -710,11 +708,10 @@ function openEvaluate(mappingId){
   if(!m){ toast('Mapping not found', '', 'error'); return; }
   const sla = slaCatalog.find(s => s.id === m.sla_id) || {};
   const catLabel = sla.category || sla.formula_type || '';
-  document.getElementById('evalTitle').textContent = 'Evaluate — ' + (sla.sla_ref || '');
+  document.getElementById('evalTitle').textContent = 'Evaluate Severity — ' + (sla.sla_ref || '');
   document.getElementById('evalSub').textContent = `${sla.title || sla.name || ''} · ${catLabel}`;
   document.getElementById('e_start').value = (activity?.startDate || activity?.start_date || '').slice(0,10);
   document.getElementById('e_end').value = (activity?.endDate || activity?.end_date || '').slice(0,10);
-  document.getElementById('e_ld_base').value = '';
   buildObservationForm(sla);
   document.getElementById('evalResult').innerHTML = '';
   openModal('evalModal');
@@ -819,13 +816,10 @@ async function runEvaluate(){
   const start = document.getElementById('e_start').value;
   const end = document.getElementById('e_end').value;
   if(!start||!end){ toast('Period required', '', 'error'); return; }
-  const overrides = {};
-  const ld = document.getElementById('e_ld_base').value;
-  if(ld) overrides.ld_base_amount = ld;
+  // Severity-only payload — no ld_base_amount. LD has its own endpoint.
   const payload = {
     period_start: start, period_end: end,
     metric_observations: buildObservationPayload(),
-    overrides
   };
   try{
     const r = await fetch(A_C() + '/api/v3/sla-activity-mappings/' + currentEvalMappingId + '/evaluate', {
@@ -863,23 +857,22 @@ function renderEvalResult(r){
   const breaches = r.breaches || [];
   const guards = r.guards || [];
   const sevSrc = r.severity_master_source || 'default';
-  const ldSrc  = r.ld_band_source || 'default';
   const projectBadge = r.project_id
     ? `<span class="badge grey">project ${esc(r.project_id).slice(0,8)}…</span>`
     : `<span class="badge red">project: unresolved</span>`;
   return `
     <div class="subsection">
-      <div class="subsection-title">Result</div>
+      <div class="subsection-title">Severity result</div>
       <div style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px;">
         ${projectBadge}
         ${sourcePill(sevSrc, 'Severity')}
-        ${sourcePill(ldSrc, 'LD bands')}
       </div>
-      <div class="grid-4">
+      <div class="grid-2">
         <div class="field"><label>Severity</label><div class="field-value">${sevPill || '—'}</div></div>
         <div class="field"><label>Points</label><div class="field-value">${r.accumulated_points ?? '—'}</div></div>
-        <div class="field"><label>LD %</label><div class="field-value">${r.ld_percent!==undefined ? Number(r.ld_percent).toFixed(2)+'%' : '—'}</div></div>
-        <div class="field"><label>LD Amount</label><div class="field-value">${r.ld_amount!==undefined ? '₹ '+Number(r.ld_amount).toLocaleString('en-IN') : '—'}</div></div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--text-muted);font-style:italic;">
+        LD% / LD ₹ are computed in the separate LD calculation API (TBD) using these severity points.
       </div>
       ${breaches.length ? `<div style="margin-top:10px;font-weight:700;color:var(--navy);font-size:13px;">Breaches (${breaches.length})</div>
         <div class="table-wrap"><table class="table"><thead><tr><th>#</th><th>Metric</th><th>Detail</th></tr></thead><tbody>
@@ -909,40 +902,55 @@ async function calculateActivityLd(){
     if(r.ok){
       const body = await r.json();
       const result = body.data || body;
-      // Expected shape: results: [{mapping_id, severity_level, accumulated_points, ld_percent, ld_amount}, ...]
-      const results = result.results || result.mappings || [];
+      // Severity-only shape: mapping_results: [{mapping_id, severity_level, accumulated_points, breaches…}],
+      // summary: {mappings_evaluated, severity_breakdown: {L0:n, L2:n, ...}}.
+      const results = result.mapping_results || result.results || result.mappings || [];
       results.forEach(x => { if(x.mapping_id) evaluationCache[x.mapping_id] = x; });
-      showLdTotals(results, result);
+      showSeverityTotals(results, result.summary || {});
       renderMappings();
-      toast('Activity LD calculated', `${results.length} SLAs evaluated.`, 'success');
+      toast('Activity severity calculated', `${results.length} SLAs classified.`, 'success');
     } else {
       // fallback: aggregate from local evaluationCache
       const results = Object.entries(evaluationCache).map(([id,v]) => ({mapping_id:id, ...v}));
       if(!results.length){
-        toast('Run per-SLA evaluations first', 'No cached results to aggregate. Click Evaluate on each row, then retry.', 'error');
+        toast('Run per-SLA evaluations first', 'No cached results to aggregate. Click Evaluate Severity on each row, then retry.', 'error');
         return;
       }
-      showLdTotals(results, {});
+      showSeverityTotals(results, {});
       toast('Aggregated locally', 'Activity endpoint unavailable; rolled up cached results.', 'success');
     }
   }catch(e){ toast('Network error', e.message, 'error'); }
 }
 
-function showLdTotals(results, summary){
+function showSeverityTotals(results, summary){
   const totals = document.getElementById('ldTotals');
   totals.classList.remove('hidden');
   const totalPts = results.reduce((a,b)=>a+(Number(b.accumulated_points)||0),0);
-  const avgPct   = results.length ? results.reduce((a,b)=>a+(Number(b.ld_percent)||0),0) / results.length : 0;
-  const totalAmt = results.reduce((a,b)=>a+(Number(b.ld_amount)||0),0);
+  // Highest severity hit across all mappings, and a per-level breakdown
+  // (L0×n, L2×m…) so users can see "did anything hit L4?" at a glance.
+  let highest = null;
+  const breakdown = summary.severity_breakdown || {};
+  for(const r of results){
+    if(r.severity_level !== null && r.severity_level !== undefined){
+      if(highest === null || r.severity_level > highest) highest = r.severity_level;
+      if(!summary.severity_breakdown){
+        const k = 'L'+r.severity_level;
+        breakdown[k] = (breakdown[k]||0) + 1;
+      }
+    }
+  }
   document.getElementById('ldT1').textContent = results.length;
   document.getElementById('ldT2').textContent = totalPts;
-  document.getElementById('ldT3').textContent = avgPct.toFixed(2)+'%';
-  document.getElementById('ldT4').textContent = '₹ ' + totalAmt.toLocaleString('en-IN');
-  document.getElementById('ldT4Sub').textContent = summary.notes || ('Sum across ' + results.length + ' mappings');
+  document.getElementById('ldT3').innerHTML = (highest!==null)
+    ? `<span class="sev-pill s${highest}">L${highest}</span>`
+    : '—';
+  document.getElementById('ldT4').innerHTML = Object.keys(breakdown).length
+    ? Object.entries(breakdown).sort().map(([k,v]) => `<span class="badge grey" style="margin:0 4px 4px 0;">${esc(k)} × ${v}</span>`).join('')
+    : '—';
 }
 
 function openBulkEvaluateInfo(){
-  toast('Per-SLA evaluation', 'Click ⚡ Evaluate on each row to evaluate one SLA, or use ⚖️ Calculate Activity LD to roll up.', 'success');
+  toast('Per-SLA severity', 'Click ⚡ Evaluate Severity on each row to classify one SLA, or use the activity roll-up button for all of them.', 'success');
 }
 
 /* ─── Modal helpers */
