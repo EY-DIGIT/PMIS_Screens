@@ -268,30 +268,85 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
   <div class="modal-box">
     <div class="modal-head">
       <div>
-        <div class="modal-title">Add SLA to Activity</div>
-        <div class="modal-sub" id="addSub">Pre-fill values come from the activity & project.</div>
+        <div class="modal-title">Attach an SLA to this activity</div>
+        <div class="modal-sub" id="addSub">Pre-fill values come from the activity & project. You can edit any field before saving.</div>
       </div>
       <button class="modal-close" onclick="closeModal('addModal')">×</button>
     </div>
-    <div class="grid">
-      <div class="field full"><label>SLA <span class="required">*</span></label>
-        <select id="m_sla"><option value="">— Select an SLA —</option></select>
-      </div>
-      <div class="field"><label>Effective From <span class="required">*</span></label><input id="m_eff_from" type="date"></div>
-      <div class="field"><label>Effective Until</label><input id="m_eff_until" type="date"></div>
-    </div>
+
+    <!-- 1. Which SLA -->
     <div class="subsection">
-      <div class="subsection-title">Overrides (prefilled from activity)</div>
+      <div class="subsection-title">Which SLA?</div>
       <div class="grid">
-        <div class="field prefill"><div class="field-pre">⚡ prefill</div><label>T Anchor Date</label><input id="o_t_anchor" type="date"></div>
-        <div class="field prefill"><div class="field-pre">⚡ prefill</div><label>Actual Start Date</label><input id="o_actual_start" type="date"></div>
-        <div class="field prefill"><div class="field-pre">⚡ prefill</div><label>Actual End Date</label><input id="o_actual_end" type="date"></div>
-        <div class="field"><label>LD Base Amount (₹)</label><input id="o_ld_base" placeholder="1000000"></div>
+        <div class="field full"><label>Pick the SLA template <span class="required">*</span></label>
+          <select id="m_sla" onchange="onMappingSlaChange()"><option value="">— Select an SLA —</option></select>
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">
+            Lists every SLA in the master catalogue. Each shows <code>SLA Number — Title (Contract / Category)</code> so you can recognise the right one quickly.
+          </div>
+        </div>
+      </div>
+      <!-- Surfaces facts about the selected SLA so the user knows what they're about to attach. -->
+      <div id="m_slaPreview" style="margin-top:8px;display:none;padding:10px 12px;background:#f6fbff;border:1px solid var(--border-soft);border-radius:8px;font-size:12px;color:var(--text);line-height:1.5;"></div>
+    </div>
+
+    <!-- 2. When is this mapping active? -->
+    <div class="subsection">
+      <div class="subsection-title">When does this attachment apply?</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
+        These dates bound <strong>this specific attachment</strong> on this activity — not the SLA template's lifetime. Defaults come from the activity's planned start/end.
+      </div>
+      <div class="grid">
+        <div class="field"><label>Mapping active from <span class="required">*</span></label>
+          <input id="m_eff_from" type="date">
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">First date this SLA applies on this activity.</div>
+        </div>
+        <div class="field"><label>Mapping active until</label>
+          <input id="m_eff_until" type="date">
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Leave blank for "until further notice"; the mapping stays active until you retire it.</div>
+        </div>
       </div>
     </div>
+
+    <!-- 3. Overrides — per-mapping tweaks -->
+    <div class="subsection">
+      <div class="subsection-title">Per-attachment overrides</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
+        Values that change the SLA's behaviour for this activity only — e.g. binding the SLA's symbolic "T" to a real date, or supplying the deliverable cost when the SLA's <em>Applied On</em> is "Deliverable Cost". Yellow fields are pre-filled from the activity; clear or edit them as needed.
+      </div>
+      <div class="grid">
+        <div class="field prefill">
+          <div class="field-pre">⚡ prefill</div>
+          <label>T Anchor Date</label>
+          <input id="o_t_anchor" type="date">
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">
+            Concrete value of the SLA's symbolic "T". Used by milestone SLAs (e.g. PMU-SLA010 "<em>T₀ + 6 months</em>"). Leave blank for SLAs that don't reference T.
+          </div>
+        </div>
+        <div class="field prefill">
+          <div class="field-pre">⚡ prefill</div>
+          <label>Actual Start Date</label>
+          <input id="o_actual_start" type="date">
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Overrides the activity's stored actual start when this SLA runs.</div>
+        </div>
+        <div class="field prefill">
+          <div class="field-pre">⚡ prefill</div>
+          <label>Actual End Date</label>
+          <input id="o_actual_end" type="date">
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Overrides the activity's stored actual end.</div>
+        </div>
+        <div class="field" id="m_ldBaseField">
+          <label>LD Base Amount (₹) <span id="m_ldBaseReq" class="required" style="display:none;">*</span></label>
+          <input id="o_ld_base" placeholder="e.g. 10000000">
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;" id="m_ldBaseHint">
+            Rupee base the LD% is applied against. <strong>Required</strong> when the SLA is "Applied On: Deliverable Cost". Optional otherwise — defaults to the project's quarterly payment or annual contract value.
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="modal-actions">
       <button class="btn cancel" onclick="closeModal('addModal')">Cancel</button>
-      <button class="btn" onclick="submitMapping()">Map SLA</button>
+      <button class="btn" onclick="submitMapping()">Attach SLA</button>
     </div>
   </div>
 </div>
@@ -500,7 +555,47 @@ function openAddSlaModal(){
   document.getElementById('o_ld_base').value = '';
   document.getElementById('addSub').textContent =
     activity ? `Prefilled from activity "${activity.name||''}"` : 'No activity loaded — fill fields manually.';
+  // Clear the SLA preview / LD-base requirement until the user picks an SLA.
+  document.getElementById('m_slaPreview').style.display = 'none';
+  document.getElementById('m_ldBaseReq').style.display = 'none';
   openModal('addModal');
+}
+
+// Surfaces the chosen SLA's category, calculation engine and "Applied On"
+// value above the LD-Base field. The LD-base field flips to required when
+// the SLA's LD is computed on Deliverable Cost (FIXED_AMOUNT) — there is no
+// other way for the evaluator to know the rupee base in that case.
+const _MAPPING_APPLIED_ON_LABEL = {
+  'QUARTERLY_PAYMENT': 'Net Planned Quarterly Payment (NPQP)',
+  'ANNUAL_PAYMENT':    'Annual Contract Value',
+  'FIXED_AMOUNT':      'Deliverable Cost (must be set in LD Base below)',
+};
+function onMappingSlaChange(){
+  const id = document.getElementById('m_sla').value;
+  const preview = document.getElementById('m_slaPreview');
+  const req = document.getElementById('m_ldBaseReq');
+  if(!id){
+    preview.style.display = 'none';
+    req.style.display = 'none';
+    return;
+  }
+  const sla = slaCatalog.find(s => s.id === id) || {};
+  const category = sla.category || sla.formula_type || '—';
+  const applied  = _MAPPING_APPLIED_ON_LABEL[sla.ld_computation_base] || sla.ld_computation_base || '—';
+  const cadence  = `${sla.measurement_interval || '—'} → ${sla.reporting_interval || '—'}`;
+  preview.innerHTML = `
+    <div><strong style="color:var(--navy);">${esc(sla.title || sla.name || sla.sla_ref || 'SLA')}</strong></div>
+    <div style="margin-top:4px;color:var(--text-soft);">
+      Category: <strong>${esc(category)}</strong> ·
+      Cadence: ${esc(cadence)} ·
+      Applied On: <strong>${esc(applied)}</strong>
+    </div>
+    ${sla.description ? `<div style="margin-top:6px;color:var(--text-soft);">${esc(sla.description).slice(0,200)}${sla.description.length>200?'…':''}</div>` : ''}
+  `;
+  preview.style.display = 'block';
+  // Mark LD-base required only when the SLA needs it.
+  const needsLdBase = sla.ld_computation_base === 'FIXED_AMOUNT';
+  req.style.display = needsLdBase ? '' : 'none';
 }
 
 async function submitMapping(){
@@ -518,6 +613,16 @@ async function submitMapping(){
   if(a_start)  overrides.actual_start_date = a_start;
   if(a_end)    overrides.actual_end_date = a_end;
   if(ld_base)  overrides.ld_base_amount = ld_base;
+  // Guard: SLAs computed on Deliverable Cost (FIXED_AMOUNT) cannot evaluate
+  // without an LD base on the mapping. Surface a friendly error before we
+  // POST a payload the backend would silently accept now and trip on later.
+  const selectedSla = slaCatalog.find(s => s.id === sla_id) || {};
+  if(selectedSla.ld_computation_base === 'FIXED_AMOUNT' && !ld_base){
+    toast('LD Base required',
+          'This SLA applies LD on Deliverable Cost — fill in the LD Base Amount (₹) so the evaluator has a rupee base.',
+          'error');
+    return;
+  }
   const payload = {
     sla_id, activity_id: ACTID(),
     effective_from: eff_from,

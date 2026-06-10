@@ -353,7 +353,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
             <option value="FIXED_AMOUNT">Deliverable Cost (set per mapping)</option>
           </select>
         </div>
-        <div class="field"><label>Active From <span class="required">*</span></label><input id="f_effFrom" type="date" value="2024-04-01"></div>
+        <div class="field"><label>Active From <span class="required">*</span></label>
+          <input id="f_effFrom" type="date" value="2024-04-01">
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">When this SLA template becomes valid for new mappings.</div>
+        </div>
+        <div class="field"><label>Active Until</label>
+          <input id="f_effUntil" type="date">
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Leave blank for "no end date" — the SLA stays active indefinitely. Fill in if the contract or this version of the SLA has a sunset date.</div>
+        </div>
       </div>
     </div>
 
@@ -811,6 +818,7 @@ function openOnboardModal(){
   document.getElementById('f_repInt').value = 'QUARTERLY';
   document.getElementById('f_ldBase').value = 'QUARTERLY_PAYMENT';
   document.getElementById('f_effFrom').value = '2024-04-01';
+  document.getElementById('f_effUntil').value = '';
   // Reset the RFP form fields.
   ['rf_measure_name','rf_measure_unit','rf_measure_target',
    'rf_measure2_name','rf_measure2_unit','rf_measure2_target',
@@ -1012,6 +1020,7 @@ async function submitSla(){
     reporting_interval: document.getElementById('f_repInt').value,
     applied_on: document.getElementById('f_ldBase').value,
     effective_from: document.getElementById('f_effFrom').value,
+    effective_until: document.getElementById('f_effUntil').value || null,
     measurement,
     secondary_measurement: secondary,
   };
@@ -1066,6 +1075,9 @@ async function submitSlaEdit(){
     measurement_interval: document.getElementById('f_measInt').value,
     reporting_interval: document.getElementById('f_repInt').value,
     ld_computation_base: document.getElementById('f_ldBase').value,
+    // effective_until is editable on PATCH so an SLA can be sunsetted from
+    // the form. effective_from is fixed once onboarded.
+    effective_until: document.getElementById('f_effUntil').value || null,
   };
   try{
     const r = await fetch(API() + '/api/v3/sla-masters/' + editingId, {
@@ -1294,6 +1306,7 @@ async function editSla(id){
     document.getElementById('f_repInt').value = d.reporting_interval || 'QUARTERLY';
     document.getElementById('f_ldBase').value = d.ld_computation_base || 'QUARTERLY_PAYMENT';
     document.getElementById('f_effFrom').value = (d.effective_from||'2024-04-01').slice(0,10);
+    document.getElementById('f_effUntil').value = d.effective_until ? d.effective_until.slice(0,10) : '';
     // Populate the simple "What is measured" fields from the primary metric.
     const metrics = d.metrics || [];
     const primary = metrics.find(m => m.is_primary) || metrics[0] || {};
