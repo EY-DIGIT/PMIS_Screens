@@ -1058,16 +1058,6 @@ async function uploadAttachmentNow(slaId, file){
   }catch(e){ toast('Network error', e.message, 'error'); }
 }
 
-// Walks _PENDING_FILES and POSTs each one to the freshly-created SLA.
-// Errors are toasted but don't abort the loop — the SLA itself was
-// already saved, so partial-attachment is better than rolling back.
-async function flushPendingAttachments(slaId){
-  for(const f of _PENDING_FILES){
-    await uploadAttachmentNow(slaId, f);
-  }
-  _PENDING_FILES = [];
-  _renderAttachmentTiles();
-}
 
 async function loadAttachmentsForSla(slaId){
   try{
@@ -1377,26 +1367,43 @@ async function submitSla(){
       return;
     }
   }
+  // Build a multipart request: the JSON payload goes in a `payload`
+  // form field; pending image picks are attached as `files`. The backend
+  // creates the SLA and uploads every file in the same round-trip, so
+  // there's no separate "flush after save" sequence anymore.
+  const fd = new FormData();
+  fd.append('payload', JSON.stringify(payload));
+  for(const f of _PENDING_FILES){
+    fd.append('files', f, f.name);
+  }
   try{
     const r = await fetch(API() + '/api/v3/sla-masters/from-rfp', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(payload),
+      body: fd, // Browser sets Content-Type: multipart/form-data; boundary=…
     });
     if(!r.ok){
       const t = await r.text();
       toast('Save failed', 'HTTP '+r.status+' '+t.slice(0,200), 'error');
       return;
     }
-    // Pull the new SLA id from the HAL envelope so pending attachments
-    // (queued before save) can now be uploaded against it.
+    // The backend returns the new SLA plus a per-file success/error list
+    // under `attachments_uploaded`. Surface any individual failure so the
+    // user can retry just the broken upload from the edit modal.
     const body = await r.json();
     const newSla = body?.data?.data || body?.data || {};
-    if(newSla.id && _PENDING_FILES.length){
-      _ATT_SLA_ID = newSla.id;
-      await flushPendingAttachments(newSla.id);
+    const failed = (newSla.attachments_uploaded || []).filter(a => !a.ok);
+    if(failed.length){
+      toast('SLA saved, some uploads failed',
+            failed.map(f => `${f.filename}: ${f.error || 'unknown'}`).join('; ').slice(0,250),
+            'error');
+    } else {
+      toast('Saved',
+            _PENDING_FILES.length
+              ? `SLA onboarded with ${_PENDING_FILES.length} attachment(s).`
+              : 'SLA onboarded.',
+            'success');
     }
-    toast('Saved', 'SLA onboarded.', 'success');
+    _PENDING_FILES = [];
     closeModal('onboardModal');
     loadSlas();
   }catch(e){ toast('Network error', e.message, 'error'); }
