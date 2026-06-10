@@ -482,6 +482,28 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       <div id="rfpPlaceholdersBody"></div>
     </div>
 
+    <!-- 9. Image attachments — uploaded straight to pmis-file-store via contract-mgmt -->
+    <div class="subsection" id="secAttachments">
+      <div class="subsection-head">
+        <div class="subsection-title">Image attachments</div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
+        Optional. Attach screenshots of the RFP section, contract page scans, or evidence pictures.
+        Files are stored in the file-service (S3) — only PNG, JPEG, WebP, GIF are accepted (max 10&nbsp;MB each).
+        For new SLAs, attachments upload <strong>after</strong> the SLA is created; for edits they upload immediately.
+      </div>
+      <div class="grid">
+        <div class="field full">
+          <input id="f_attachments" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple>
+          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">
+            Hold Shift/Ctrl to pick multiple. Captions can be edited later from the View modal.
+          </div>
+        </div>
+      </div>
+      <!-- Live tile strip — fresh picks (orange) + already-uploaded (green). Renders into rfpAttachmentsBody. -->
+      <div id="rfpAttachmentsBody" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;"></div>
+    </div>
+
     <!-- Advanced (collapsible) — only visible in edit mode, hidden for new SLAs -->
     <div class="subsection" id="advancedSection" style="display:none;">
       <div class="subsection-head" style="cursor:pointer;" onclick="toggleAdvanced()">
@@ -935,6 +957,142 @@ function collectPlaceholders(){
   }).filter(p => p.key && p.label);
 }
 
+/* ────────────────────────────────────────────────────────────────────
+ * Image attachments
+ *   - New SLAs:     onboard form holds a list of "pending" file picks
+ *                   (orange tile). After the SLA is created, we POST
+ *                   each pending file in series to
+ *                   /sla-masters/{id}/attachments.
+ *   - Edits:        Already-uploaded attachments (green tile) load from
+ *                   the API immediately, with a delete button.
+ * ──────────────────────────────────────────────────────────────────── */
+
+// File objects the user picked but haven't been uploaded yet (only used
+// for the new-SLA flow — for edits we upload immediately).
+let _PENDING_FILES = [];
+// Attachments already in the DB for the SLA being edited.
+let _EXISTING_ATTACHMENTS = [];
+// SLA id we're editing right now ('' for new SLAs).
+let _ATT_SLA_ID = '';
+
+const _ATT_MIME_OK = new Set(['image/png','image/jpeg','image/jpg','image/webp','image/gif']);
+const _ATT_MAX_BYTES = 10 * 1024 * 1024;
+
+function _renderAttachmentTiles(){
+  const host = document.getElementById('rfpAttachmentsBody');
+  if(!host) return;
+  const tiles = [];
+  // Already uploaded — show the actual image with a delete button.
+  for(const a of _EXISTING_ATTACHMENTS){
+    tiles.push(`
+      <div class="att-tile" style="position:relative;width:120px;height:120px;border-radius:8px;border:2px solid #b6e7c7;background:#e8f7ee;overflow:hidden;">
+        <img src="${esc(a.file_url || '')}" alt="${esc(a.original_filename || '')}"
+             style="width:100%;height:100%;object-fit:cover;"
+             onerror="this.style.display='none'; this.parentElement.style.background='#f6e9bd'; this.parentElement.title='Could not load image — the signed URL may have expired';">
+        <button type="button" title="Remove" onclick="deleteExistingAttachment('${esc(a.id)}')"
+                style="position:absolute;top:4px;right:4px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;font-size:12px;line-height:1;">×</button>
+        <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:2px 4px;text-align:center;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;">
+          ${esc(a.original_filename || '')}
+        </div>
+      </div>`);
+  }
+  // Pending (new picks not yet uploaded).
+  _PENDING_FILES.forEach((f, idx) => {
+    tiles.push(`
+      <div class="att-tile" style="position:relative;width:120px;height:120px;border-radius:8px;border:2px dashed #d68a14;background:#fff7e6;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:11px;color:#7a4d00;text-align:center;padding:0 6px;">
+          📎 pending<br>${esc(f.name)}<br><span style="color:#999;">${Math.round(f.size/1024)} KB</span>
+        </div>
+        <button type="button" title="Remove" onclick="removePendingAttachment(${idx})"
+                style="position:absolute;top:4px;right:4px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;font-size:12px;line-height:1;">×</button>
+      </div>`);
+  });
+  host.innerHTML = tiles.join('') || '<div style="color:var(--text-muted);font-size:12px;font-style:italic;">No attachments yet — pick files above.</div>';
+}
+
+function removePendingAttachment(idx){
+  _PENDING_FILES.splice(idx, 1);
+  _renderAttachmentTiles();
+}
+
+// Wired to the file-picker's `change` event in openOnboardModal().
+function onAttachmentFilesPicked(ev){
+  const files = Array.from(ev.target.files || []);
+  for(const f of files){
+    if(!_ATT_MIME_OK.has((f.type || '').toLowerCase())){
+      toast('Skipped', `${f.name}: not an accepted image format.`, 'error');
+      continue;
+    }
+    if(f.size > _ATT_MAX_BYTES){
+      toast('Skipped', `${f.name}: file is bigger than 10 MB.`, 'error');
+      continue;
+    }
+    // Edit flow → upload immediately. New-SLA flow → stash, upload after save.
+    if(_ATT_SLA_ID){
+      uploadAttachmentNow(_ATT_SLA_ID, f);
+    } else {
+      _PENDING_FILES.push(f);
+    }
+  }
+  ev.target.value = ''; // reset so the same file can be re-picked after a delete
+  _renderAttachmentTiles();
+}
+
+async function uploadAttachmentNow(slaId, file){
+  const fd = new FormData();
+  fd.append('file', file);
+  try{
+    const r = await fetch(API() + '/api/v3/sla-masters/' + encodeURIComponent(slaId) + '/attachments', {
+      method: 'POST', body: fd,
+    });
+    if(!r.ok){
+      const t = await r.text();
+      toast('Upload failed', `${file.name}: HTTP ${r.status} — ${t.slice(0,150)}`, 'error');
+      return;
+    }
+    const body = await r.json();
+    const att = body?.data?.data || body?.data || {};
+    _EXISTING_ATTACHMENTS.push(att);
+    _renderAttachmentTiles();
+    toast('Uploaded', `${file.name} attached.`, 'success');
+  }catch(e){ toast('Network error', e.message, 'error'); }
+}
+
+// Walks _PENDING_FILES and POSTs each one to the freshly-created SLA.
+// Errors are toasted but don't abort the loop — the SLA itself was
+// already saved, so partial-attachment is better than rolling back.
+async function flushPendingAttachments(slaId){
+  for(const f of _PENDING_FILES){
+    await uploadAttachmentNow(slaId, f);
+  }
+  _PENDING_FILES = [];
+  _renderAttachmentTiles();
+}
+
+async function loadAttachmentsForSla(slaId){
+  try{
+    const r = await fetch(API() + '/api/v3/sla-masters/' + encodeURIComponent(slaId) + '/attachments');
+    if(!r.ok){ _EXISTING_ATTACHMENTS = []; _renderAttachmentTiles(); return; }
+    const body = await r.json();
+    const els = body?.data?._embedded?.elements || body?.data?.elements || [];
+    _EXISTING_ATTACHMENTS = els.map(e => e.data || e);
+  }catch(e){ _EXISTING_ATTACHMENTS = []; }
+  _renderAttachmentTiles();
+}
+
+async function deleteExistingAttachment(attId){
+  if(!_ATT_SLA_ID) return;
+  if(!confirm('Remove this attachment?')) return;
+  try{
+    const r = await fetch(API() + '/api/v3/sla-masters/' + encodeURIComponent(_ATT_SLA_ID) +
+                          '/attachments/' + encodeURIComponent(attId), {method:'DELETE'});
+    if(!r.ok){ toast('Delete failed', 'HTTP '+r.status, 'error'); return; }
+    _EXISTING_ATTACHMENTS = _EXISTING_ATTACHMENTS.filter(a => a.id !== attId);
+    _renderAttachmentTiles();
+    toast('Removed', 'Attachment deleted.', 'success');
+  }catch(e){ toast('Network error', e.message, 'error'); }
+}
+
 // Category → starter rows for the "Target — severity threshold table".
 // These mirror the RFP exactly so the user only types the threshold text and
 // numeric bounds. Order matches the RFP tables in §5.28.
@@ -994,6 +1152,14 @@ function openOnboardModal(){
   document.getElementById('advancedSection').style.display = 'none';
   document.getElementById('advancedBody').style.display = 'none';
   if(document.getElementById('advArrow')) document.getElementById('advArrow').textContent = '▶';
+  // Reset attachment state. New SLA → no _ATT_SLA_ID yet → picks queue
+  // as pending; flushed after submitSla() returns the new id.
+  _ATT_SLA_ID = '';
+  _PENDING_FILES = [];
+  _EXISTING_ATTACHMENTS = [];
+  const fp = document.getElementById('f_attachments');
+  if(fp){ fp.value = ''; fp.onchange = onAttachmentFilesPicked; }
+  _renderAttachmentTiles();
   onCategoryChange();
   openModal('onboardModal');
 }
@@ -1222,6 +1388,14 @@ async function submitSla(){
       toast('Save failed', 'HTTP '+r.status+' '+t.slice(0,200), 'error');
       return;
     }
+    // Pull the new SLA id from the HAL envelope so pending attachments
+    // (queued before save) can now be uploaded against it.
+    const body = await r.json();
+    const newSla = body?.data?.data || body?.data || {};
+    if(newSla.id && _PENDING_FILES.length){
+      _ATT_SLA_ID = newSla.id;
+      await flushPendingAttachments(newSla.id);
+    }
     toast('Saved', 'SLA onboarded.', 'success');
     closeModal('onboardModal');
     loadSlas();
@@ -1281,10 +1455,24 @@ async function viewSla(id){
     document.getElementById('viewTitle').textContent = d.title || d.name || d.sla_ref || 'SLA';
     document.getElementById('viewSub').textContent =
       `${d.sla_ref||''}  ·  ${d.contract_type||''}  ·  ${category}`;
-    const mappings = await loadSlaMappings(id);
-    document.getElementById('viewBody').innerHTML = renderViewBody(d, mappings);
+    const [mappings, attachments] = await Promise.all([
+      loadSlaMappings(id),
+      _fetchAttachments(id),
+    ]);
+    document.getElementById('viewBody').innerHTML = renderViewBody(d, mappings, attachments);
     openModal('viewModal');
   }catch(e){ toast('Load failed', e.message, 'error'); }
+}
+
+// Used by both the View modal and editSla() — fetches the live list,
+// returns [] silently when the endpoint is unreachable.
+async function _fetchAttachments(slaId){
+  try{
+    const r = await fetch(API() + '/api/v3/sla-masters/' + encodeURIComponent(slaId) + '/attachments');
+    if(!r.ok) return [];
+    const body = await r.json();
+    return (body?.data?._embedded?.elements || []).map(el => el.data || el);
+  }catch(e){ return []; }
 }
 
 async function loadSlaMappings(slaId){
@@ -1371,9 +1559,37 @@ function rfpRow(label, value, mono){
   </tr>`;
 }
 
-function renderViewBody(d, mappings){
+function renderViewBody(d, mappings, attachments){
+  attachments = attachments || [];
   const category = d.category || categoryFromFormula(d.formula_type);
   const appliedOn = APPLIED_ON_LABEL[d.ld_computation_base] || d.ld_computation_base || '—';
+
+  // Image gallery — shown only when at least one attachment exists.
+  // Each tile is clickable (opens the signed URL in a new tab) and shows
+  // the caption / filename underneath. URLs that 404 fall back to a
+  // "tap to refresh" affordance.
+  const galleryBlock = attachments.length ? `
+    <div style="margin-top:14px;">
+      <div style="font-weight:700;color:var(--navy);font-size:12px;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;">Image attachments (${attachments.length})</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        ${attachments.map(a => `
+          <a href="${esc(a.file_url||'#')}" target="_blank" rel="noopener noreferrer"
+             title="${esc(a.caption || a.original_filename || '')}"
+             style="display:block;width:140px;border-radius:8px;border:1px solid var(--border-soft);overflow:hidden;text-decoration:none;color:var(--text);">
+            <img src="${esc(a.file_url||'')}" alt="${esc(a.original_filename||'')}"
+                 style="width:100%;height:100px;object-fit:cover;display:block;"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <div style="display:none;height:100px;background:#f6e9bd;color:#7a4d00;font-size:11px;padding:8px;text-align:center;line-height:1.4;">
+              ⚠ Image URL expired<br><span style="font-size:10px;">Refresh from edit modal</span>
+            </div>
+            <div style="font-size:11px;padding:6px 8px;color:var(--text-soft);white-space:nowrap;text-overflow:ellipsis;overflow:hidden;">
+              ${esc(a.caption || a.original_filename || '')}
+            </div>
+          </a>
+        `).join('')}
+      </div>
+    </div>
+  ` : '';
 
   // RFP-style table (single 2-column table mirroring the contract document).
   const rfp = `
@@ -1450,7 +1666,7 @@ function renderViewBody(d, mappings){
       </details>`
     : '';
 
-  return rfp + mappingsBlock + advancedBlock;
+  return rfp + galleryBlock + mappingsBlock + advancedBlock;
 }
 
 /* ====== Edit ====== */
@@ -1487,6 +1703,13 @@ async function editSla(id){
     document.getElementById('rfpPlaceholdersBody').innerHTML = '';
     (d.placeholders || []).forEach(addPlaceholderRow);
     _refreshPlaceholderHeader();
+    // Attachment state — edit flow uploads immediately, so wire the
+    // picker against the SLA's id and load any existing tiles.
+    _ATT_SLA_ID = id;
+    _PENDING_FILES = [];
+    const fp = document.getElementById('f_attachments');
+    if(fp){ fp.value = ''; fp.onchange = onAttachmentFilesPicked; }
+    await loadAttachmentsForSla(id);
     // Populate the simple "What is measured" fields from the primary metric.
     const metrics = d.metrics || [];
     const primary = metrics.find(m => m.is_primary) || metrics[0] || {};
