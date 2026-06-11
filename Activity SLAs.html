@@ -616,7 +616,11 @@ const _MAPPING_APPLIED_ON_LABEL = {
   'ANNUAL_PAYMENT':    'Annual Contract Value',
   'FIXED_AMOUNT':      'Deliverable Cost (must be set in LD Base below)',
 };
-function onMappingSlaChange(){
+// Cached mapping-form-schema for the currently-open Add SLA modal.
+// Submit consumes this to know where to POST and what shape to send.
+let _MAPPING_FORM_SCHEMA = null;
+
+async function onMappingSlaChange(){
   const id = document.getElementById('m_sla').value;
   const preview = document.getElementById('m_slaPreview');
   if(!id){
@@ -624,8 +628,10 @@ function onMappingSlaChange(){
     document.getElementById('m_phSection').style.display = 'none';
     document.getElementById('m_phEmpty').style.display = 'none';
     document.getElementById('m_phBody').innerHTML = '';
+    _MAPPING_FORM_SCHEMA = null;
     return;
   }
+  // 1. Show the SLA preview card (cheap, from local cache).
   const sla = slaCatalog.find(s => s.id === id) || {};
   const category = sla.category || sla.formula_type || '—';
   const applied  = _MAPPING_APPLIED_ON_LABEL[sla.ld_computation_base] || sla.ld_computation_base || '—';
@@ -640,8 +646,83 @@ function onMappingSlaChange(){
     ${sla.description ? `<div style="margin-top:6px;color:var(--text-soft);">${esc(sla.description).slice(0,200)}${sla.description.length>200?'…':''}</div>` : ''}
   `;
   preview.style.display = 'block';
-  // Render the dynamic placeholder inputs declared on the template.
-  renderPlaceholders(sla);
+
+  // 2. Fetch the mapping-form-schema — backend tells us which inputs to
+  // render and where to POST. Driven by the SLA's stored placeholders.
+  document.getElementById('m_phBody').innerHTML = '<div style="padding:10px;color:var(--text-muted);font-size:12px;">Loading form…</div>';
+  document.getElementById('m_phSection').style.display = '';
+  document.getElementById('m_phEmpty').style.display = 'none';
+  try{
+    const url = A_C() + '/api/v3/sla-masters/' + encodeURIComponent(id)
+              + '/mapping-form-schema?activity_id=' + encodeURIComponent(ACTID());
+    const r = await fetch(url);
+    if(!r.ok){
+      // Fallback: backend doesn't have the endpoint yet (pre-redeploy).
+      // Render from the SLA's locally-cached placeholders, same as before.
+      _MAPPING_FORM_SCHEMA = null;
+      renderPlaceholders(sla);
+      return;
+    }
+    const body = await r.json();
+    const schema = body?.data?.data || body?.data || {};
+    _MAPPING_FORM_SCHEMA = schema;
+    _renderMappingFormFromSchema(schema);
+  }catch(e){
+    _MAPPING_FORM_SCHEMA = null;
+    renderPlaceholders(sla);
+  }
+}
+
+/* Renders the mapping modal's input section purely from the schema
+ * response. Empty inputs[] → green "no per-mapping inputs needed" banner. */
+function _renderMappingFormFromSchema(schema){
+  // Honour the schema's effective_from_default — backend may have
+  // derived it from the activity's planned start date.
+  if(schema.effective_from_default){
+    const el = document.getElementById('m_eff_from');
+    if(el && !el.value) el.value = schema.effective_from_default;
+  }
+  const inputs = schema.inputs || [];
+  const body = document.getElementById('m_phBody');
+  const section = document.getElementById('m_phSection');
+  const empty = document.getElementById('m_phEmpty');
+  if(!inputs.length){
+    section.style.display = 'none';
+    empty.style.display = '';
+    body.innerHTML = '';
+    return;
+  }
+  empty.style.display = 'none';
+  section.style.display = '';
+  // _renderEvalInput already exists for the eval modal — same shape, reuse it.
+  body.innerHTML = inputs.map((inp, i) => _renderMappingInput(inp, i)).join('');
+}
+
+/* Render one mapping-form input row. Mirrors _renderEvalInput but writes
+ * to ``mph_<name>`` ids so it doesn't collide with the eval modal. */
+function _renderMappingInput(inp, idx){
+  const id = 'mph_' + inp.name;
+  const labelHtml = `${esc(inp.label)}${inp.unit ? ' <span style="color:var(--text-muted);">('+esc(inp.unit)+')</span>' : ''}${inp.required ? ' <span class="required">*</span>' : ''}`;
+  const help = inp.help ? `<div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">${esc(inp.help)}</div>` : '';
+  // Date placeholders come through as type='text' with unit='date' — render a real date picker.
+  const isDate = (inp.type === 'text' && (inp.unit === 'date' || inp.placeholder === 'YYYY-MM-DD'));
+  if(isDate){
+    return `
+      <div class="field">
+        <label>${labelHtml}</label>
+        <input id="${id}" data-eval-name="${esc(inp.name)}" data-eval-type="date" type="date">
+        ${help}
+      </div>`;
+  }
+  const isNum = inp.type === 'number' || inp.type === 'integer';
+  return `
+    <div class="field">
+      <label>${labelHtml}</label>
+      <input id="${id}" data-eval-name="${esc(inp.name)}" data-eval-type="${esc(inp.type)}"
+             type="${isNum ? 'number' : 'text'}"${isNum ? ' step="any"' : ''}
+             placeholder="${esc(inp.placeholder || '')}">
+      ${help}
+    </div>`;
 }
 
 async function submitMapping(){
@@ -649,13 +730,32 @@ async function submitMapping(){
   if(!sla_id){ toast('Pick an SLA', '', 'error'); return; }
   const eff_from = document.getElementById('m_eff_from').value;
   if(!eff_from){ toast('Mapping active from required', '', 'error'); return; }
-  // Collect placeholder inputs declared on the SLA template. The form has
-  // no static overrides anymore — every SLA brings its own input set.
-  const {overrides, missing} = collectPlaceholderValues();
+
+  // Build overrides from the schema-rendered inputs when available; fall
+  // back to the locally-rendered placeholder form (pre-redeploy path).
+  let overrides = {};
+  let missing = [];
+  if(_MAPPING_FORM_SCHEMA && Array.isArray(_MAPPING_FORM_SCHEMA.inputs)){
+    for(const inp of _MAPPING_FORM_SCHEMA.inputs){
+      const el = document.getElementById('mph_' + inp.name);
+      if(!el) continue;
+      const raw = (el.value || '').trim();
+      if(raw === ''){
+        if(inp.required !== false) missing.push(inp.label || inp.name);
+        continue;
+      }
+      // Numbers in, numbers out; everything else as-is.
+      const n = parseFloat(raw);
+      overrides[inp.name] = (inp.type === 'text' || isNaN(n)) ? raw : n;
+    }
+  } else {
+    const collected = collectPlaceholderValues();
+    overrides = collected.overrides;
+    missing = collected.missing;
+  }
+
   if(missing.length){
-    toast('Missing required values',
-          'Fill in: ' + missing.join(', '),
-          'error');
+    toast('Missing required values', 'Fill in: ' + missing.join(', '), 'error');
     return;
   }
   const payload = {
@@ -665,8 +765,13 @@ async function submitMapping(){
     // retired. The backend treats omitted effective_until as null = open-ended.
     overrides
   };
+  // When the schema gave us a submit target, prefer it; otherwise the
+  // legacy URL works too.
+  const submitUrl = (_MAPPING_FORM_SCHEMA && _MAPPING_FORM_SCHEMA.submit && _MAPPING_FORM_SCHEMA.submit.url)
+    ? A_C() + _MAPPING_FORM_SCHEMA.submit.url
+    : A_C() + '/api/v3/sla-activity-mappings';
   try{
-    const r = await fetch(A_C() + '/api/v3/sla-activity-mappings', {
+    const r = await fetch(submitUrl, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(payload)
     });
