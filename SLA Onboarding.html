@@ -417,11 +417,6 @@ const _FALLBACK_RFP_FIELDS = [
    help:'BSP RFP per-metric category — e.g. "Accuracy", "Throughput", "Availability".'},
 ];
 
-/* Seed the live catalogs with the fallback values RIGHT NOW so any
- * UI built before boot() resolves still has a populated dropdown. */
-RFP_FIELDS = _FALLBACK_RFP_FIELDS.slice();
-CATEGORIES = _FALLBACK_CATEGORIES.slice();
-PROJECTS   = _FALLBACK_PROJECTS.slice();
 const _FALLBACK_CATEGORIES = [
   {code:'DELIVERABLE_SUBMISSION', display_name:'Deliverable Submission', formula_type:'fixed_escalation'},
   {code:'QUERY_RESOLUTION',       display_name:'Query Resolution',       formula_type:'fixed_escalation'},
@@ -429,6 +424,13 @@ const _FALLBACK_CATEGORIES = [
   {code:'RESOURCE_MANAGEMENT',    display_name:'Resource Management',    formula_type:'point_accumulation'},
   {code:'GOVERNANCE_TOOL',        display_name:'Governance Tool',        formula_type:'point_accumulation'},
 ];
+
+/* Seed the live catalogs with the fallback values RIGHT NOW so any
+ * UI built before boot() resolves still has a populated dropdown.
+ * Must come AFTER every _FALLBACK_* const declaration above. */
+RFP_FIELDS = _FALLBACK_RFP_FIELDS.slice();
+CATEGORIES = _FALLBACK_CATEGORIES.slice();
+PROJECTS   = _FALLBACK_PROJECTS.slice();
 
 /* ── Boot ── */
 function _restoreApiBases(){
