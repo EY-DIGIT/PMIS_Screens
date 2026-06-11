@@ -1524,48 +1524,96 @@ function _updateSevPill(rowEl){
   pill.textContent = 'L' + sev;
 }
 
-function _inputVariableOptions(selected){
-  // Build the <option> list for the per-row "Input variable" dropdown.
+/* ─── Input-variable dropdown — per-row uniqueness logic ───────────
+ *
+ * Every variable already chosen on another row disappears from each
+ * dropdown's options. The row's OWN current value stays visible so the
+ * user can see what they picked. When a row is deleted or changed,
+ * the released value becomes selectable again on the remaining rows.
+ *
+ * Implementation: after any row-add / change / delete we sweep every
+ * dropdown, recompute the "used elsewhere" set, and rebuild that
+ * dropdown's options. Cheap (≤ 5–6 rows on a typical SLA).
+ * ────────────────────────────────────────────────────────────────── */
+
+function _selectedVariablesElsewhere(excludeRow){
+  const used = new Set();
+  document.querySelectorAll('#rfpTargetBody .rfp-target-row').forEach(r => {
+    if(r === excludeRow) return;
+    const sel = r.querySelector('[data-k="input_variable"]');
+    if(!sel) return;
+    const v = sel.value;
+    if(v && v !== '__custom__') used.add(v);
+  });
+  return used;
+}
+
+function _inputVariableOptions(selected, excludeRow){
+  // Build the <option> list for one row's "Input variable" dropdown.
   // Empty value = "use the SLA's primary measurement" (common case).
   // The sentinel '__custom__' lets the user type a brand new key.
+  // Variables selected in OTHER rows (passed via excludeRow) are hidden
+  // so each variable can only appear once across the table.
+  const used = _selectedVariablesElsewhere(excludeRow || null);
   const opts = [
     `<option value="" ${!selected ? 'selected' : ''}>— Primary measurement (default) —</option>`,
   ];
   for(const v of SLA_INPUT_VARIABLES){
-    const key = v.key;
+    if(used.has(v.key)) continue;  // already taken by another row
     const lbl = `${v.label}${v.unit ? ' ('+v.unit+')' : ''}`;
-    opts.push(`<option value="${esc(key)}" ${selected===key?'selected':''}>${esc(lbl)}</option>`);
+    opts.push(`<option value="${esc(v.key)}" ${selected===v.key?'selected':''}>${esc(lbl)}</option>`);
   }
   // Allow the user to type a brand-new metric_key directly.
   opts.push(`<option value="__custom__">+ Type a new variable…</option>`);
   // If the row's saved value isn't in the catalog (custom one used
   // previously), surface it so the dropdown shows the right selection.
-  if(selected && !SLA_INPUT_VARIABLES.find(v => v.key === selected)){
+  if(selected && !SLA_INPUT_VARIABLES.find(v => v.key === selected) && !used.has(selected)){
     opts.splice(1, 0,
       `<option value="${esc(selected)}" selected>${esc(selected)} (custom)</option>`);
   }
   return opts.join('');
 }
 
+function _refreshAllInputVariableDropdowns(){
+  // Sweep every input_variable dropdown and rebuild its options based
+  // on what's currently selected across the table. Each row's own
+  // current selection is preserved.
+  document.querySelectorAll('#rfpTargetBody .rfp-target-row').forEach(row => {
+    const sel = row.querySelector('[data-k="input_variable"]');
+    if(!sel) return;
+    const current = sel.value;
+    sel.innerHTML = _inputVariableOptions(current === '__custom__' ? '' : current, row);
+    // innerHTML rebuild can drop the selection — re-apply it.
+    if(current && current !== '__custom__'){
+      sel.value = current;
+    }
+  });
+}
+
 function _onInputVariableChange(sel){
-  // Sentinel "__custom__" → prompt for a new metric_key and inject it as
-  // a permanent option so the user can keep typing into the row.
-  if(sel.value !== '__custom__') return;
-  const key = (prompt('New input variable (snake_case, e.g. "uptime_percent"):') || '').trim();
-  if(!key){ sel.value = ''; return; }
-  // Naïve sanitization — backend will validate too.
-  const safe = key.toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '');
-  if(!safe){ sel.value = ''; return; }
-  const opt = document.createElement('option');
-  opt.value = safe;
-  opt.textContent = safe + ' (new)';
-  opt.selected = true;
-  sel.insertBefore(opt, sel.querySelector('option[value="__custom__"]'));
-  sel.value = safe;
-  // Remember it across rows so the next row's dropdown sees it too.
-  if(!SLA_INPUT_VARIABLES.find(v => v.key === safe)){
-    SLA_INPUT_VARIABLES.push({key: safe, label: safe, unit: null, source: 'custom', used_by: [], categories: []});
+  // Sentinel "__custom__" → prompt for a new metric_key and inject it
+  // as a permanent option so the user can keep typing into the row.
+  if(sel.value === '__custom__'){
+    const key = (prompt('New input variable (snake_case, e.g. "uptime_percent"):') || '').trim();
+    if(!key){ sel.value = ''; _refreshAllInputVariableDropdowns(); return; }
+    const safe = key.toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '');
+    if(!safe){ sel.value = ''; _refreshAllInputVariableDropdowns(); return; }
+    if(!SLA_INPUT_VARIABLES.find(v => v.key === safe)){
+      SLA_INPUT_VARIABLES.push({key: safe, label: safe, unit: null, source: 'custom', used_by: [], categories: []});
+    }
+    sel.value = safe;
   }
+  // Any change ripples into the OTHER rows' dropdowns — the released
+  // value (if any) becomes available again, the new value gets hidden.
+  _refreshAllInputVariableDropdowns();
+}
+
+function _onDeleteTargetRow(btn){
+  // Wrapper around the row-delete so we can refresh the dropdowns
+  // after the row is gone (its variable becomes available again).
+  const row = btn.closest('.rfp-target-row');
+  if(row) row.remove();
+  _refreshAllInputVariableDropdowns();
 }
 
 function addRfpTargetRow(prefill){
@@ -1586,15 +1634,20 @@ function addRfpTargetRow(prefill){
       ${[0,1,2,3,4].map(s => `<option value="${s}" ${sev===s?'selected':''}>Severity ${s}</option>`).join('')}
     </select>
     <select data-k="input_variable" onchange="_onInputVariableChange(this)">
-      ${_inputVariableOptions(prefill.input_variable || '')}
+      ${_inputVariableOptions(prefill.input_variable || '', row)}
     </select>
     <input data-k="threshold_label" placeholder="e.g. ≤ 21 days" value="${esc(prefill.threshold_label||'')}">
     <input data-k="from_value" type="number" step="any" placeholder="—" value="${prefill.from_value==null?'':prefill.from_value}">
     <input data-k="to_value"   type="number" step="any" placeholder="—" value="${prefill.to_value==null?'':prefill.to_value}">
     <button type="button" class="btn small-btn delete-btn" title="Remove this row"
-            onclick="this.parentElement.remove()">✕</button>
+            onclick="_onDeleteTargetRow(this)">✕</button>
   `;
   body.appendChild(row);
+  // The new row's dropdown was built with the right exclude set, but
+  // existing rows' dropdowns may now show options the new row just
+  // claimed (if a prefill input_variable was set). Sweep once after
+  // append to keep everything consistent.
+  _refreshAllInputVariableDropdowns();
 }
 
 function collectRfpTargetRows(){
