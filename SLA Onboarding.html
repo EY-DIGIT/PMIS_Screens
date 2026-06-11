@@ -609,7 +609,12 @@ function _populateStaticDropdowns(){
       CATEGORIES.map(c =>
         `<option value="${esc(c.display_name)}" data-formula="${esc(c.formula_type||'')}">${esc(c.display_name)}</option>`
       ).join('');
-    if(cur) cat.value = cur;
+    if(cur){
+      cat.value = cur;
+      // Setting .value programmatically doesn't fire onchange — call
+      // the handler ourselves so the Target widget renders.
+      _onStaticCategoryChange();
+    }
   }
 }
 
