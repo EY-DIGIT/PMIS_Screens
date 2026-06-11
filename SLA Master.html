@@ -280,7 +280,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       <div class="table-wrap">
         <table class="table">
           <thead><tr>
-            <th>SLA Number</th><th>Title</th><th>Project</th><th>Contract</th><th>Category</th><th>Status</th><th>Updated</th><th>Actions</th>
+            <th>SLA Number</th><th>Title</th><th>Project</th><th>Contract</th><th>Category</th><th>Status</th><th>📎</th><th>Updated</th><th>Actions</th>
           </tr></thead>
           <tbody id="slaTbody">
             <tr class="empty-row"><td colspan="7">No SLAs loaded yet. Click <strong>Check</strong> to test the API, then <strong>Refresh</strong>.</td></tr>
@@ -767,7 +767,7 @@ function renderTable(){
   });
   const tbody = document.getElementById('slaTbody');
   if(filtered.length===0){
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No matching SLAs.</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="9">No matching SLAs.</td></tr>';
     return;
   }
   const categoryBadgeColor = {
@@ -779,6 +779,20 @@ function renderTable(){
   };
   tbody.innerHTML = filtered.map(s => {
     const slaCategory = s.category || categoryFromFormula(s.formula_type);
+    // Attachments column: thumbnail of the first image + count badge.
+    // The list endpoint now embeds `attachments` so we render it inline
+    // without a follow-up call.
+    const atts = Array.isArray(s.attachments) ? s.attachments : [];
+    const attCell = atts.length
+      ? `<div style="display:flex;align-items:center;gap:6px;">
+          <img src="${esc(atts[0].file_url)}" alt=""
+               title="${esc(atts[0].caption || atts[0].original_filename || '')}"
+               style="width:32px;height:32px;object-fit:cover;border-radius:4px;border:1px solid var(--border-soft);cursor:pointer;"
+               onclick='viewSla("${s.id}")'
+               onerror="this.style.display='none'">
+          <span class="badge grey" style="font-size:10px;">${atts.length}</span>
+        </div>`
+      : '<span style="color:var(--text-muted);font-size:11px;">—</span>';
     return `
     <tr>
       <td><span class="link" onclick='viewSla("${s.id}")'>${esc(s.sla_ref||'-')}</span></td>
@@ -787,6 +801,7 @@ function renderTable(){
       <td><span class="badge grey">${esc(s.contract_type||'-')}</span></td>
       <td><span class="${categoryBadgeColor[slaCategory] || 'badge'}">${esc(slaCategory)}</span></td>
       <td><span class="badge ${ (s.status||'ACTIVE')==='ACTIVE'?'green':(s.status==='RETIRED'?'red':'orange') }">${esc(s.status||'ACTIVE')}</span></td>
+      <td>${attCell}</td>
       <td>${esc((s.updated_at||s.created_at||'').slice(0,10))}</td>
       <td class="actions-cell">
         <button class="btn small-btn icon-btn cancel" onclick='viewSla("${s.id}")'>👁 View</button>
