@@ -208,12 +208,47 @@ main{max-width:1180px;margin:0 auto;padding:24px 28px 96px 28px;}
       <div class="dyn-cell-value"><select id="s_project_id"><option value="">— Select a project —</option></select></div>
       <div class="dyn-cell-delete"></div>
     </div>
-    <div class="dyn-row" style="border-bottom:none;">
+    <div class="dyn-row">
       <div class="dyn-cell-label" style="display:flex;flex-direction:column;justify-content:center;">
         <div style="font-weight:600;color:var(--navy);font-size:13px;">SLA Category <span class="required">*</span></div>
-        <div class="field-help">Picks the calculation engine (point_accumulation / fixed_escalation / wac).</div>
+        <div class="field-help">Picks the calculation engine (point_accumulation / fixed_escalation). Also chooses whether Target below is a severity table or a linear LD form.</div>
       </div>
-      <div class="dyn-cell-value"><select id="s_category_code"><option value="">— Select —</option></select></div>
+      <div class="dyn-cell-value">
+        <select id="s_category_code" onchange="_onStaticCategoryChange()"><option value="">— Select —</option></select>
+      </div>
+      <div class="dyn-cell-delete"></div>
+    </div>
+    <!-- Definition of SLA — mandatory across all 4 RFPs (PMU, MSAP, BSP, MSIP). -->
+    <div class="dyn-row">
+      <div class="dyn-cell-label" style="display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-weight:600;color:var(--navy);font-size:13px;">Definition of SLA <span class="required">*</span></div>
+        <div class="field-help">One-sentence summary — what does this SLA cover?</div>
+      </div>
+      <div class="dyn-cell-value"><textarea id="s_description" placeholder='RFP "Definition of SLA" / "Description" row.'></textarea></div>
+      <div class="dyn-cell-delete"></div>
+    </div>
+    <!-- SLA Calculation — mandatory across all 4 RFPs. -->
+    <div class="dyn-row">
+      <div class="dyn-cell-label" style="display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-weight:600;color:var(--navy);font-size:13px;">SLA Calculation <span class="required">*</span></div>
+        <div class="field-help">How the value is derived — formula / counting rule / measurement method.</div>
+      </div>
+      <div class="dyn-cell-value"><textarea id="s_calculation_method" placeholder='Plain-English description (RFP "SLA calculation" row).'></textarea></div>
+      <div class="dyn-cell-delete"></div>
+    </div>
+    <!-- Target / Applied Severity level — mandatory across all 4 RFPs.
+         The widget inside switches between severity_table and linear_form
+         based on the category picked above. -->
+    <div class="dyn-row" style="border-bottom:none;">
+      <div class="dyn-cell-label" style="display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-weight:600;color:var(--navy);font-size:13px;">Target / Applied Severity level <span class="required">*</span></div>
+        <div class="field-help" id="s_target_help">Pick a category above — the right input renders here automatically (severity table for banded SLAs, linear LD form for deliverable / query SLAs).</div>
+      </div>
+      <div class="dyn-cell-value">
+        <div id="s_target_container">
+          <div class="dyn-cell-empty">Waiting for category selection above…</div>
+        </div>
+      </div>
       <div class="dyn-cell-delete"></div>
     </div>
   </div>
@@ -360,6 +395,26 @@ const _FALLBACK_RFP_FIELDS = [
   {key:'linear_escalation', label:'Linear LD escalation', section:'Target', input_type:'linear_form'},
   {key:'placeholders', label:'Mapping inputs (filled at attach time)', section:'Mapping', input_type:'placeholder_table'},
   {key:'attachments', label:'Image attachments', section:'Evidence', input_type:'file_picker'},
+
+  /* ─── Newly added rows from the deep RFP analysis ───
+   * These appear across some-or-all of PMU / MSAP / BSP / MSIP but
+   * aren't strictly mandatory in every one, so they live in the
+   * dynamic builder instead of the static section. */
+  {key:'data_capture_process', label:'Process to capture raw data for SLA calculations',
+   section:'Source & Calculation', input_type:'textarea',
+   help:'Appears in all 4 RFPs (PMU, MSAP, BSP, MSIP). Describes how the raw measurement is captured before the SLA calculation runs.'},
+  {key:'monitoring_tool', label:'Tool used for SLA monitoring',
+   section:'Source & Calculation', input_type:'text',
+   help:'Appears in MSAP, MSIP. e.g. "EMS tools", "biometric attendance system", "N/A".'},
+  {key:'ld_calculation', label:'LD calculation (separate from SLA calculation)',
+   section:'Source & Calculation', input_type:'textarea',
+   help:'MSAP RFP separates the SLA-value calculation from the LD-value calculation. Optional for other contracts.'},
+  {key:'assumptions', label:'Assumptions / Remarks',
+   section:'Source & Calculation', input_type:'textarea',
+   help:'MSAP "Assumptions" / "Remarks" row — definitions of T, planned dates, application tracks, etc.'},
+  {key:'metric_type', label:'Metric Type',
+   section:'Identification', input_type:'text',
+   help:'BSP RFP per-metric category — e.g. "Accuracy", "Throughput", "Availability".'},
 ];
 
 /* Seed the live catalogs with the fallback values RIGHT NOW so any
@@ -468,21 +523,36 @@ async function loadInputVariables(){
   }
 }
 
-/* The four mandatory identification fields are rendered as a static
- * section at the top, never as dynamic rows. They're excluded from
- * the row-type dropdown and collected directly from their fixed IDs
- * on submit. */
-const _STATIC_ID_KEYS = ['sla_ref', 'title', 'project_id', 'category_code'];
+/* Mandatory across PMU, MSAP, BSP, MSIP RFPs — rendered as a static
+ * top section, never as dynamic rows. Excluded from the row-type
+ * dropdown and collected directly from their fixed IDs on submit.
+ *
+ *   sla_ref            ★ every contract
+ *   title              ★ every contract
+ *   project_id         ★ app-level (not RFP) — picks the contract
+ *   category_code      ★ picks engine (also drives Target widget)
+ *   description        ★ every contract ("Definition of SLA")
+ *   calculation_method ★ every contract ("SLA calculation")
+ *   target             ★ every contract — severity_table OR linear_form
+ *                        depending on category (Deliverable/Query =
+ *                        linear, everything else = severity table)
+ */
+const _STATIC_ID_KEYS = [
+  'sla_ref', 'title', 'project_id', 'category_code',
+  'description', 'calculation_method',
+  'target_rows', 'linear_escalation',  // both target keys are static
+];
 
-/* Keys pre-loaded by "📋 Pre-load standard RFP rows". The 4 ID keys
- * are intentionally NOT here — they live in the static section. */
+/* Optional rows the operator can add via the dynamic builder. The
+ * "📋 Pre-load standard RFP rows" button populates these so common
+ * setups are one click away. */
 const _TEMPLATE_KEYS = [
-  'description','scope_text',
-  'data_source','calculation_method','reports_submitted_to',
+  'scope_text',
+  'data_source',
+  'reports_submitted_to',
   'measurement_interval','reporting_interval','ld_computation_base',
   'effective_from',
   'measurement',
-  'target_rows',
 ];
 
 function useTemplate(){
@@ -494,6 +564,27 @@ function useTemplate(){
     _TEMPLATE_KEYS.includes(f.key) && !present.has(f.key)
   ).sort((a,b) => _TEMPLATE_KEYS.indexOf(a.key) - _TEMPLATE_KEYS.indexOf(b.key));
   ordered.forEach(f => addRow(f.key));
+}
+
+/* When the Category dropdown in the static section changes, swap the
+ * Target widget between severity_table (banded SLAs) and linear_form
+ * (Deliverable Submission / Query Resolution). The widget lives in
+ * #s_target_container and uses the same renderers the dynamic builder
+ * does — only the host element differs. */
+function _onStaticCategoryChange(){
+  const cat = (document.getElementById('s_category_code').value || '').trim();
+  const container = document.getElementById('s_target_container');
+  if(!cat){
+    container.innerHTML = '<div class="dyn-cell-empty">Waiting for category selection above…</div>';
+    return;
+  }
+  const isLinear = (cat === 'Deliverable Submission' || cat === 'Query Resolution');
+  // Reuse the existing widget renderers — they accept any host element.
+  const fakeField = isLinear
+    ? {key: 'linear_escalation'}
+    : {key: 'target_rows'};
+  if(isLinear) _widgetLinearForm(container, fakeField);
+  else         _widgetSeverityTable(container, fakeField);
 }
 
 /* Populate the two static dropdowns (Project, Category) with whatever
@@ -938,15 +1029,36 @@ async function submitSla(){
 
 function _collectPayload(){
   const payload = {};
-  // ── Static SLA Identification fields ──
-  const slaRef   = (document.getElementById('s_sla_ref').value   || '').trim();
-  const title    = (document.getElementById('s_title').value     || '').trim();
-  const projId   = (document.getElementById('s_project_id').value|| '').trim();
-  const catCode  = (document.getElementById('s_category_code').value || '').trim();
+  // ── Static mandatory fields ──
+  const slaRef  = (document.getElementById('s_sla_ref').value           || '').trim();
+  const title   = (document.getElementById('s_title').value             || '').trim();
+  const projId  = (document.getElementById('s_project_id').value        || '').trim();
+  const catCode = (document.getElementById('s_category_code').value     || '').trim();
+  const desc    = (document.getElementById('s_description').value       || '').trim();
+  const calc    = (document.getElementById('s_calculation_method').value|| '').trim();
   if(slaRef)  payload.sla_ref = slaRef;
   if(title)   payload.title = title;
   if(projId)  payload.project_id = projId;
   if(catCode) payload.category_code = catCode;
+  if(desc)    payload.description = desc;
+  if(calc)    payload.calculation_method = calc;
+  // ── Target widget (severity_table or linear_form) ──
+  // Collect from the static container the same way the dynamic row
+  // collector does, so we get target_rows[] or linear_escalation{}.
+  const targetHost = document.getElementById('s_target_container');
+  const isLinear = (catCode === 'Deliverable Submission' || catCode === 'Query Resolution');
+  if(targetHost){
+    // Fake a row + field shape so we can reuse _collectRowValue's
+    // sub-form readers. The function reads from the cell directly.
+    const fakeRow = {querySelector: (s) => targetHost.querySelector(s),
+                     querySelectorAll: (s) => targetHost.querySelectorAll(s)};
+    fakeRow.querySelector = (s) => s === '.dyn-cell-value' ? targetHost : targetHost.querySelector(s);
+    const value = isLinear
+      ? _collectLinearFromHost(targetHost)
+      : _collectSeverityFromHost(targetHost);
+    if(isLinear && value)             payload.linear_escalation = value;
+    else if(!isLinear && value)       payload.target_rows = value;
+  }
   // ── Dynamic rows ──
   document.querySelectorAll('#dynBody .dyn-row').forEach(row => {
     const key = row.dataset.fieldKey;
@@ -957,6 +1069,43 @@ function _collectPayload(){
     if(v !== undefined) payload[key] = v;
   });
   return payload;
+}
+
+/* Helper: walks any host element's .sev-row children and returns the
+ * target_rows[] array. Used by both the static-section collector and
+ * the dynamic-row collector. */
+function _collectSeverityFromHost(host){
+  const rows = [];
+  host.querySelectorAll('.sev-row').forEach(r => {
+    const o = {};
+    r.querySelectorAll('[data-k]').forEach(el => {
+      const v = (el.value || '').trim();
+      const k = el.dataset.k;
+      if(k === 'severity') o.severity = Number(v);
+      else if(k === 'threshold_label') o.threshold_label = v || null;
+      else if(k === 'input_variable')  o.input_variable = (v && v !== '__custom__') ? v : null;
+      else o[k] = v === '' ? null : Number(v);
+    });
+    if(o.threshold_label || o.from_value != null || o.to_value != null) rows.push(o);
+  });
+  return rows.length ? rows : undefined;
+}
+
+function _collectLinearFromHost(host){
+  const obj = {};
+  host.querySelectorAll('[data-k]').forEach(el => {
+    const v = (el.value || '').trim();
+    const k = el.dataset.k;
+    if(k === 'preview') return;
+    if(k === 'rate_per_unit_percent' && v) obj.rate_per_unit_percent = v;
+    else if(k === 'unit' && v) obj.unit = v;
+    else if(k === 'grace_units' && v !== '') obj.grace_units = Number(v);
+  });
+  if(obj.rate_per_unit_percent){
+    obj.max_units = 20;
+    return obj;
+  }
+  return undefined;
 }
 
 function _collectRowValue(row, field){
@@ -1070,21 +1219,56 @@ async function loadSlaForEdit(id){
     const d = body.data || body;
     document.getElementById('dynBody').innerHTML = '';
 
-    // Static SLA Identification fields land in the fixed top inputs
+    // Static mandatory fields land in the fixed top inputs
     // (NOT in the dynamic builder).
-    if(d.sla_ref)     document.getElementById('s_sla_ref').value = d.sla_ref;
-    if(d.title)       document.getElementById('s_title').value = d.title;
-    if(d.project_id)  document.getElementById('s_project_id').value = d.project_id;
-    if(d.category)    document.getElementById('s_category_code').value = d.category;
+    if(d.sla_ref)      document.getElementById('s_sla_ref').value = d.sla_ref;
+    if(d.title)        document.getElementById('s_title').value = d.title;
+    if(d.project_id)   document.getElementById('s_project_id').value = d.project_id;
+    if(d.category){
+      document.getElementById('s_category_code').value = d.category;
+      _onStaticCategoryChange();  // render the right Target widget shape
+    }
+    if(d.description || d.definition)
+      document.getElementById('s_description').value = d.description || d.definition;
+    if(d.calculation_method)
+      document.getElementById('s_calculation_method').value = d.calculation_method;
+    // Target widget — hydrate after the category-driven render above
+    setTimeout(() => {
+      const container = document.getElementById('s_target_container');
+      if(d.target_rows && d.target_rows.length){
+        // Rebuild severity table rows
+        const body = container.querySelector('.sev-body');
+        if(body){
+          body.innerHTML = '';
+          const addBtn = container.querySelector('button');
+          d.target_rows.forEach(tr => {
+            _addSevRow(addBtn);
+            const sevRow = body.lastChild;
+            sevRow.querySelector('[data-k="severity"]').value = tr.severity ?? 0;
+            _updateSevPill(sevRow.querySelector('[data-k="severity"]'));
+            if(tr.input_variable) sevRow.querySelector('[data-k="input_variable"]').value = tr.input_variable;
+            sevRow.querySelector('[data-k="threshold_label"]').value = tr.threshold_label || '';
+            if(tr.from_value != null) sevRow.querySelector('[data-k="from_value"]').value = tr.from_value;
+            if(tr.to_value != null)   sevRow.querySelector('[data-k="to_value"]').value = tr.to_value;
+          });
+        }
+      } else if(d.linear_escalation){
+        if(d.linear_escalation.rate_per_unit_percent != null)
+          container.querySelector('[data-k="rate_per_unit_percent"]').value = d.linear_escalation.rate_per_unit_percent;
+        if(d.linear_escalation.unit)
+          container.querySelector('[data-k="unit"]').value = d.linear_escalation.unit;
+        if(d.linear_escalation.grace_units != null)
+          container.querySelector('[data-k="grace_units"]').value = d.linear_escalation.grace_units;
+        _renderLinPreview(container.querySelector('[data-k="rate_per_unit_percent"]'));
+      }
+    }, 0);
 
     // Everything else goes into the dynamic table — one row per field present.
     const stateFor = (k, v) => {
       if(v == null) return;
       addRow(k);
-      // Wait for the widget to render, then set its value
       setTimeout(() => _hydrateRow(k, v, d), 0);
     };
-    stateFor('description', d.description || d.definition);
     stateFor('scope_text', d.scope_text || d.scope);
     stateFor('data_source', d.data_source);
     stateFor('calculation_method', d.calculation_method);
