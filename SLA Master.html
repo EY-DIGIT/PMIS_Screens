@@ -314,7 +314,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
             <option value="">— Select a project —</option>
             <!-- Loaded from pmis-project-management /api/v3/projects -->
           </select>
-          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">
+          <div id="f_projectHint" class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">
             The PMC contract this SLA belongs to. Lists every active project from project-management.
           </div>
         </div>
@@ -862,29 +862,68 @@ async function loadSlaCategories(){
 
 /* ────────────────────────────────────────────────────────────────────
  * Project picker (loads from pmis-project-management)
+ *
+ * The /projects API requires auth; in the file:// dev flow we may not
+ * have a token, in which case the fetch returns 401 and the dropdown
+ * would be empty. To keep the form usable we ship a small known-list
+ * fallback (currently the PMC project this codebase is built around)
+ * and surface a "Other / paste UUID" option that flips the dropdown
+ * into a free-form text input.
  * ──────────────────────────────────────────────────────────────────── */
 let PROJECTS = [];
 const PROJECT_MGMT_BASE = 'http://localhost:9000/projects';
 
+// Known-projects fallback. Used when the API returns 401 / errors /
+// empty. Extend this list as more projects come online.
+const _FALLBACK_PROJECTS = [
+  {
+    id: '31eefb48-c2d3-4a4a-8fc7-a23b84d08e45',
+    name: 'UIDAI - PMC for Selection & On-boarding of MSP(s)',
+    projectCode: 'UIDAI-PR260529040804139',
+  },
+];
+
 async function loadProjects(){
   let items = [];
+  let loadError = null;
   try{
     const r = await fetch(PROJECT_MGMT_BASE + '/api/v3/projects?pageSize=200');
     if(r.ok){
       const body = await r.json();
       const els = (body?.data?._embedded?.elements || body?.data?.elements || []);
       items = els.map(el => el.data || el);
+    } else {
+      loadError = `HTTP ${r.status}`;
     }
   }catch(e){
-    // Project-management unreachable — picker stays empty; user can still
-    // type a project_id manually if they switch to free-form mode later.
+    loadError = e.message;
+  }
+  // When the API gave us nothing, fall back to the hardcoded list so the
+  // picker is never empty. A red badge next to the field signals which
+  // source filled it.
+  let usingFallback = false;
+  if(!items.length){
+    items = _FALLBACK_PROJECTS;
+    usingFallback = true;
+    if(loadError){
+      console.warn('[loadProjects] API failed (' + loadError + '); using known-projects fallback. ' +
+                   'Provide an auth token or run from origin http://localhost:3000 to get the full list.');
+    }
   }
   PROJECTS = items.filter(p => !p.deletedAt && !p.deleted_at);
+  // Trailing sentinel: picking it shows a free-form UUID input so users
+  // can paste any project_id even when their project isn't in the list.
+  const PASTE_SENTINEL = '__paste__';
+  const renderOptions = (placeholder) =>
+    `<option value="">${placeholder}</option>` +
+    PROJECTS.map(p => `<option value="${esc(p.id)}">${esc(p.name || p.title || p.id)}</option>`).join('') +
+    `<option value="${PASTE_SENTINEL}">+ Paste a project UUID …</option>`;
+
   const sel = document.getElementById('f_project');
   if(sel){
     const current = sel.value;
-    sel.innerHTML = '<option value="">— Select a project —</option>' +
-      PROJECTS.map(p => `<option value="${esc(p.id)}">${esc(p.name || p.title || p.id)}</option>`).join('');
+    sel.innerHTML = renderOptions('— Select a project —');
+    sel.onchange = _onProjectPickerChange;
     if(current) sel.value = current;
   }
   // Same list feeds the list-page filter (added in Phase E).
@@ -895,8 +934,36 @@ async function loadProjects(){
       PROJECTS.map(p => `<option value="${esc(p.id)}">${esc(p.name || p.title || p.id)}</option>`).join('');
     if(current) filt.value = current;
   }
+  // Surface a small "using fallback list" hint under the picker so the
+  // user knows why they only see one project. Recreated each time so a
+  // later successful API load can clear it.
+  const hint = document.getElementById('f_projectHint');
+  if(hint){
+    hint.innerHTML = usingFallback
+      ? `<span style="color:#7a4d00;">⚠ Showing built-in projects only ` +
+        `(project-management ${loadError || 'unreachable'}). ` +
+        `Pick "Paste a project UUID" to enter a different id.</span>`
+      : `The PMC contract this SLA belongs to. ${PROJECTS.length} project(s) loaded.`;
+  }
   // Re-render with the project labels filled in.
   if(typeof renderTable === 'function' && slas.length) renderTable();
+}
+
+function _onProjectPickerChange(ev){
+  // When the user picks the "paste a UUID" sentinel, swap the <select>
+  // for a free-form input. Re-running loadProjects() puts the dropdown
+  // back. Implemented inline so it doesn't litter the global namespace.
+  if(ev.target.value !== '__paste__') return;
+  const field = ev.target.parentElement;
+  const uuid = prompt('Paste the project UUID:', '');
+  if(!uuid){ ev.target.value = ''; return; }
+  // Inject the pasted UUID as an extra option so the <select> can display it.
+  const opt = document.createElement('option');
+  opt.value = uuid.trim();
+  opt.textContent = `${uuid.trim().slice(0,8)}… (pasted)`;
+  opt.selected = true;
+  ev.target.insertBefore(opt, ev.target.firstChild);
+  ev.target.value = uuid.trim();
 }
 
 /* ────────────────────────────────────────────────────────────────────
