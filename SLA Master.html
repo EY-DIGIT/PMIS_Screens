@@ -318,9 +318,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
             The PMC contract this SLA belongs to. Lists every active project from project-management.
           </div>
         </div>
-        <div class="field"><label>Contract Type <span class="required">*</span></label>
-          <select id="f_ct"><option>BSP</option><option>MSAP</option><option>MSIP</option><option>PMU</option></select>
-        </div>
+        <!-- Contract Type was removed: SLAs are now scoped by Project. The
+             hidden input stays so legacy code paths that read f_ct don't
+             crash; the value is intentionally empty so the backend stores NULL. -->
+        <input type="hidden" id="f_ct" value="">
         <div class="field"><label>SLA Category <span class="required">*</span></label>
           <select id="f_category" onchange="onCategoryChange()">
             <!-- Options loaded dynamically from GET /api/v3/sla-categories -->
@@ -1115,7 +1116,9 @@ function openOnboardModal(){
   ['f_sla_ref','f_name','f_desc','f_scope','f_dataSource','f_calc','f_reportsTo'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value='';
   });
-  document.getElementById('f_ct').value = 'PMU';
+  // contract_type is no longer set from the onboarding form. The hidden
+  // input stays empty so the backend stores NULL on the row.
+  document.getElementById('f_ct').value = '';
   if(document.getElementById('f_category').options.length){
     document.getElementById('f_category').value = 'Resource Management';
   }
@@ -1332,7 +1335,9 @@ async function submitSla(){
     sla_ref,
     title,
     project_id,
-    contract_type: document.getElementById('f_ct').value,
+    // contract_type is no longer asked on the form. Send only when set,
+    // so the backend stores NULL on the row (and may derive it later).
+    contract_type: document.getElementById('f_ct').value || null,
     category_code: catRec.code,
     definition: document.getElementById('f_desc').value.trim() || null,
     scope: document.getElementById('f_scope').value.trim() || null,
@@ -1688,7 +1693,9 @@ async function editSla(id){
     document.getElementById('submitSlaBtn').textContent = 'Save Changes';
     document.getElementById('f_sla_ref').value = d.sla_ref||'';
     document.getElementById('f_name').value = d.title || d.name || '';
-    document.getElementById('f_ct').value = d.contract_type||'PMU';
+    // Restore the (hidden) contract_type so PATCH preserves it. Empty
+    // string when the row has no contract_type (project-scoped flow).
+    document.getElementById('f_ct').value = d.contract_type || '';
     let category = d.category;
     if(!category){
       const ft = d.formula_type || 'point_accumulation';
