@@ -149,8 +149,26 @@ main{max-width:1180px;margin:0 auto;padding:24px 28px 96px 28px;}
     <span style="color:var(--text-muted);">&nbsp;›&nbsp;</span>
     <span id="bcCurrent">Onboard new SLA</span>
   </div>
-  <h1 class="page-title" id="pageTitle">Onboard New SLA</h1>
-  <div class="page-sub">Pick which RFP row you want to add, fill in the value. Add as many rows as your SLA needs.</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+    <div>
+      <h1 class="page-title" id="pageTitle">Onboard New SLA</h1>
+      <div class="page-sub">Pick which RFP row you want to add, fill in the value. Add as many rows as your SLA needs.</div>
+    </div>
+    <!-- API base inputs — persisted in localStorage so both pages share
+         the same backend URL. Edit when running against a remote VM. -->
+    <div style="display:flex;gap:6px;align-items:center;font-size:11px;color:var(--text-muted);">
+      <span>Contract:</span>
+      <input id="apiBaseContract" style="font-size:11px;padding:4px 8px;width:200px;border:1px solid var(--border-soft);border-radius:5px;"
+             value="http://localhost:9000/contracts" onchange="_saveApiBases()">
+      <span>Projects:</span>
+      <input id="apiBaseProjects" style="font-size:11px;padding:4px 8px;width:200px;border:1px solid var(--border-soft);border-radius:5px;"
+             value="http://localhost:9000/projects" onchange="_saveApiBases()">
+      <button class="btn cancel" style="font-size:11px;padding:5px 10px;" onclick="boot()">Retry</button>
+    </div>
+  </div>
+  <!-- Connection-status banner — surfaces 502 / connection errors so the
+       operator sees what's wrong instead of blank dropdowns. -->
+  <div id="connStatus" style="display:none;margin-top:8px;padding:8px 12px;border-radius:6px;background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;font-size:12px;"></div>
 </div>
 
 <main>
@@ -223,8 +241,31 @@ main{max-width:1180px;margin:0 auto;padding:24px 28px 96px 28px;}
  * payload shape and POSTed.
  * =================================================================== */
 
-const CONTRACT_API = 'http://localhost:9000/contracts';
-const PROJECT_API  = 'http://localhost:9000/projects';
+/* API base URLs are persisted in localStorage so changing one page
+ * propagates to the other. Fallback to localhost defaults. */
+const LS_KEY_CONTRACT = 'pmisApiBaseContract';
+const LS_KEY_PROJECTS = 'pmisApiBaseProjects';
+function _getContractApi(){
+  const el = document.getElementById('apiBaseContract');
+  return (el ? el.value : '').trim().replace(/\/$/, '')
+       || (localStorage.getItem(LS_KEY_CONTRACT) || '').trim()
+       || 'http://localhost:9000/contracts';
+}
+function _getProjectApi(){
+  const el = document.getElementById('apiBaseProjects');
+  return (el ? el.value : '').trim().replace(/\/$/, '')
+       || (localStorage.getItem(LS_KEY_PROJECTS) || '').trim()
+       || 'http://localhost:9000/projects';
+}
+function _saveApiBases(){
+  const c = document.getElementById('apiBaseContract').value.trim().replace(/\/$/, '');
+  const p = document.getElementById('apiBaseProjects').value.trim().replace(/\/$/, '');
+  if(c) localStorage.setItem(LS_KEY_CONTRACT, c);
+  if(p) localStorage.setItem(LS_KEY_PROJECTS, p);
+  toast('API base saved', 'Click Retry to reload catalogs.', 'success');
+}
+// Track which calls failed so we can show a single banner.
+const _BOOT_FAILS = new Set();
 
 let RFP_FIELDS = [];        // catalog of every possible row type
 let CATEGORIES = [];         // sla-categories list
@@ -239,6 +280,40 @@ const _FALLBACK_PROJECTS = [
    name:'UIDAI - PMC for Selection & On-boarding of MSP(s)',
    projectCode:'UIDAI-PR260529040804139'},
 ];
+
+/* Catalog of every RFP row type — used when the /sla-rfp-fields
+ * endpoint is unreachable. Mirrors the backend list in
+ * master_routes.py _SLA_RFP_FIELDS so the form is fully usable in
+ * offline / local-file mode. */
+const _FALLBACK_RFP_FIELDS = [
+  {key:'sla_ref',  label:'SLA Number', section:'Identification', input_type:'text', required:true, placeholder:'PMU-SLA001'},
+  {key:'title',    label:'Title', section:'Identification', input_type:'text', required:true},
+  {key:'project_id', label:'Project (PMC contract)', section:'Identification', input_type:'project_picker', required:true},
+  {key:'category_code', label:'SLA Category', section:'Identification', input_type:'category_picker', required:true},
+  {key:'description', label:'Definition of SLA', section:'Definition', input_type:'textarea'},
+  {key:'scope_text', label:'Scope of SLA', section:'Definition', input_type:'textarea'},
+  {key:'data_source', label:'Source of Data / Tool used for SLA monitoring', section:'Source & Calculation', input_type:'text'},
+  {key:'calculation_method', label:'SLA Calculation', section:'Source & Calculation', input_type:'textarea'},
+  {key:'reports_submitted_to', label:'Reports submitted to', section:'Source & Calculation', input_type:'text'},
+  {key:'measurement_interval', label:'Measurement Interval', section:'Cadence', input_type:'select',
+   options:['DAILY','WEEKLY','MONTHLY','QUARTERLY','ONE_TIME'], default:'MONTHLY'},
+  {key:'reporting_interval', label:'Reporting Interval', section:'Cadence', input_type:'select',
+   options:['WEEKLY','MONTHLY','QUARTERLY','ANNUAL'], default:'QUARTERLY'},
+  {key:'ld_computation_base', label:'Applied On', section:'Cadence', input_type:'select',
+   options:[
+     {value:'QUARTERLY_PAYMENT', label:'Net Planned Quarterly Payment (NPQP)'},
+     {value:'ANNUAL_PAYMENT', label:'Annual Contract Value'},
+     {value:'FIXED_AMOUNT', label:'Deliverable Cost (set per mapping)'},
+   ], default:'QUARTERLY_PAYMENT'},
+  {key:'effective_from', label:'Active From', section:'Cadence', input_type:'date', required:true, default:'2024-04-01'},
+  {key:'effective_until', label:'Active Until', section:'Cadence', input_type:'date'},
+  {key:'measurement', label:'What is measured (primary)', section:'Measurement', input_type:'measurement_set', required:true},
+  {key:'secondary_measurement', label:'What is measured (secondary)', section:'Measurement', input_type:'measurement_set'},
+  {key:'target_rows', label:'Target / Applied Severity level', section:'Target', input_type:'severity_table'},
+  {key:'linear_escalation', label:'Linear LD escalation', section:'Target', input_type:'linear_form'},
+  {key:'placeholders', label:'Mapping inputs (filled at attach time)', section:'Mapping', input_type:'placeholder_table'},
+  {key:'attachments', label:'Image attachments', section:'Evidence', input_type:'file_picker'},
+];
 const _FALLBACK_CATEGORIES = [
   {code:'DELIVERABLE_SUBMISSION', display_name:'Deliverable Submission', formula_type:'fixed_escalation'},
   {code:'QUERY_RESOLUTION',       display_name:'Query Resolution',       formula_type:'fixed_escalation'},
@@ -248,8 +323,18 @@ const _FALLBACK_CATEGORIES = [
 ];
 
 /* ── Boot ── */
+function _restoreApiBases(){
+  const c = localStorage.getItem(LS_KEY_CONTRACT);
+  const p = localStorage.getItem(LS_KEY_PROJECTS);
+  if(c) document.getElementById('apiBaseContract').value = c;
+  if(p) document.getElementById('apiBaseProjects').value = p;
+}
 async function boot(){
+  _restoreApiBases();
+  _BOOT_FAILS.clear();
+  document.getElementById('connStatus').style.display = 'none';
   await Promise.all([loadRfpFields(), loadCategories(), loadProjects(), loadInputVariables()]);
+  _renderConnStatus();
   // ?id=<sla_id> deep-links to edit mode
   const params = new URLSearchParams(window.location.search);
   if(params.get('id')){
@@ -262,46 +347,64 @@ async function boot(){
 }
 window.addEventListener('load', boot);
 
-async function loadRfpFields(){
+function _renderConnStatus(){
+  const el = document.getElementById('connStatus');
+  if(!_BOOT_FAILS.size){ el.style.display = 'none'; return; }
+  const items = Array.from(_BOOT_FAILS);
+  el.style.display = '';
+  el.innerHTML = `
+    <strong>⚠ Backend unreachable</strong> &nbsp;—&nbsp; ${items.length} catalog endpoint${items.length===1?'':'s'} failed.
+    <div style="font-size:11px;margin-top:4px;color:#7f1d1d;">
+      Tried <code>${esc(_getContractApi())}</code> and <code>${esc(_getProjectApi())}</code>.
+      ${items.map(i => '<code>'+esc(i)+'</code>').join(', ')}.
+      Update the URLs in the header → Retry.
+      <br>Built-in fallbacks (5 categories, 1 project) are used so you can still test the form.
+    </div>`;
+}
+
+async function _safeFetch(url, label){
   try{
-    const r = await fetch(CONTRACT_API + '/api/v3/sla-rfp-fields');
-    if(r.ok){
-      const body = await r.json();
-      RFP_FIELDS = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+    const r = await fetch(url);
+    if(!r.ok){
+      _BOOT_FAILS.add(label + ' HTTP ' + r.status);
+      return null;
     }
-  }catch(e){}
+    return await r.json();
+  }catch(e){
+    _BOOT_FAILS.add(label + ' (' + e.message + ')');
+    return null;
+  }
+}
+
+async function loadRfpFields(){
+  const body = await _safeFetch(_getContractApi() + '/api/v3/sla-rfp-fields', 'sla-rfp-fields');
+  if(body){
+    RFP_FIELDS = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+  }
+  if(!RFP_FIELDS.length) RFP_FIELDS = _FALLBACK_RFP_FIELDS;
 }
 
 async function loadCategories(){
-  try{
-    const r = await fetch(CONTRACT_API + '/api/v3/sla-categories');
-    if(r.ok){
-      const body = await r.json();
-      CATEGORIES = (body?.data?._embedded?.elements || []).map(el => el.data || el);
-    }
-  }catch(e){}
+  const body = await _safeFetch(_getContractApi() + '/api/v3/sla-categories', 'sla-categories');
+  if(body){
+    CATEGORIES = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+  }
   if(!CATEGORIES.length) CATEGORIES = _FALLBACK_CATEGORIES;
 }
 
 async function loadProjects(){
-  try{
-    const r = await fetch(PROJECT_API + '/api/v3/projects?pageSize=200');
-    if(r.ok){
-      const body = await r.json();
-      PROJECTS = (body?.data?._embedded?.elements || []).map(el => el.data || el);
-    }
-  }catch(e){}
+  const body = await _safeFetch(_getProjectApi() + '/api/v3/projects?pageSize=200', 'projects');
+  if(body){
+    PROJECTS = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+  }
   if(!PROJECTS.length) PROJECTS = _FALLBACK_PROJECTS;
 }
 
 async function loadInputVariables(){
-  try{
-    const r = await fetch(CONTRACT_API + '/api/v3/sla-input-variables');
-    if(r.ok){
-      const body = await r.json();
-      INPUT_VARIABLES = (body?.data?._embedded?.elements || []).map(el => el.data || el);
-    }
-  }catch(e){}
+  const body = await _safeFetch(_getContractApi() + '/api/v3/sla-input-variables', 'sla-input-variables');
+  if(body){
+    INPUT_VARIABLES = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+  }
 }
 
 /* ── Mode entry: template vs scratch ── */
@@ -714,8 +817,8 @@ async function submitSla(){
   }
   // category_code might be sent as display_name from category_picker — backend accepts both.
   const url = editingId
-    ? CONTRACT_API + '/api/v3/sla-masters/' + editingId
-    : CONTRACT_API + '/api/v3/sla-masters/from-rfp';
+    ? _getContractApi() + '/api/v3/sla-masters/' + editingId
+    : _getContractApi() + '/api/v3/sla-masters/from-rfp';
   const method = editingId ? 'PATCH' : 'POST';
   // Files extracted; payload itself goes as JSON
   const files = payload.__files || [];
@@ -863,7 +966,7 @@ function _labelOf(key){
 /* ── Edit-mode hydration ── */
 async function loadSlaForEdit(id){
   try{
-    const r = await fetch(CONTRACT_API + '/api/v3/sla-masters/' + id);
+    const r = await fetch(_getContractApi() + '/api/v3/sla-masters/' + id);
     if(!r.ok){ toast('Load failed', 'HTTP '+r.status, 'error'); return; }
     const body = await r.json();
     const d = body.data || body;
