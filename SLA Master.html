@@ -131,6 +131,73 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
 .subrow .field label{font-size:11px;color:var(--text-soft);margin-bottom:2px;}
 .subrow input,.subrow select{padding:6px 8px;font-size:12px;}
 .subrow .remove-btn{width:28px;height:28px;border-radius:6px;background:#fff;color:var(--red);border:1px solid var(--red);cursor:pointer;font-size:14px;font-weight:700;}
+
+/* ──────────────────────────────────────────────────────────────────
+   RFP-style onboarding table
+   Each `<tr>` is one row of the RFP §5.28 SLA table. `<th>` cells in
+   the first column are the labels (right-aligned, bold, light grey
+   background); `<td>` cells in the second column carry the actual
+   editable input. Section dividers are full-width header rows with
+   the category icon + name.
+   ────────────────────────────────────────────────────────────────── */
+.rfp-table-wrap{margin-top:14px;border:1.5px solid #c7d2e6;border-radius:10px;overflow:hidden;box-shadow:0 1px 2px rgba(15,23,42,.04);}
+.rfp-onboard-table{width:100%;border-collapse:collapse;background:#fff;font-size:13px;}
+.rfp-onboard-table tr.rfp-section th{
+  background:linear-gradient(90deg,#f1f6fd 0%,#fff7e6 100%);
+  color:var(--navy);
+  font-weight:800;
+  font-size:13px;
+  text-align:left;
+  padding:11px 16px;
+  border-top:1.5px solid #c7d2e6;
+  border-bottom:1.5px solid #c7d2e6;
+  letter-spacing:.2px;
+}
+.rfp-onboard-table tr.rfp-section:first-child th{border-top:none;}
+.rfp-onboard-table tr.rfp-section .rfp-section-icon{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:24px;height:24px;border-radius:7px;font-size:13px;font-weight:700;
+  margin-right:8px;vertical-align:-3px;
+}
+.rfp-onboard-table tr.rfp-section .rfp-section-hint{
+  display:block;font-size:11px;font-weight:500;color:var(--text-muted);
+  margin-top:4px;letter-spacing:.1px;
+}
+.rfp-onboard-table tbody tr:not(.rfp-section) > th{
+  background:#fafbfd;
+  text-align:left;
+  vertical-align:top;
+  padding:11px 14px;
+  font-weight:600;
+  font-size:13px;
+  color:var(--navy);
+  border-bottom:1px solid #e5e7eb;
+  border-right:1px solid #e5e7eb;
+  width:260px;
+}
+.rfp-onboard-table tbody tr:not(.rfp-section) > td{
+  padding:9px 14px;
+  vertical-align:top;
+  border-bottom:1px solid #e5e7eb;
+  background:#fff;
+}
+.rfp-onboard-table tbody tr:not(.rfp-section):hover > th{background:#f1f6fd;}
+.rfp-onboard-table tbody tr:not(.rfp-section):hover > td{background:#fdfdff;}
+.rfp-onboard-table td input,
+.rfp-onboard-table td textarea,
+.rfp-onboard-table td select{
+  width:100%;box-sizing:border-box;font-size:13px;padding:8px 10px;
+  border:1px solid #d4dbe6;border-radius:6px;background:#fff;
+}
+.rfp-onboard-table td input:focus,
+.rfp-onboard-table td textarea:focus,
+.rfp-onboard-table td select:focus{
+  outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(30,58,138,.1);
+}
+.rfp-onboard-table td textarea{min-height:60px;resize:vertical;font-family:inherit;}
+.rfp-onboard-table .rfp-hint{font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.4;}
+.rfp-onboard-table .required{color:var(--red);}
+
 /* Toast */
 .toast{position:fixed;top:20px;right:20px;background:#fff;border-left:4px solid var(--cyan);padding:12px 16px;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);z-index:2000;min-width:280px;max-width:420px;display:none;}
 .toast.open{display:block;animation:slideIn .2s;}
@@ -303,260 +370,254 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       <button class="modal-close" onclick="closeModal('onboardModal')">×</button>
     </div>
 
-    <!-- 1. Identification -->
-    <div class="subsection">
-      <div class="subsection-head">
-        <div class="subsection-title">
-          <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#fff7e6;color:#d97706;font-size:14px;margin-right:6px;">①</span>
-          SLA Identification
-        </div>
-        <div style="font-size:11px;color:var(--text-muted);">Match the RFP table headers — every field here mirrors one row.</div>
-      </div>
-      <div class="grid">
-        <div class="field"><label>SLA Number <span class="required">*</span></label><input id="f_sla_ref" placeholder="PMU-SLA001"></div>
-        <div class="field"><label>Title <span class="required">*</span></label><input id="f_name" placeholder="Non-submission of deliverable"></div>
-        <div class="field"><label>Project (PMC contract) <span class="required">*</span></label>
-          <select id="f_project">
-            <option value="">— Select a project —</option>
-            <!-- Loaded from pmis-project-management /api/v3/projects -->
-          </select>
-          <div id="f_projectHint" class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">
-            The PMC contract this SLA belongs to. Lists every active project from project-management.
-          </div>
-        </div>
-        <!-- Contract Type was removed: SLAs are now scoped by Project. -->
+    <!-- ─────────────────────────────────────────────────────────────────
+         RFP-style onboarding table.
+         Single vertical 2-column table where every row mirrors one line
+         in the UIDAI RFP §5.28 SLA table. Left column = row label, right
+         column = editable value. Section dividers span both columns and
+         act as the table's category headers.
+
+         Sub-tables that need their own grid (Target severity sub-table,
+         Linear LD escalation, Mapping inputs, Attachments) render inside
+         a colspan=2 cell so they don't fight the 2-column outer layout.
+
+         All field IDs are PRESERVED so the existing submit / edit /
+         collect helpers keep working unchanged.
+         ───────────────────────────────────────────────────────────────── -->
+    <div class="rfp-table-wrap">
+    <table class="rfp-onboard-table">
+      <colgroup>
+        <col style="width:260px;">
+        <col>
+      </colgroup>
+      <tbody>
+        <!-- ─── ① SLA Identification ─── -->
+        <tr class="rfp-section">
+          <th colspan="2">
+            <span class="rfp-section-icon" style="background:#fff7e6;color:#d97706;">①</span>
+            SLA Identification
+            <span class="rfp-section-hint">Match the RFP table headers — every row mirrors one line in the contract.</span>
+          </th>
+        </tr>
+        <tr><th>SLA Number <span class="required">*</span></th>
+            <td><input id="f_sla_ref" placeholder="PMU-SLA001"></td></tr>
+        <tr><th>Title <span class="required">*</span></th>
+            <td><input id="f_name" placeholder="Non-submission of deliverable"></td></tr>
+        <tr><th>Project (PMC contract) <span class="required">*</span></th>
+            <td>
+              <select id="f_project">
+                <option value="">— Select a project —</option>
+              </select>
+              <div id="f_projectHint" class="rfp-hint">
+                The PMC contract this SLA belongs to. Lists every active project from project-management.
+              </div>
+            </td></tr>
         <input type="hidden" id="f_ct" value="">
-        <div class="field"><label>SLA Category <span class="required">*</span></label>
-          <select id="f_category" onchange="onCategoryChange()">
-            <!-- Options loaded dynamically from GET /api/v3/sla-categories -->
-          </select>
-          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">
-            Category picks the calculation engine: <span id="f_categoryHint" style="font-weight:700;color:var(--navy);">—</span>.
+        <tr><th>SLA Category <span class="required">*</span></th>
+            <td>
+              <select id="f_category" onchange="onCategoryChange()"></select>
+              <div class="rfp-hint">
+                Category picks the calculation engine: <span id="f_categoryHint" style="font-weight:700;color:var(--navy);">—</span>.
+              </div>
+              <!-- Hero card lives inside the category cell so it docks
+                   right under the dropdown when a category is picked. -->
+              <div id="categoryHero" style="display:none;margin-top:10px;padding:12px 14px;border-radius:10px;border:1px solid transparent;">
+                <div style="display:flex;align-items:flex-start;gap:12px;">
+                  <div id="categoryHeroIcon" style="font-size:28px;line-height:1;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(255,255,255,.6);"></div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;color:var(--navy);font-size:13px;" id="categoryHeroTitle">—</div>
+                    <div style="margin-top:3px;font-size:12px;color:var(--text-soft);line-height:1.4;" id="categoryHeroDesc">—</div>
+                    <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;" id="categoryHeroTags"></div>
+                  </div>
+                </div>
+              </div>
+            </td></tr>
+
+        <!-- ─── ② Definition & Scope ─── -->
+        <tr class="rfp-section">
+          <th colspan="2">
+            <span class="rfp-section-icon" style="background:#f5f3ff;color:#7c3aed;">②</span>
+            Definition &amp; Scope
+          </th>
+        </tr>
+        <tr><th>Definition of SLA</th>
+            <td><textarea id="f_desc" placeholder='One-sentence summary of what this SLA covers (RFP "Definition of SLA" row).'></textarea></td></tr>
+        <tr><th>Scope of SLA</th>
+            <td><textarea id="f_scope" placeholder='Who or what this SLA applies to (RFP "Scope of SLA" row).'></textarea></td></tr>
+
+        <!-- ─── ③ Source & Calculation ─── -->
+        <tr class="rfp-section">
+          <th colspan="2">
+            <span class="rfp-section-icon" style="background:#ecfeff;color:#0891b2;">③</span>
+            Source &amp; Calculation
+          </th>
+        </tr>
+        <tr><th>Source of Data / Tool used for SLA monitoring</th>
+            <td><input id="f_dataSource" placeholder='e.g. Manual — UIDAI biometric attendance system'></td></tr>
+        <tr><th>SLA Calculation</th>
+            <td><textarea id="f_calc" placeholder='Plain-English description of how this SLA is computed (RFP "SLA calculation" row).'></textarea></td></tr>
+        <tr><th>Reports submitted to</th>
+            <td><input id="f_reportsTo" placeholder="Technology Management Division, UIDAI HO"></td></tr>
+
+        <!-- ─── ④ Cadence & Applied On ─── -->
+        <tr class="rfp-section">
+          <th colspan="2">
+            <span class="rfp-section-icon" style="background:#ecfdf5;color:#059669;">④</span>
+            Cadence &amp; Applied On
+          </th>
+        </tr>
+        <tr><th>Measurement Interval</th>
+            <td><select id="f_measInt">
+              <option>DAILY</option><option>WEEKLY</option><option selected>MONTHLY</option>
+              <option>QUARTERLY</option><option>ONE_TIME</option>
+            </select></td></tr>
+        <tr><th>Reporting Interval</th>
+            <td><select id="f_repInt">
+              <option>WEEKLY</option><option>MONTHLY</option>
+              <option selected>QUARTERLY</option><option>ANNUAL</option>
+            </select></td></tr>
+        <tr><th>Applied On</th>
+            <td><select id="f_ldBase">
+              <option value="QUARTERLY_PAYMENT">Net Planned Quarterly Payment (NPQP)</option>
+              <option value="ANNUAL_PAYMENT">Annual Contract Value</option>
+              <option value="FIXED_AMOUNT">Deliverable Cost (set per mapping)</option>
+            </select></td></tr>
+        <tr><th>Active From <span class="required">*</span></th>
+            <td><input id="f_effFrom" type="date" value="2024-04-01">
+                <div class="rfp-hint">When this SLA template becomes valid for new mappings.</div></td></tr>
+        <tr><th>Active Until</th>
+            <td><input id="f_effUntil" type="date">
+                <div class="rfp-hint">Leave blank for "no end date" — the SLA stays active indefinitely.</div></td></tr>
+
+        <!-- ─── ⑤ What is measured ─── -->
+        <tr class="rfp-section">
+          <th colspan="2">
+            <span class="rfp-section-icon" style="background:#fef2f2;color:#dc2626;">⑤</span>
+            What is measured
+          </th>
+        </tr>
+        <tr><th>Measurement name <span class="required">*</span></th>
+            <td><input id="rf_measure_name" placeholder="e.g. Days delayed">
+                <div class="rfp-hint">Plain English — same wording as the RFP would use.</div></td></tr>
+        <tr><th>Unit</th>
+            <td><input id="rf_measure_unit" placeholder="e.g. days, weeks, %, count"></td></tr>
+        <tr><th>Target / threshold (optional)</th>
+            <td><input id="rf_measure_target" placeholder="e.g. 0">
+                <div class="rfp-hint">Reference number from the RFP; shown for context only.</div></td></tr>
+        <tr><th>Second measurement <span class="rfp-hint" style="display:inline;">(compound SLAs only — e.g. PMU-SLA007)</span></th>
+            <td>
+              <details>
+                <summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--navy);">+ Add a second measurement</summary>
+                <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                  <div><label style="font-size:11px;color:var(--text-muted);">Name</label>
+                    <input id="rf_measure2_name" placeholder="e.g. Hours logged"></div>
+                  <div><label style="font-size:11px;color:var(--text-muted);">Unit</label>
+                    <input id="rf_measure2_unit" placeholder="e.g. hours"></div>
+                  <div><label style="font-size:11px;color:var(--text-muted);">Target</label>
+                    <input id="rf_measure2_target" placeholder="e.g. 144"></div>
+                </div>
+              </details>
+            </td></tr>
+
+        <!-- ─── ⑥ Target / Applied Severity level ─── -->
+        <tr class="rfp-section" id="secBandsHead">
+          <th colspan="2">
+            <span class="rfp-section-icon" style="background:#fce7f3;color:#be185d;">⑥</span>
+            Target / Applied Severity level
+            <button type="button" class="btn small-btn cancel" style="float:right;font-size:11px;padding:3px 10px;" onclick="addRfpTargetRow()">+ Add row</button>
+            <div class="rfp-section-hint" style="margin-left:32px;">
+              Copy this from the RFP "Target" sub-table. Each row maps one severity level to a threshold on the chosen input variable.
+            </div>
+          </th>
+        </tr>
+        <tr id="secBands"><td colspan="2" style="padding:8px 12px;">
+          <div id="rfpTargetHeader" style="display:grid;grid-template-columns:auto 0.9fr 1.4fr 1.6fr 0.8fr 0.8fr auto;gap:8px;align-items:center;padding:6px 8px;background:#f1f6fd;border-radius:6px;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;">
+            <span></span>
+            <span>Severity</span>
+            <span>Input variable</span>
+            <span>Threshold <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(RFP wording)</span></span>
+            <span>From <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(excl.)</span></span>
+            <span>To <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(incl.)</span></span>
+            <span></span>
           </div>
-        </div>
-      </div>
-
-      <!-- Category hero card — repaints when the category changes,
-           giving the form an obvious "you picked X, here's what that means"
-           visual hook. -->
-      <div id="categoryHero" style="display:none;margin-top:14px;padding:14px 16px;border-radius:10px;border:1px solid transparent;">
-        <div style="display:flex;align-items:flex-start;gap:14px;">
-          <div id="categoryHeroIcon" style="font-size:30px;line-height:1;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(255,255,255,.6);"></div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-weight:700;color:var(--navy);font-size:14px;" id="categoryHeroTitle">—</div>
-            <div style="margin-top:4px;font-size:12px;color:var(--text-soft);line-height:1.45;" id="categoryHeroDesc">—</div>
-            <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;" id="categoryHeroTags"></div>
+          <div id="rfpTargetBody"></div>
+          <div class="rfp-hint" style="margin-top:6px;">
+            Leave "From" or "To" blank for unbounded sides (e.g. <em>"&le; 7 days"</em> = leave From blank).
           </div>
-        </div>
-      </div>
-    </div>
+        </td></tr>
 
-    <!-- 2. Definition + Scope (RFP table rows) -->
-    <div class="subsection">
-      <div class="subsection-head"><div class="subsection-title">
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#f5f3ff;color:#7c3aed;font-size:14px;margin-right:6px;">②</span>
-        Definition &amp; Scope
-      </div></div>
-      <div class="grid">
-        <div class="field full"><label>Definition of SLA</label><textarea id="f_desc" placeholder="One-sentence summary of what this SLA covers (RFP &quot;Definition of SLA&quot; row)."></textarea></div>
-        <div class="field full"><label>Scope of SLA</label><textarea id="f_scope" placeholder="Who or what this SLA applies to (RFP &quot;Scope of SLA&quot; row)."></textarea></div>
-      </div>
-    </div>
-
-    <!-- 3. Source of Data + Calculation -->
-    <div class="subsection">
-      <div class="subsection-head"><div class="subsection-title">
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#ecfeff;color:#0891b2;font-size:14px;margin-right:6px;">③</span>
-        Source &amp; Calculation
-      </div></div>
-      <div class="grid">
-        <div class="field"><label>Source of Data</label><input id="f_dataSource" placeholder='e.g. Manual — UIDAI biometric attendance system'></div>
-        <div class="field"><label>Reports submitted to</label><input id="f_reportsTo" placeholder="Technology Management Division, UIDAI HO"></div>
-        <div class="field full"><label>SLA Calculation</label><textarea id="f_calc" placeholder='Plain-English description of how this SLA is computed (RFP "SLA calculation" row).'></textarea></div>
-      </div>
-    </div>
-
-    <!-- 4. Cadence + LD base -->
-    <div class="subsection">
-      <div class="subsection-head"><div class="subsection-title">
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#ecfdf5;color:#059669;font-size:14px;margin-right:6px;">④</span>
-        Cadence &amp; Applied On
-      </div></div>
-      <div class="grid">
-        <div class="field"><label>Measurement Interval</label>
-          <select id="f_measInt"><option>DAILY</option><option>WEEKLY</option><option selected>MONTHLY</option><option>QUARTERLY</option><option>ONE_TIME</option></select>
-        </div>
-        <div class="field"><label>Reporting Interval</label>
-          <select id="f_repInt"><option>WEEKLY</option><option>MONTHLY</option><option selected>QUARTERLY</option><option>ANNUAL</option></select>
-        </div>
-        <div class="field"><label>Applied On</label>
-          <select id="f_ldBase">
-            <option value="QUARTERLY_PAYMENT">Net Planned Quarterly Payment (NPQP)</option>
-            <option value="ANNUAL_PAYMENT">Annual Contract Value</option>
-            <option value="FIXED_AMOUNT">Deliverable Cost (set per mapping)</option>
-          </select>
-        </div>
-        <div class="field"><label>Active From <span class="required">*</span></label>
-          <input id="f_effFrom" type="date" value="2024-04-01">
-          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">When this SLA template becomes valid for new mappings.</div>
-        </div>
-        <div class="field"><label>Active Until</label>
-          <input id="f_effUntil" type="date">
-          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Leave blank for "no end date" — the SLA stays active indefinitely. Fill in if the contract or this version of the SLA has a sunset date.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 5. What is measured (RFP-friendly, technical bits auto-derived) -->
-    <div class="subsection">
-      <div class="subsection-head">
-        <div class="subsection-title">
-          <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#fef2f2;color:#dc2626;font-size:14px;margin-right:6px;">⑤</span>
-          What is measured
-        </div>
-      </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">
-        The value the system reads at evaluate time. Examples from PMU RFP: <em>"Days delayed"</em>, <em>"Resource business days"</em>, <em>"Failure count"</em>.
-      </div>
-      <div class="grid">
-        <div class="field"><label>What is being measured? <span class="required">*</span></label>
-          <input id="rf_measure_name" placeholder="e.g. Days delayed">
-          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Plain English — same wording as the RFP would use.</div>
-        </div>
-        <div class="field"><label>Unit</label>
-          <input id="rf_measure_unit" placeholder="e.g. days, weeks, %, count">
-        </div>
-        <div class="field"><label>Target / threshold (optional)</label>
-          <input id="rf_measure_target" placeholder="e.g. 0">
-          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Reference number from the RFP; shown for context only.</div>
-        </div>
-      </div>
-      <details style="margin-top:8px;">
-        <summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--navy);">+ Add a second measurement (only for compound SLAs like PMU-SLA007)</summary>
-        <div class="grid" style="margin-top:8px;">
-          <div class="field"><label>Second measurement name</label>
-            <input id="rf_measure2_name" placeholder="e.g. Hours logged">
+        <!-- ─── 📐 Linear LD escalation (Deliverable / Query SLAs only) ─── -->
+        <tr class="rfp-section" id="secLookupHead">
+          <th colspan="2">
+            <span class="rfp-section-icon" style="background:#fff7e6;color:#d97706;">📐</span>
+            Linear LD escalation
+            <div class="rfp-section-hint" style="margin-left:32px;">
+              For deliverable / query SLAs the RFP states LD% as a per-unit rate (e.g. <em>0.5% per week</em>).
+            </div>
+          </th>
+        </tr>
+        <tr id="secLookup"><td colspan="2" style="padding:12px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+            <div><label style="font-size:11px;color:var(--text-muted);">Rate per unit (%) <span class="required">*</span></label>
+              <input id="rf_lin_rate" type="number" step="0.01" placeholder="0.5"
+                     oninput="_renderLinearStatementPreview()"></div>
+            <div><label style="font-size:11px;color:var(--text-muted);">Unit</label>
+              <select id="rf_lin_unit" onchange="_renderLinearStatementPreview()">
+                <option value="week">week</option><option value="day">day</option><option value="month">month</option>
+              </select></div>
+            <div><label style="font-size:11px;color:var(--text-muted);">Grace period (units before LD starts)</label>
+              <input id="rf_lin_grace" type="number" min="0" value="0" placeholder="0"
+                     oninput="_renderLinearStatementPreview()"></div>
           </div>
-          <div class="field"><label>Unit</label>
-            <input id="rf_measure2_unit" placeholder="e.g. hours">
+          <div id="linearStatementPreview"
+               style="margin-top:10px;padding:10px 12px;border-radius:8px;border:1px dashed #fcd34d;background:#fffbeb;">
+            <span style="color:var(--text-muted);font-style:italic;">Type a rate above to see the LD rule.</span>
           </div>
-          <div class="field"><label>Target / threshold (optional)</label>
-            <input id="rf_measure2_target" placeholder="e.g. 144">
+        </td></tr>
+
+        <!-- ─── ⑧ Mapping inputs (filled at attach time) ─── -->
+        <tr class="rfp-section">
+          <th colspan="2">
+            <span class="rfp-section-icon" style="background:#eff6ff;color:#2563eb;">⑧</span>
+            Mapping inputs (filled at attach time)
+            <button type="button" class="btn small-btn cancel" style="float:right;font-size:11px;padding:3px 10px;" onclick="addPlaceholderRow()">+ Add input</button>
+            <div class="rfp-section-hint" style="margin-left:32px;">
+              Most SLAs need nothing here — they plug straight onto a milestone. Add a row only when the RFP rule
+              references a value that varies per attachment (cost of deliverable, T₀ date, approval date K, etc.).
+            </div>
+          </th>
+        </tr>
+        <tr><td colspan="2" style="padding:8px 12px;">
+          <div id="rfpPlaceholdersHeader" style="display:none;grid-template-columns:1fr 2fr 0.8fr 0.6fr 1.2fr auto;gap:8px;align-items:center;padding:6px 8px;background:#f1f6fd;border-radius:6px;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;">
+            <span>Key</span>
+            <span>Label (shown to operator)</span>
+            <span>Type</span>
+            <span>Required</span>
+            <span>Autofill from</span>
+            <span></span>
           </div>
-        </div>
-      </details>
-    </div>
+          <div id="rfpPlaceholdersBody"></div>
+        </td></tr>
 
-    <!-- 6. Target — severity threshold table (RFP-style, one row per severity) -->
-    <div class="subsection" id="secBands">
-      <div class="subsection-head">
-        <div class="subsection-title">
-          <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#fce7f3;color:#be185d;font-size:14px;margin-right:6px;">⑥</span>
-          Target — severity threshold table
-        </div>
-        <button class="btn small-btn cancel" onclick="addRfpTargetRow()">+ Add row</button>
-      </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
-        Copy this directly from the RFP's <strong>"Target"</strong> sub-table. Each row maps one severity level to the threshold for the measurement above.
-      </div>
-      <div id="rfpTargetHeader" style="display:grid;grid-template-columns:auto 0.9fr 1.4fr 1.6fr 0.8fr 0.8fr auto;gap:8px;align-items:center;padding:6px 8px;background:#f1f6fd;border-radius:6px;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;">
-        <span></span>
-        <span>Severity</span>
-        <span>Input variable</span>
-        <span>Threshold <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(RFP wording)</span></span>
-        <span>From <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(excl.)</span></span>
-        <span>To <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(incl.)</span></span>
-        <span></span>
-      </div>
-      <div id="rfpTargetBody"></div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">
-        Leave "From" or "To" blank for unbounded sides (e.g. <em>"&le; 7 days"</em> = leave From blank).
-      </div>
-    </div>
-
-    <!-- 7. Linear LD escalation (Deliverable / Query categories only — concise summary form) -->
-    <div class="subsection" id="secLookup">
-      <div class="subsection-head">
-        <div class="subsection-title">
-          <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#fff7e6;color:#d97706;font-size:14px;margin-right:6px;">📐</span>
-          Linear LD escalation
-        </div>
-      </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
-        For deliverable / query SLAs the RFP states LD% as a per-unit rate (e.g. <em>"0.5% per week"</em>, <em>"0.1% per day after 3 working days"</em>). Just fill those three numbers — the system expands them behind the scenes.
-      </div>
-      <div class="grid-3">
-        <div class="field"><label>Rate per unit (%) <span class="required">*</span></label>
-          <input id="rf_lin_rate" type="number" step="0.01" placeholder="0.5"
-                 oninput="_renderLinearStatementPreview()">
-        </div>
-        <div class="field"><label>Unit</label>
-          <select id="rf_lin_unit" onchange="_renderLinearStatementPreview()">
-            <option value="week">week</option><option value="day">day</option><option value="month">month</option>
-          </select>
-        </div>
-        <div class="field"><label>Grace period (units before LD starts)</label>
-          <input id="rf_lin_grace" type="number" min="0" value="0" placeholder="0"
-                 oninput="_renderLinearStatementPreview()">
-        </div>
-      </div>
-      <!-- LIVE STATEMENT PREVIEW — the "wow factor" line that updates as
-           the user types the rate / unit / grace. -->
-      <div id="linearStatementPreview"
-           style="margin-top:12px;padding:12px 14px;border-radius:10px;border:1px dashed #fcd34d;background:#fffbeb;">
-        <span style="color:var(--text-muted);font-style:italic;">Type a rate above to see the LD rule.</span>
-      </div>
-    </div>
-
-    <!-- 8. Mapping inputs — placeholders the operator fills at attach time -->
-    <div class="subsection">
-      <div class="subsection-head">
-        <div class="subsection-title">
-          <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#eff6ff;color:#2563eb;font-size:14px;margin-right:6px;">⑧</span>
-          What does the operator fill in when attaching this SLA?
-        </div>
-        <button class="btn small-btn cancel" onclick="addPlaceholderRow()">+ Add input</button>
-      </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
-        Most SLAs need <strong>nothing</strong> at attach time — they plug straight onto a milestone.
-        Add a row only when the RFP rule references a value that varies per attachment:
-        <em>"cost of this deliverable"</em>, <em>"T₀ milestone date"</em>, <em>"date of approval (K)"</em>, etc.
-        Each row becomes one input on the mapping form.
-      </div>
-      <div id="rfpPlaceholdersHeader" style="display:none;grid-template-columns:1fr 2fr 0.8fr 0.6fr 1.2fr auto;gap:8px;align-items:center;padding:6px 8px;background:#f1f6fd;border-radius:6px;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;">
-        <span>Key</span>
-        <span>Label (shown to operator)</span>
-        <span>Type</span>
-        <span>Required</span>
-        <span>Autofill from</span>
-        <span></span>
-      </div>
-      <div id="rfpPlaceholdersBody"></div>
-    </div>
-
-    <!-- 9. Image attachments — uploaded straight to pmis-file-store via contract-mgmt -->
-    <div class="subsection" id="secAttachments">
-      <div class="subsection-head">
-        <div class="subsection-title">
-          <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#f0fdf4;color:#16a34a;font-size:14px;margin-right:6px;">⑨</span>
-          Image attachments
-        </div>
-      </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
-        Optional. Attach screenshots of the RFP section, contract page scans, or evidence pictures.
-        Files are stored in the file-service (S3) — only PNG, JPEG, WebP, GIF are accepted (max 10&nbsp;MB each).
-        For new SLAs, attachments upload <strong>after</strong> the SLA is created; for edits they upload immediately.
-      </div>
-      <div class="grid">
-        <div class="field full">
+        <!-- ─── ⑨ Image attachments ─── -->
+        <tr class="rfp-section" id="secAttachmentsHead">
+          <th colspan="2">
+            <span class="rfp-section-icon" style="background:#f0fdf4;color:#16a34a;">⑨</span>
+            Image attachments
+            <div class="rfp-section-hint" style="margin-left:32px;">
+              Optional screenshots of the RFP section. PNG / JPEG / WebP / GIF (max 10 MB each).
+            </div>
+          </th>
+        </tr>
+        <tr id="secAttachments"><td colspan="2" style="padding:10px 12px;">
           <input id="f_attachments" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple>
-          <div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">
+          <div class="rfp-hint" style="margin-top:4px;">
             Hold Shift/Ctrl to pick multiple. Captions can be edited later from the View modal.
           </div>
-        </div>
-      </div>
-      <!-- Live tile strip — fresh picks (orange) + already-uploaded (green). Renders into rfpAttachmentsBody. -->
-      <div id="rfpAttachmentsBody" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;"></div>
+          <div id="rfpAttachmentsBody" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;"></div>
+        </td></tr>
+      </tbody>
+    </table>
     </div>
 
     <!-- Advanced (collapsible) — only visible in edit mode, hidden for new SLAs -->
@@ -1412,8 +1473,20 @@ function onCategoryChange(){
   const ft = CATEGORY_TO_FORMULA[category] || 'point_accumulation';
   document.getElementById('f_categoryHint').textContent = ft;
   const isLinear = (category === 'Deliverable Submission' || category === 'Query Resolution');
-  document.getElementById('secBands').style.display  = isLinear ? 'none' : '';
-  document.getElementById('secLookup').style.display = isLinear ? '' : 'none';
+  // Each visual section is now TWO <tr> elements (header divider + body).
+  // Toggle both so the section divider hides cleanly with its content.
+  const _toggleSection = (bodyId, headId, shown) => {
+    const bodyEl = document.getElementById(bodyId);
+    const headEl = document.getElementById(headId);
+    if(bodyEl){
+      // <tr> uses table-row, not block. Empty string lets the browser
+      // restore the default (table-row).
+      bodyEl.style.display = shown ? '' : 'none';
+    }
+    if(headEl) headEl.style.display = shown ? '' : 'none';
+  };
+  _toggleSection('secBands',  'secBandsHead',  !isLinear);
+  _toggleSection('secLookup', 'secLookupHead',  isLinear);
   // Auto-pick "Applied On" the way the RFP does: deliverable cost for
   // Deliverable Submission, NPQP for everything else.
   document.getElementById('f_ldBase').value =
