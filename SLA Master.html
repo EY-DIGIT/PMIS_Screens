@@ -341,7 +341,7 @@ body.onboard-page-mode .modal#onboardModal .rfp-table-wrap{margin:0 16px;}
     <div class="api-bar">
       <div class="field">
         <label>Contract API Base URL</label>
-        <input id="apiBase" value="http://localhost:9000/contracts">
+        <input id="apiBase" value="http://localhost:9000/contracts" onchange="_persistApiBase()">
       </div>
       <button class="btn small-btn cancel" onclick="checkHealth()">Check</button>
       <div style="font-size:12px;color:var(--text-soft);align-self:center;"><span id="hdot" class="status-dot"></span><span id="hstatus">unknown</span></div>
@@ -782,6 +782,22 @@ let slas = [];
 let editingId = null;
 let pendingDeleteId = null;
 
+/* Shared with SLA Onboarding.html via localStorage so changing the
+ * URL on one page propagates to the other. */
+const _LS_KEY_CONTRACT = 'pmisApiBaseContract';
+function _persistApiBase(){
+  const v = (document.getElementById('apiBase').value || '').trim().replace(/\/$/, '');
+  if(v) localStorage.setItem(_LS_KEY_CONTRACT, v);
+}
+// Restore from localStorage on boot so the saved URL wins over the
+// hardcoded default — has to run before the first API() call.
+(function _restoreApiBase(){
+  const v = (localStorage.getItem(_LS_KEY_CONTRACT) || '').trim();
+  if(v){
+    const el = document.getElementById('apiBase');
+    if(el) el.value = v;
+  }
+})();
 const API = () => document.getElementById('apiBase').value.trim().replace(/\/$/, '');
 
 /* ====== Toast ====== */

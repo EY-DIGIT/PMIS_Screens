@@ -267,11 +267,15 @@ function _saveApiBases(){
 // Track which calls failed so we can show a single banner.
 const _BOOT_FAILS = new Set();
 
-let RFP_FIELDS = [];        // catalog of every possible row type
-let CATEGORIES = [];         // sla-categories list
-let PROJECTS = [];           // project list (fallback included)
-let INPUT_VARIABLES = [];    // for severity-table's input-variable dropdown
-let editingId = null;        // when ?id=<sla_id>, edit-mode for existing SLA
+/* Initialise the catalogs with their fallback values so the form is
+ * usable IMMEDIATELY on page load — even before the API calls fire
+ * (or while they're in flight). Each loader overwrites with live data
+ * if it succeeds. */
+let RFP_FIELDS = [];          // populated after the const fallback definitions below load
+let CATEGORIES = [];           // ditto
+let PROJECTS = [];             // ditto
+let INPUT_VARIABLES = [];      // no fallback — empty is OK, the severity table allows custom keys
+let editingId = null;          // when ?id=<sla_id>, edit-mode for existing SLA
 
 const _SEV_COLOUR = {0:'#16a34a',1:'#f59e0b',2:'#f97316',3:'#ef4444',4:'#991b1b'};
 
@@ -314,6 +318,12 @@ const _FALLBACK_RFP_FIELDS = [
   {key:'placeholders', label:'Mapping inputs (filled at attach time)', section:'Mapping', input_type:'placeholder_table'},
   {key:'attachments', label:'Image attachments', section:'Evidence', input_type:'file_picker'},
 ];
+
+/* Seed the live catalogs with the fallback values RIGHT NOW so any
+ * UI built before boot() resolves still has a populated dropdown. */
+RFP_FIELDS = _FALLBACK_RFP_FIELDS.slice();
+CATEGORIES = _FALLBACK_CATEGORIES.slice();
+PROJECTS   = _FALLBACK_PROJECTS.slice();
 const _FALLBACK_CATEGORIES = [
   {code:'DELIVERABLE_SUBMISSION', display_name:'Deliverable Submission', formula_type:'fixed_escalation'},
   {code:'QUERY_RESOLUTION',       display_name:'Query Resolution',       formula_type:'fixed_escalation'},
@@ -379,25 +389,30 @@ async function _safeFetch(url, label){
 async function loadRfpFields(){
   const body = await _safeFetch(_getContractApi() + '/api/v3/sla-rfp-fields', 'sla-rfp-fields');
   if(body){
-    RFP_FIELDS = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+    const live = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+    if(live.length) RFP_FIELDS = live;
+    // Empty live response → keep the fallback we already seeded.
   }
-  if(!RFP_FIELDS.length) RFP_FIELDS = _FALLBACK_RFP_FIELDS;
+  // Last-line guard: if anything ever wiped the array, restore fallback.
+  if(!RFP_FIELDS.length) RFP_FIELDS = _FALLBACK_RFP_FIELDS.slice();
 }
 
 async function loadCategories(){
   const body = await _safeFetch(_getContractApi() + '/api/v3/sla-categories', 'sla-categories');
   if(body){
-    CATEGORIES = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+    const live = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+    if(live.length) CATEGORIES = live;
   }
-  if(!CATEGORIES.length) CATEGORIES = _FALLBACK_CATEGORIES;
+  if(!CATEGORIES.length) CATEGORIES = _FALLBACK_CATEGORIES.slice();
 }
 
 async function loadProjects(){
   const body = await _safeFetch(_getProjectApi() + '/api/v3/projects?pageSize=200', 'projects');
   if(body){
-    PROJECTS = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+    const live = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+    if(live.length) PROJECTS = live;
   }
-  if(!PROJECTS.length) PROJECTS = _FALLBACK_PROJECTS;
+  if(!PROJECTS.length) PROJECTS = _FALLBACK_PROJECTS.slice();
 }
 
 async function loadInputVariables(){
