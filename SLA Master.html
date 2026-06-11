@@ -198,6 +198,60 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
 .rfp-onboard-table .rfp-hint{font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.4;}
 .rfp-onboard-table .required{color:var(--red);}
 
+/* ──────────────────────────────────────────────────────────────────
+   Full-page onboarding view
+   When body has class `onboard-page-mode`, the onboard "modal"
+   stops being a modal: no overlay, no centred box, no scroll lock.
+   It takes over the viewport like a dedicated /onboard page. The
+   list view + page header are hidden in that mode so the operator
+   has the whole screen for the form.
+   ────────────────────────────────────────────────────────────────── */
+body.onboard-page-mode > .header,
+body.onboard-page-mode > main.content,
+body.onboard-page-mode > .site-footer,
+body.onboard-page-mode .modal:not(#onboardModal){display:none !important;}
+body.onboard-page-mode{overflow:auto;background:#f4f6fb;}
+body.onboard-page-mode .modal#onboardModal{
+  position:static;
+  background:transparent;
+  display:block;
+  padding:0;
+  overflow:visible;
+  z-index:auto;
+}
+body.onboard-page-mode .modal#onboardModal .modal-box{
+  max-width:1100px;
+  width:calc(100% - 32px);
+  margin:0 auto;
+  border-radius:0;
+  box-shadow:none;
+  max-height:none;
+  padding:0 0 24px 0;
+  background:transparent;
+}
+body.onboard-page-mode .modal#onboardModal .modal-head{
+  background:#fff;
+  border-bottom:2px solid var(--navy);
+  margin:0 -16px 16px -16px;
+  padding:16px 32px;
+  position:sticky;top:0;z-index:5;
+  box-shadow:0 2px 6px rgba(0,0,0,.04);
+}
+body.onboard-page-mode .modal#onboardModal .modal-actions{
+  position:sticky;bottom:0;
+  background:#fff;
+  border-top:1px solid #d4dbe6;
+  margin:16px -16px 0 -16px;
+  padding:12px 32px;
+  z-index:5;
+  box-shadow:0 -2px 6px rgba(0,0,0,.04);
+}
+body.onboard-page-mode .modal#onboardModal .rfp-table-wrap{margin:0 16px;}
+/* Breadcrumb-style back link in the page header. */
+.onboard-page-breadcrumb{font-size:12px;color:var(--text-soft);margin-bottom:4px;}
+.onboard-page-breadcrumb a{color:var(--navy);font-weight:600;text-decoration:none;}
+.onboard-page-breadcrumb a:hover{text-decoration:underline;}
+
 /* Toast */
 .toast{position:fixed;top:20px;right:20px;background:#fff;border-left:4px solid var(--cyan);padding:12px 16px;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);z-index:2000;min-width:280px;max-width:420px;display:none;}
 .toast.open{display:block;animation:slideIn .2s;}
@@ -364,10 +418,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
   <div class="modal-box wide">
     <div class="modal-head">
       <div>
+        <div class="onboard-page-breadcrumb">
+          <a href="#" onclick="closeOnboardPage();return false;">SLA Masters</a>
+          <span style="color:var(--text-muted);"> &nbsp;›&nbsp; </span>
+          <span id="onboardBreadcrumbCurrent">Onboard new SLA</span>
+        </div>
         <div class="modal-title" id="onboardTitle">Onboard New SLA</div>
         <div class="modal-sub">Fields follow UIDAI RFP §5.28 — the same rows you see in the contract document.</div>
       </div>
-      <button class="modal-close" onclick="closeModal('onboardModal')">×</button>
+      <button class="modal-close" onclick="closeOnboardPage()">×</button>
     </div>
 
     <!-- ─────────────────────────────────────────────────────────────────
@@ -643,7 +702,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
     </div>
 
     <div class="modal-actions">
-      <button class="btn cancel" onclick="closeModal('onboardModal')">Cancel</button>
+      <button class="btn cancel" onclick="closeOnboardPage()">Cancel</button>
       <button class="btn" id="submitSlaBtn" onclick="submitSla()">Onboard SLA</button>
     </div>
   </div>
@@ -1344,10 +1403,52 @@ const CATEGORY_TEMPLATES = {
   // Deliverable Submission + Query Resolution use linear escalation, no severity rows.
 };
 
+/* ────────────────────────────────────────────────────────────────────
+ * Page-mode routing
+ *
+ * The onboard "modal" now doubles as a full-page view. When entered via
+ * openOnboardModal() / editSla() we flip the body into `onboard-page-mode`
+ * so CSS strips the modal styling and the form takes over the whole
+ * screen. URL hash (#onboard or #edit/<id>) makes the state survive
+ * refresh + back/forward buttons.
+ * ──────────────────────────────────────────────────────────────────── */
+function _enterOnboardPage(){
+  document.body.classList.add('onboard-page-mode');
+  // Scroll to the top of the form so the breadcrumb is visible.
+  window.scrollTo({top: 0, behavior: 'instant'});
+}
+
+function closeOnboardPage(){
+  document.body.classList.remove('onboard-page-mode');
+  closeModal('onboardModal');
+  // Clear the route so the back button doesn't jump back into onboard.
+  if(window.location.hash) history.replaceState(null, '', window.location.pathname + window.location.search);
+}
+
+function _handleOnboardRoute(){
+  const h = (window.location.hash || '').replace(/^#/, '');
+  if(h === 'onboard'){
+    openOnboardModal();
+  } else if(h.startsWith('edit/')){
+    const id = h.substring(5);
+    if(id) editSla(id);
+  }
+}
+window.addEventListener('hashchange', _handleOnboardRoute);
+// Process the initial hash after the page has loaded the SLA list.
+window.addEventListener('load', () => setTimeout(_handleOnboardRoute, 400));
+
 function openOnboardModal(){
   editingId = null;
   document.getElementById('onboardTitle').textContent = 'Onboard New SLA';
   document.getElementById('submitSlaBtn').textContent = 'Onboard SLA';
+  const bc = document.getElementById('onboardBreadcrumbCurrent');
+  if(bc) bc.textContent = 'Onboard new SLA';
+  // Set the URL hash so refresh + back button work.
+  if(window.location.hash !== '#onboard'){
+    history.replaceState(null, '', window.location.pathname + window.location.search + '#onboard');
+  }
+  _enterOnboardPage();
   ['f_sla_ref','f_name','f_desc','f_scope','f_dataSource','f_calc','f_reportsTo'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value='';
   });
@@ -1860,7 +1961,7 @@ async function submitSla(){
             'success');
     }
     _PENDING_FILES = [];
-    closeModal('onboardModal');
+    closeOnboardPage();
     loadSlas();
   }catch(e){ toast('Network error', e.message, 'error'); }
 }
@@ -1902,7 +2003,7 @@ async function submitSlaEdit(){
       return;
     }
     toast('Saved', 'SLA updated.', 'success');
-    closeModal('onboardModal');
+    closeOnboardPage();
     loadSlas();
   }catch(e){ toast('Network error', e.message, 'error'); }
 }
@@ -2162,6 +2263,14 @@ async function editSla(id){
     editingId = id;
     document.getElementById('onboardTitle').textContent = 'Edit SLA — ' + (d.sla_ref||'');
     document.getElementById('submitSlaBtn').textContent = 'Save Changes';
+    const bc = document.getElementById('onboardBreadcrumbCurrent');
+    if(bc) bc.textContent = 'Edit ' + (d.sla_ref || 'SLA');
+    // Set the URL hash so refresh + back button work.
+    const desiredHash = '#edit/' + id;
+    if(window.location.hash !== desiredHash){
+      history.replaceState(null, '', window.location.pathname + window.location.search + desiredHash);
+    }
+    _enterOnboardPage();
     document.getElementById('f_sla_ref').value = d.sla_ref||'';
     document.getElementById('f_name').value = d.title || d.name || '';
     // Restore the (hidden) contract_type so PATCH preserves it. Empty
