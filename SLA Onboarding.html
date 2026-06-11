@@ -173,23 +173,66 @@ main{max-width:1180px;margin:0 auto;padding:24px 28px 96px 28px;}
 
 <main>
 
-  <!-- Initial mode chooser — Use RFP template (pre-populates standard rows)
-       or Build from scratch (one empty row, pick everything manually). -->
-  <div class="mode-chooser" id="modeChooser">
-    <div class="mode-card" onclick="startWithTemplate()">
-      <div class="mc-icon">📋</div>
-      <div class="mc-title">Use RFP template</div>
-      <div class="mc-desc">Pre-loads all standard RFP §5.28 rows (SLA Number, Definition, Scope, Cadence, Measurement, Target). You just fill the values.</div>
+  <!-- ─── Static SLA Identification section ───
+       These four fields are mandatory on every SLA, so they sit
+       permanently at the top in a fixed 2-column layout. The
+       dynamic builder below handles all the optional/extension rows
+       (Definition, Scope, Source, …) the operator wants to add. -->
+  <div class="dyn-table-wrap" style="margin-bottom:18px;">
+    <div class="dyn-table-head">
+      <div style="grid-column:1 / span 3;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:#fff7e6;color:#d97706;font-size:12px;margin-right:6px;font-weight:700;">①</span>
+        SLA Identification &nbsp;<span style="font-weight:500;font-size:10px;color:var(--text-muted);text-transform:none;letter-spacing:0;">(required — every SLA needs these)</span>
+      </div>
     </div>
-    <div class="mode-card" onclick="startFromScratch()">
-      <div class="mc-icon">✏️</div>
-      <div class="mc-title">Build from scratch</div>
-      <div class="mc-desc">Start with one empty row. Pick the field-type dropdown to add each row you need. Use this for non-standard SLAs.</div>
+    <div class="dyn-row">
+      <div class="dyn-cell-label" style="display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-weight:600;color:var(--navy);font-size:13px;">SLA Number <span class="required">*</span></div>
+        <div class="field-help">RFP table header. e.g. PMU-SLA001.</div>
+      </div>
+      <div class="dyn-cell-value"><input id="s_sla_ref" type="text" placeholder="PMU-SLA001"></div>
+      <div class="dyn-cell-delete"></div>
+    </div>
+    <div class="dyn-row">
+      <div class="dyn-cell-label" style="display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-weight:600;color:var(--navy);font-size:13px;">Title <span class="required">*</span></div>
+      </div>
+      <div class="dyn-cell-value"><input id="s_title" type="text" placeholder="Non-submission of deliverable"></div>
+      <div class="dyn-cell-delete"></div>
+    </div>
+    <div class="dyn-row">
+      <div class="dyn-cell-label" style="display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-weight:600;color:var(--navy);font-size:13px;">Project (PMC contract) <span class="required">*</span></div>
+        <div class="field-help">The PMC contract this SLA belongs to.</div>
+      </div>
+      <div class="dyn-cell-value"><select id="s_project_id"><option value="">— Select a project —</option></select></div>
+      <div class="dyn-cell-delete"></div>
+    </div>
+    <div class="dyn-row" style="border-bottom:none;">
+      <div class="dyn-cell-label" style="display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-weight:600;color:var(--navy);font-size:13px;">SLA Category <span class="required">*</span></div>
+        <div class="field-help">Picks the calculation engine (point_accumulation / fixed_escalation / wac).</div>
+      </div>
+      <div class="dyn-cell-value"><select id="s_category_code"><option value="">— Select —</option></select></div>
+      <div class="dyn-cell-delete"></div>
     </div>
   </div>
 
-  <!-- Dynamic row builder. Hidden until a mode is picked. -->
-  <div class="dyn-table-wrap" id="dynTable" style="display:none;">
+  <!-- ─── Dynamic row builder ───
+       Operator adds optional rows (Definition, Scope, Source, Cadence,
+       Measurement, Target, Mapping, Attachments). Picked rows can't
+       repeat in other dropdowns until removed. -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <div>
+      <h2 style="font-size:14px;font-weight:800;color:var(--navy);margin:0;">RFP rows you've added</h2>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+        Click <strong>+ Add row</strong> to pick the next field. Use <strong>📋 Pre-load standard RFP rows</strong> to add them all at once.
+      </div>
+    </div>
+    <button class="btn cancel" style="font-size:12px;padding:6px 12px;" onclick="useTemplate()">📋 Pre-load standard RFP rows</button>
+  </div>
+
+  <div class="dyn-table-wrap" id="dynTable">
     <div class="dyn-table-head">
       <div>RFP Row Type</div>
       <div>Value</div>
@@ -203,8 +246,8 @@ main{max-width:1180px;margin:0 auto;padding:24px 28px 96px 28px;}
 
 </main>
 
-<!-- Sticky action bar — only visible once builder is active. -->
-<div class="action-bar" id="actionBar" style="display:none;">
+<!-- Sticky action bar — always visible. -->
+<div class="action-bar" id="actionBar">
   <button class="btn cancel" onclick="cancelOnboarding()">Cancel</button>
   <button class="btn primary" id="submitBtn" onclick="submitSla()">Onboard SLA</button>
 </div>
@@ -345,6 +388,9 @@ async function boot(){
   document.getElementById('connStatus').style.display = 'none';
   await Promise.all([loadRfpFields(), loadCategories(), loadProjects(), loadInputVariables()]);
   _renderConnStatus();
+  // Static SLA Identification section needs the project + category
+  // catalogs to render its dropdowns.
+  _populateStaticDropdowns();
   // ?id=<sla_id> deep-links to edit mode
   const params = new URLSearchParams(window.location.search);
   if(params.get('id')){
@@ -422,9 +468,15 @@ async function loadInputVariables(){
   }
 }
 
-/* ── Mode entry: template vs scratch ── */
+/* The four mandatory identification fields are rendered as a static
+ * section at the top, never as dynamic rows. They're excluded from
+ * the row-type dropdown and collected directly from their fixed IDs
+ * on submit. */
+const _STATIC_ID_KEYS = ['sla_ref', 'title', 'project_id', 'category_code'];
+
+/* Keys pre-loaded by "📋 Pre-load standard RFP rows". The 4 ID keys
+ * are intentionally NOT here — they live in the static section. */
 const _TEMPLATE_KEYS = [
-  'sla_ref','title','project_id','category_code',
   'description','scope_text',
   'data_source','calculation_method','reports_submitted_to',
   'measurement_interval','reporting_interval','ld_computation_base',
@@ -433,24 +485,39 @@ const _TEMPLATE_KEYS = [
   'target_rows',
 ];
 
-function startWithTemplate(){
-  document.getElementById('modeChooser').style.display = 'none';
-  document.getElementById('dynTable').style.display = '';
-  document.getElementById('actionBar').style.display = 'flex';
-  document.getElementById('dynBody').innerHTML = '';
-  // Pre-add one row per template key (in catalog order so sections
-  // group together).
-  const ordered = RFP_FIELDS.filter(f => _TEMPLATE_KEYS.includes(f.key))
-                            .sort((a,b) => _TEMPLATE_KEYS.indexOf(a.key) - _TEMPLATE_KEYS.indexOf(b.key));
+function useTemplate(){
+  // Skip rows already present so the operator can stack with whatever
+  // they've already added.
+  const present = new Set(Array.from(document.querySelectorAll('#dynBody .dyn-row'))
+    .map(r => r.dataset.fieldKey).filter(Boolean));
+  const ordered = RFP_FIELDS.filter(f =>
+    _TEMPLATE_KEYS.includes(f.key) && !present.has(f.key)
+  ).sort((a,b) => _TEMPLATE_KEYS.indexOf(a.key) - _TEMPLATE_KEYS.indexOf(b.key));
   ordered.forEach(f => addRow(f.key));
 }
 
-function startFromScratch(){
-  document.getElementById('modeChooser').style.display = 'none';
-  document.getElementById('dynTable').style.display = '';
-  document.getElementById('actionBar').style.display = 'flex';
-  document.getElementById('dynBody').innerHTML = '';
-  addRow();  // one empty row to start
+/* Populate the two static dropdowns (Project, Category) with whatever
+ * was loaded into the catalogs. Called after boot so the live data
+ * (or fallback) is available. */
+function _populateStaticDropdowns(){
+  const proj = document.getElementById('s_project_id');
+  if(proj){
+    const cur = proj.value;
+    proj.innerHTML = '<option value="">— Select a project —</option>' +
+      PROJECTS.map(p =>
+        `<option value="${esc(p.id)}">${esc((p.projectCode||p.code||'')+' — '+(p.name||''))}</option>`
+      ).join('');
+    if(cur) proj.value = cur;
+  }
+  const cat = document.getElementById('s_category_code');
+  if(cat){
+    const cur = cat.value;
+    cat.innerHTML = '<option value="">— Select —</option>' +
+      CATEGORIES.map(c =>
+        `<option value="${esc(c.display_name)}" data-formula="${esc(c.formula_type||'')}">${esc(c.display_name)}</option>`
+      ).join('');
+    if(cur) cat.value = cur;
+  }
 }
 
 function cancelOnboarding(){
@@ -459,8 +526,11 @@ function cancelOnboarding(){
 }
 
 function _dirty(){
-  // Naïve: any input in the table has a non-empty value
-  return Array.from(document.querySelectorAll('#dynBody input, #dynBody textarea, #dynBody select'))
+  // Naïve: any input on the page has a non-default value.
+  const staticEls = ['s_sla_ref','s_title','s_project_id','s_category_code']
+    .map(id => document.getElementById(id)).filter(Boolean);
+  const dynEls = Array.from(document.querySelectorAll('#dynBody input, #dynBody textarea, #dynBody select'));
+  return [...staticEls, ...dynEls]
     .some(el => (el.value||'').trim() !== '' && el.value !== el.defaultValue);
 }
 
@@ -479,9 +549,11 @@ function _usedKeysExcept(excludeRow){
 function _fieldTypeOptions(selectedKey, excludeRow){
   const used = _usedKeysExcept(excludeRow);
   const opts = [`<option value="">— Pick a field type —</option>`];
-  // Group by section.
+  // Group by section. Identification fields are static — never offered
+  // as dynamic-row options.
   const sections = {};
   for(const f of RFP_FIELDS){
+    if(_STATIC_ID_KEYS.includes(f.key)) continue;
     if(used.has(f.key) && f.key !== selectedKey) continue;
     (sections[f.section || 'Other'] = sections[f.section || 'Other'] || []).push(f);
   }
@@ -558,9 +630,10 @@ function _deleteRow(btn){
 }
 
 function _refreshAddButton(){
-  // Disable "+ Add row" once every field type is on a row.
+  // Disable "+ Add row" once every NON-STATIC field type is on a row.
   const used = _usedKeysExcept(null);
-  document.getElementById('addRowBtn').disabled = used.size >= RFP_FIELDS.length;
+  const addable = RFP_FIELDS.filter(f => !_STATIC_ID_KEYS.includes(f.key)).length;
+  document.getElementById('addRowBtn').disabled = used.size >= addable;
 }
 
 /* ── Value-cell widget renderers (one per input_type) ── */
@@ -865,6 +938,16 @@ async function submitSla(){
 
 function _collectPayload(){
   const payload = {};
+  // ── Static SLA Identification fields ──
+  const slaRef   = (document.getElementById('s_sla_ref').value   || '').trim();
+  const title    = (document.getElementById('s_title').value     || '').trim();
+  const projId   = (document.getElementById('s_project_id').value|| '').trim();
+  const catCode  = (document.getElementById('s_category_code').value || '').trim();
+  if(slaRef)  payload.sla_ref = slaRef;
+  if(title)   payload.title = title;
+  if(projId)  payload.project_id = projId;
+  if(catCode) payload.category_code = catCode;
+  // ── Dynamic rows ──
   document.querySelectorAll('#dynBody .dyn-row').forEach(row => {
     const key = row.dataset.fieldKey;
     if(!key) return;
@@ -985,22 +1068,22 @@ async function loadSlaForEdit(id){
     if(!r.ok){ toast('Load failed', 'HTTP '+r.status, 'error'); return; }
     const body = await r.json();
     const d = body.data || body;
-    document.getElementById('modeChooser').style.display = 'none';
-    document.getElementById('dynTable').style.display = '';
-    document.getElementById('actionBar').style.display = 'flex';
     document.getElementById('dynBody').innerHTML = '';
 
-    // Add rows for every known field present on the SLA
+    // Static SLA Identification fields land in the fixed top inputs
+    // (NOT in the dynamic builder).
+    if(d.sla_ref)     document.getElementById('s_sla_ref').value = d.sla_ref;
+    if(d.title)       document.getElementById('s_title').value = d.title;
+    if(d.project_id)  document.getElementById('s_project_id').value = d.project_id;
+    if(d.category)    document.getElementById('s_category_code').value = d.category;
+
+    // Everything else goes into the dynamic table — one row per field present.
     const stateFor = (k, v) => {
       if(v == null) return;
       addRow(k);
       // Wait for the widget to render, then set its value
       setTimeout(() => _hydrateRow(k, v, d), 0);
     };
-    stateFor('sla_ref', d.sla_ref);
-    stateFor('title', d.title);
-    stateFor('project_id', d.project_id);
-    stateFor('category_code', d.category);
     stateFor('description', d.description || d.definition);
     stateFor('scope_text', d.scope_text || d.scope);
     stateFor('data_source', d.data_source);
