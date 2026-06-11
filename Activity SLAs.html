@@ -702,32 +702,180 @@ async function confirmRetire(){
 }
 
 /* ─── Evaluate per-row */
+// Cached form-schema for the currently-open evaluate modal. Used by
+// runEvaluate to build the request body off ``submit.url`` /
+// ``submit.body_template`` and the ``inputs[]`` spec it rendered.
+let _EVAL_FORM_SCHEMA = null;
+
 async function openEvaluate(mappingId){
   currentEvalMappingId = mappingId;
   const m = mappings.find(x => x.id === mappingId);
   if(!m){ toast('Mapping not found', '', 'error'); return; }
-  // The catalog only carries lightweight SLA rows. Detail (target_rows,
-  // measurement, condition_bands) lives on GET /sla-masters/{id} — fetch
-  // it now so the band-reference table renders below the input.
-  let sla = slaCatalog.find(s => s.id === m.sla_id) || {};
-  try{
-    const r = await fetch(A_C() + '/api/v3/sla-masters/' + encodeURIComponent(m.sla_id));
-    if(r.ok){
-      const body = await r.json();
-      // Some servers nest data.data, others flatten — accept either.
-      const fetched = body?.data?.data || body?.data || {};
-      sla = { ...sla, ...fetched };
-    }
-  }catch(e){ /* fall back to whatever the catalog has */ }
+  const sla = slaCatalog.find(s => s.id === m.sla_id) || {};
+  const slaRef = m.sla_ref || sla.sla_ref;
 
-  const catLabel = sla.category || sla.formula_type || '';
-  document.getElementById('evalTitle').textContent = 'Evaluate Severity — ' + (sla.sla_ref || '');
-  document.getElementById('evalSub').textContent = `${sla.title || sla.name || ''} · ${catLabel}`;
-  document.getElementById('e_start').value = (activity?.startDate || activity?.start_date || '').slice(0,10);
-  document.getElementById('e_end').value = (activity?.endDate || activity?.end_date || '').slice(0,10);
-  buildObservationForm(sla);
+  document.getElementById('evalTitle').textContent = 'Evaluate Severity — ' + (slaRef || '');
+  document.getElementById('evalSub').textContent = `${sla.title || sla.name || ''} · ${sla.category || sla.formula_type || ''}`;
+  document.getElementById('obsArea').innerHTML = '<div style="padding:14px;color:var(--text-muted);">Loading form…</div>';
   document.getElementById('evalResult').innerHTML = '';
   openModal('evalModal');
+
+  // Fetch the form spec — the backend tells us what inputs to render,
+  // what bands to show, and where to POST when the user clicks Run.
+  try{
+    const r = await fetch(
+      A_C() + '/api/v3/activities/' + encodeURIComponent(ACTID())
+            + '/sla-evaluate/' + encodeURIComponent(slaRef)
+            + '/form-schema');
+    if(!r.ok){
+      const t = await r.text();
+      document.getElementById('obsArea').innerHTML =
+        `<div style="padding:14px;color:var(--red);">Could not load form (HTTP ${r.status}): ${esc(t.slice(0,200))}</div>`;
+      return;
+    }
+    const body = await r.json();
+    const schema = body?.data?.data || body?.data || {};
+    _EVAL_FORM_SCHEMA = schema;
+    _renderEvalFormFromSchema(schema);
+  }catch(e){
+    document.getElementById('obsArea').innerHTML =
+      `<div style="padding:14px;color:var(--red);">Network error: ${esc(e.message)}</div>`;
+  }
+}
+
+/* Render the entire modal from the form schema. Inputs, bands, defaults,
+ * question/explanation — all come from the backend, so a non-tech user
+ * sees one screen tailored to whatever SLA they picked. */
+function _renderEvalFormFromSchema(schema){
+  // Period defaults
+  if(schema.period){
+    if(schema.period.start_default) document.getElementById('e_start').value = schema.period.start_default;
+    if(schema.period.end_default) document.getElementById('e_end').value = schema.period.end_default;
+  }
+  document.getElementById('obsTitle').textContent = schema.question || 'What did you measure?';
+
+  // Inputs
+  const inputs = schema.inputs || [];
+  const inputsHtml = inputs.map((inp, i) => _renderEvalInput(inp, i)).join('');
+
+  // Bands — RFP rule reference card
+  const bandsHtml = _renderEvalBandsFromSchema(schema.bands || []);
+
+  const explain = schema.explanation
+    ? `<div style="font-size:13px;color:var(--text-soft);margin-bottom:10px;">${esc(schema.explanation)}</div>`
+    : '';
+  document.getElementById('obsArea').innerHTML = explain + inputsHtml + bandsHtml;
+
+  // Wire live preview to whichever input is the single primary "value"
+  // for banded SLAs (the most common shape).
+  const primary = inputs.find(i => i.name === 'value' && i.type !== 'object' && i.type !== 'list');
+  if(primary && schema.bands && schema.bands.length){
+    const el = document.getElementById('inp_value');
+    if(el) el.addEventListener('input', () => _previewEvalBandFromSchema(el.value));
+  }
+}
+
+/* One input — recursive for nested objects (e.g. WAC defect breakdown). */
+function _renderEvalInput(inp, idx, parentName){
+  const id = 'inp_' + (parentName ? `${parentName}__${inp.name}` : inp.name);
+  const labelHtml = `${esc(inp.label)}${inp.unit ? ' <span style="color:var(--text-muted);">('+esc(inp.unit)+')</span>' : ''}${inp.required ? ' <span class="required">*</span>' : ''}`;
+  const help = inp.help ? `<div class="hint" style="font-size:11px;color:var(--text-muted);margin-top:4px;">${esc(inp.help)}</div>` : '';
+
+  if(inp.type === 'object' && Array.isArray(inp.fields) && inp.fields.length){
+    const inner = inp.fields.map((f, j) =>
+      _renderEvalInput(f, `${idx}_${j}`, inp.name)
+    ).join('');
+    return `
+      <div class="subsection">
+        <div class="subsection-title">${esc(inp.label)}</div>
+        ${inp.help ? `<div style="font-size:12px;color:var(--text-soft);margin-bottom:8px;">${esc(inp.help)}</div>` : ''}
+        <div class="grid-3" data-eval-obj="${esc(inp.name)}">${inner}</div>
+      </div>`;
+  }
+
+  if(inp.type === 'list'){
+    return `
+      <div class="grid">
+        <div class="field full">
+          <label>${labelHtml}</label>
+          <textarea id="${id}" data-eval-name="${esc(inp.name)}" data-eval-type="list"
+                    placeholder="${esc(inp.placeholder || '1.0, 2.0, 3.0 …')}"
+                    style="height:90px;"></textarea>
+          ${help}
+        </div>
+      </div>`;
+  }
+
+  // number / integer / text
+  const isNum = inp.type === 'number' || inp.type === 'integer';
+  const min = inp.minimum != null ? ` min="${inp.minimum}"` : '';
+  const max = inp.maximum != null ? ` max="${inp.maximum}"` : '';
+  const step = inp.type === 'integer' ? ' step="1"' : ' step="any"';
+  return `
+    <div class="grid">
+      <div class="field">
+        <label>${labelHtml}</label>
+        <input id="${id}" data-eval-name="${esc(inp.name)}" data-eval-type="${esc(inp.type)}"
+               type="${isNum ? 'number' : 'text'}"${isNum ? step : ''}${min}${max}
+               placeholder="${esc(inp.placeholder || '')}">
+        ${help}
+      </div>
+    </div>`;
+}
+
+/* Render bands from the form schema (uniform shape regardless of formula type). */
+function _renderEvalBandsFromSchema(bands){
+  if(!bands.length) return '';
+  const sevColour = s => s === 0 ? '#16a34a'
+                       : s === 1 ? '#f59e0b'
+                       : s === 2 ? '#f97316'
+                       : s === 3 ? '#ef4444'
+                                 : '#991b1b';
+  const rows = bands.map((b, i) => {
+    const range = b.severity == null && b.rate_percent != null
+      ? `<span style="color:var(--text-muted);">tier "${esc(b.label)}"</span>`
+      : esc(_formatRange(b.range_min, b.range_max, b.unit));
+    const sevCell = b.severity == null
+      ? `<span class="badge grey" style="font-size:11px;">${b.rate_percent != null ? esc(b.rate_percent) + '%' : '—'}</span>`
+      : `<span class="sev-pill" style="background:${sevColour(b.severity)};color:#fff;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;">L${b.severity}</span>`;
+    return `
+      <tr data-band-row="${i}" data-lo="${b.range_min == null ? '' : b.range_min}" data-hi="${b.range_max == null ? '' : b.range_max}">
+        <td style="padding:6px 10px;">${sevCell}</td>
+        <td style="padding:6px 10px;font-size:12px;">${range}</td>
+        <td style="padding:6px 10px;font-size:12px;color:var(--text-soft);">${esc(b.label || '')}</td>
+      </tr>`;
+  }).join('');
+  return `
+    <div class="subsection" style="margin-top:14px;">
+      <div class="subsection-title">📜 RFP rule — what severity each value triggers</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">
+        Type your value above and the matching row will highlight.
+      </div>
+      <div class="table-wrap">
+        <table class="table" id="eval_bands_table" style="font-size:12px;">
+          <thead><tr><th style="padding:6px 10px;">Severity</th><th style="padding:6px 10px;">When the value is…</th><th style="padding:6px 10px;">Band</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function _previewEvalBandFromSchema(rawValue){
+  const v = parseFloat(rawValue);
+  const rows = document.querySelectorAll('#eval_bands_table tr[data-band-row]');
+  rows.forEach(tr => { tr.style.background=''; tr.style.borderLeft=''; });
+  if(isNaN(v)) return;
+  for(const tr of rows){
+    const lo = tr.dataset.lo === '' ? null : parseFloat(tr.dataset.lo);
+    const hi = tr.dataset.hi === '' ? null : parseFloat(tr.dataset.hi);
+    const inLo = (lo == null) || (v > lo);
+    const inHi = (hi == null) || (v <= hi);
+    if(inLo && inHi){
+      tr.style.background = '#fff7e6';
+      tr.style.borderLeft = '4px solid #f59e0b';
+      break;
+    }
+  }
 }
 
 /* ────────────────────────────────────────────────────────────────────
@@ -746,7 +894,9 @@ async function openEvaluate(mappingId){
  * figures out the rest backend-side.
  * ──────────────────────────────────────────────────────────────────── */
 
-function buildObservationForm(sla){
+function _UNUSED_buildObservationForm(sla){
+  // DEPRECATED — superseded by the schema-driven _renderEvalFormFromSchema.
+  // Kept commented for one release in case rollback is needed.
   const ft = sla.formula_type || 'point_accumulation';
   // Pull what to measure + unit from the friendly schema first; fall
   // back to the technical metrics[0] for older list responses.
@@ -801,7 +951,7 @@ function buildObservationForm(sla){
 /* Renders the SLA's severity bands as a reference card so the user
  * sees the contract rule before they evaluate. Pulls from target_rows
  * (friendly shape) first, then condition_bands (technical shape). */
-function _renderEvalBandsReference(sla){
+function _UNUSED_renderEvalBandsReference(sla){
   const rows = (sla.target_rows || []).map(r => ({
     sev: r.severity,
     label: r.threshold_label,
@@ -872,7 +1022,7 @@ function _formatRange(lo, hi, unit){
 }
 
 /* Live preview — highlights the band row matching the typed value. */
-function _previewEvalBand(rawValue){
+function _UNUSED_previewEvalBand(rawValue){
   const v = parseFloat(rawValue);
   const rows = document.querySelectorAll('#eval_bands_table tr[data-band-row]');
   rows.forEach(tr => {
@@ -893,30 +1043,49 @@ function _previewEvalBand(rawValue){
   }
 }
 
-/* Builds the body for the new simple endpoint
- * POST /activities/{id}/sla-evaluate/{sla_ref}  →  { value: … } */
+/* Walks the rendered inputs (whatever the form-schema declared) and
+ * builds the request body the backend expects. Handles three input
+ * shapes the schema can declare:
+ *   - type='number'/'integer'/'text' → scalar at body[name]
+ *   - type='list'                    → comma/whitespace-split numbers
+ *   - type='object' with fields[]    → nested dict at body[name]
+ * No hardcoded formula-type assumptions here. */
 function buildSimpleEvaluateBody(){
-  const area = document.getElementById('obsArea');
-  const ft = area.dataset.formulaType;
-  if(ft === 'wac'){
-    return {
-      value: {
-        blocker:      Number(document.getElementById('w_blocker').value)  || 0,
-        critical:     Number(document.getElementById('w_critical').value) || 0,
-        major:        Number(document.getElementById('w_major').value)    || 0,
-        minor:        Number(document.getElementById('w_minor').value)    || 0,
-        applications: Number(document.getElementById('w_apps').value)     || 1,
-        baseline:     document.getElementById('w_baseline').value || '0',
-        previous_wac: document.getElementById('w_prev').value     || '0',
-      },
-    };
+  const schema = _EVAL_FORM_SCHEMA;
+  if(!schema || !schema.inputs) return null;
+  const out = {};
+  for(const inp of schema.inputs){
+    if(inp.type === 'object' && Array.isArray(inp.fields)){
+      const obj = {};
+      let touched = false;
+      for(const f of inp.fields){
+        const el = document.getElementById('inp_' + inp.name + '__' + f.name);
+        if(!el) continue;
+        const raw = (el.value || '').trim();
+        if(raw === ''){ if(f.required !== false){} continue; }
+        const n = parseFloat(raw);
+        obj[f.name] = (f.type === 'text' || isNaN(n)) ? raw : n;
+        touched = true;
+      }
+      if(touched) out[inp.name] = obj;
+    } else if(inp.type === 'list'){
+      const el = document.getElementById('inp_' + inp.name);
+      if(!el) continue;
+      const arr = (el.value || '').split(/[,\s]+/).filter(Boolean).map(parseFloat).filter(x => !isNaN(x));
+      if(arr.length) out[inp.name] = arr;
+    } else {
+      const el = document.getElementById('inp_' + inp.name);
+      if(!el) continue;
+      const raw = (el.value || '').trim();
+      if(raw === ''){
+        if(inp.required !== false) return null;
+        continue;
+      }
+      const n = parseFloat(raw);
+      out[inp.name] = (inp.type === 'text' || isNaN(n)) ? raw : n;
+    }
   }
-  const raw = document.getElementById('obs_single').value.trim();
-  if(raw === '') return null;
-  // Number for the engine; string-numeric works too but pre-parse so we
-  // don't send "0e-7"-style oddities.
-  const n = parseFloat(raw);
-  return { value: isNaN(n) ? raw : n };
+  return out;
 }
 
 async function runEvaluate(){
