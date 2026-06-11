@@ -459,12 +459,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
         Copy this directly from the RFP's <strong>"Target"</strong> sub-table. Each row maps one severity level to the threshold for the measurement above.
       </div>
-      <div id="rfpTargetHeader" style="display:grid;grid-template-columns:auto 1fr 2fr 1fr 1fr auto;gap:8px;align-items:center;padding:6px 8px;background:#f1f6fd;border-radius:6px;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;">
+      <div id="rfpTargetHeader" style="display:grid;grid-template-columns:auto 0.9fr 1.4fr 1.6fr 0.8fr 0.8fr auto;gap:8px;align-items:center;padding:6px 8px;background:#f1f6fd;border-radius:6px;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;">
         <span></span>
         <span>Severity</span>
-        <span>Threshold (as written in RFP)</span>
-        <span>From <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(exclusive)</span></span>
-        <span>To <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(inclusive)</span></span>
+        <span>Input variable</span>
+        <span>Threshold <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(RFP wording)</span></span>
+        <span>From <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(excl.)</span></span>
+        <span>To <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(incl.)</span></span>
         <span></span>
       </div>
       <div id="rfpTargetBody"></div>
@@ -895,6 +896,44 @@ const _FALLBACK_CATEGORIES = [
   {code:'RESOURCE_MANAGEMENT',    display_name:'Resource Management',    formula_type:'point_accumulation'},
   {code:'GOVERNANCE_TOOL',        display_name:'Governance Tool',        formula_type:'point_accumulation'},
 ];
+
+/* ────────────────────────────────────────────────────────────────────
+ * Input-variables catalog — drives the per-row "Input variable"
+ * dropdown on the Target sub-table. Sourced from
+ * GET /api/v3/sla-input-variables which returns every metric_key seen
+ * on a live SLA + every data_field master row.
+ *
+ * When the call fails (older backend, network blip) we fall back to a
+ * hand-rolled list extracted from the loaded slaCatalog so the form
+ * still works.
+ * ──────────────────────────────────────────────────────────────────── */
+let SLA_INPUT_VARIABLES = [];
+
+async function loadSlaInputVariables(){
+  try{
+    const r = await fetch(API() + '/api/v3/sla-input-variables');
+    if(r.ok){
+      const body = await r.json();
+      SLA_INPUT_VARIABLES = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+      return;
+    }
+  }catch(e){}
+  // Fallback: derive from whatever's in the SLA catalog. Limited to
+  // primary metric_key only — that's all the list endpoint returns.
+  SLA_INPUT_VARIABLES = [];
+  for(const s of (slas || [])){
+    if(s.metric_key && !SLA_INPUT_VARIABLES.find(v => v.key === s.metric_key)){
+      SLA_INPUT_VARIABLES.push({
+        key: s.metric_key,
+        label: s.metric_display_name || s.metric_key,
+        unit: s.metric_unit || null,
+        source: 'sla',
+        used_by: [s.sla_ref],
+        categories: [s.category],
+      });
+    }
+  }
+}
 
 async function loadSlaCategories(){
   let items = [];
@@ -1412,13 +1451,57 @@ function _updateSevPill(rowEl){
   pill.textContent = 'L' + sev;
 }
 
+function _inputVariableOptions(selected){
+  // Build the <option> list for the per-row "Input variable" dropdown.
+  // Empty value = "use the SLA's primary measurement" (common case).
+  // The sentinel '__custom__' lets the user type a brand new key.
+  const opts = [
+    `<option value="" ${!selected ? 'selected' : ''}>— Primary measurement (default) —</option>`,
+  ];
+  for(const v of SLA_INPUT_VARIABLES){
+    const key = v.key;
+    const lbl = `${v.label}${v.unit ? ' ('+v.unit+')' : ''}`;
+    opts.push(`<option value="${esc(key)}" ${selected===key?'selected':''}>${esc(lbl)}</option>`);
+  }
+  // Allow the user to type a brand-new metric_key directly.
+  opts.push(`<option value="__custom__">+ Type a new variable…</option>`);
+  // If the row's saved value isn't in the catalog (custom one used
+  // previously), surface it so the dropdown shows the right selection.
+  if(selected && !SLA_INPUT_VARIABLES.find(v => v.key === selected)){
+    opts.splice(1, 0,
+      `<option value="${esc(selected)}" selected>${esc(selected)} (custom)</option>`);
+  }
+  return opts.join('');
+}
+
+function _onInputVariableChange(sel){
+  // Sentinel "__custom__" → prompt for a new metric_key and inject it as
+  // a permanent option so the user can keep typing into the row.
+  if(sel.value !== '__custom__') return;
+  const key = (prompt('New input variable (snake_case, e.g. "uptime_percent"):') || '').trim();
+  if(!key){ sel.value = ''; return; }
+  // Naïve sanitization — backend will validate too.
+  const safe = key.toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '');
+  if(!safe){ sel.value = ''; return; }
+  const opt = document.createElement('option');
+  opt.value = safe;
+  opt.textContent = safe + ' (new)';
+  opt.selected = true;
+  sel.insertBefore(opt, sel.querySelector('option[value="__custom__"]'));
+  sel.value = safe;
+  // Remember it across rows so the next row's dropdown sees it too.
+  if(!SLA_INPUT_VARIABLES.find(v => v.key === safe)){
+    SLA_INPUT_VARIABLES.push({key: safe, label: safe, unit: null, source: 'custom', used_by: [], categories: []});
+  }
+}
+
 function addRfpTargetRow(prefill){
-  prefill = prefill || {severity: 0, threshold_label: '', from_value: null, to_value: null};
+  prefill = prefill || {severity: 0, threshold_label: '', from_value: null, to_value: null, input_variable: ''};
   const body = document.getElementById('rfpTargetBody');
   const row = document.createElement('div');
   row.className = 'rfp-target-row';
-  // Wider grid so the severity-pill preview fits cleanly on the left.
-  row.style.cssText = 'display:grid;grid-template-columns:auto 1fr 2fr 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:6px;';
+  // 6 cols: pill / severity select / input-variable dropdown / threshold text / from / to / delete
+  row.style.cssText = 'display:grid;grid-template-columns:auto 0.9fr 1.4fr 1.6fr 0.8fr 0.8fr auto;gap:8px;align-items:center;margin-bottom:6px;';
   const sev = prefill.severity ?? 0;
   row.innerHTML = `
     <span class="sev-pill-preview"
@@ -1428,6 +1511,9 @@ function addRfpTargetRow(prefill){
                  letter-spacing:.3px;">L${sev}</span>
     <select data-k="severity" onchange="_updateSevPill(this.parentElement)">
       ${[0,1,2,3,4].map(s => `<option value="${s}" ${sev===s?'selected':''}>Severity ${s}</option>`).join('')}
+    </select>
+    <select data-k="input_variable" onchange="_onInputVariableChange(this)">
+      ${_inputVariableOptions(prefill.input_variable || '')}
     </select>
     <input data-k="threshold_label" placeholder="e.g. ≤ 21 days" value="${esc(prefill.threshold_label||'')}">
     <input data-k="from_value" type="number" step="any" placeholder="—" value="${prefill.from_value==null?'':prefill.from_value}">
@@ -1443,9 +1529,14 @@ function collectRfpTargetRows(){
     const obj = {};
     r.querySelectorAll('[data-k]').forEach(el => {
       const v = el.value.trim();
-      if(el.dataset.k === 'severity') obj.severity = Number(v);
-      else if(el.dataset.k === 'threshold_label') obj.threshold_label = v || null;
-      else obj[el.dataset.k] = v === '' ? null : Number(v);
+      const k = el.dataset.k;
+      if(k === 'severity') obj.severity = Number(v);
+      else if(k === 'threshold_label') obj.threshold_label = v || null;
+      else if(k === 'input_variable'){
+        // Empty / sentinel → omit so backend falls back to primary measurement.
+        obj.input_variable = (v && v !== '__custom__') ? v : null;
+      }
+      else obj[k] = v === '' ? null : Number(v);
     });
     return obj;
   });
@@ -2014,6 +2105,7 @@ async function editSla(id){
         threshold_label: r.threshold_label || '',
         from_value: r.from_value,
         to_value: r.to_value,
+        input_variable: r.input_variable || '',
       }));
     } else {
       (d.condition_bands || d.bands || [])
@@ -2024,6 +2116,9 @@ async function editSla(id){
           threshold_label: b.band_label || '',
           from_value: b.range_min,
           to_value: b.range_max,
+          // condition_bands carry metric_key per row — surface it so the
+          // user sees which variable each band guards.
+          input_variable: b.metric_key || '',
         }));
     }
     // Linear escalation — the friendly endpoint returns the original
@@ -2090,9 +2185,11 @@ function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
 /* Init */
-// Boot: fetch the SLA category catalog (typed master) + the active
-// project list (for the Project picker on onboard) before the rest.
+// Boot: fetch the SLA category catalog (typed master), input-variables
+// catalog (for the per-row dropdown on the Target table), and the active
+// project list (for the Project picker) before the rest.
 loadSlaCategories();
+loadSlaInputVariables();
 loadProjects();
 checkHealth();
 
