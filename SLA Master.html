@@ -1574,6 +1574,26 @@ const APPLIED_ON_LABEL = {
 // Each band becomes one row: severity + plain-English threshold derived from
 // (range_min, range_max, range_unit) so users see "≥ 16 days" rather than
 // "range_min: 16, range_max: null".
+// Translates the GET /sla-masters/{id} response into the shape
+// renderTargetTable() expects. The new (default) endpoint returns
+// target_rows in RFP shape; older callers / the /parsed endpoint return
+// condition_bands directly. We accept whichever shape is present.
+function _bandsForView(d){
+  if(d?.condition_bands?.length) return d.condition_bands;
+  if(d?.bands?.length) return d.bands;
+  if(d?.target_rows?.length){
+    return d.target_rows.map((r, i) => ({
+      band_label: r.threshold_label,
+      severity_level: r.severity,
+      range_min: r.from_value,
+      range_max: r.to_value,
+      range_unit: r.unit || '',
+      sort_order: i + 1,
+    }));
+  }
+  return [];
+}
+
 function renderTargetTable(bands, lookup){
   if((!bands || !bands.length) && (!lookup || !lookup.length)){
     return '<div style="color:var(--text-muted);font-style:italic;font-size:12px;">No target table defined.</div>';
@@ -1686,7 +1706,7 @@ function renderViewBody(d, mappings, attachments){
           ${rfpRow('SLA Calculation', d.calculation_method)}
           <tr>
             <th style="background:#f1f6fd;padding:10px 12px;text-align:left;vertical-align:top;color:var(--navy);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.3px;">Target (severity thresholds)</th>
-            <td style="padding:10px 12px;">${renderTargetTable(d.condition_bands, d.lookup_table)}</td>
+            <td style="padding:10px 12px;">${renderTargetTable(_bandsForView(d), d.lookup_table)}</td>
           </tr>
           ${rfpRow('Measurement Interval', d.measurement_interval)}
           ${rfpRow('Reporting Interval', d.reporting_interval)}
@@ -1791,36 +1811,66 @@ async function editSla(id){
     const fp = document.getElementById('f_attachments');
     if(fp){ fp.value = ''; fp.onchange = onAttachmentFilesPicked; }
     await loadAttachmentsForSla(id);
-    // Populate the simple "What is measured" fields from the primary metric.
-    const metrics = d.metrics || [];
-    const primary = metrics.find(m => m.is_primary) || metrics[0] || {};
-    document.getElementById('rf_measure_name').value = primary.display_name || '';
-    document.getElementById('rf_measure_unit').value = primary.unit || '';
-    document.getElementById('rf_measure_target').value = primary.target_numeric ?? '';
-    const secondary = metrics.find(m => !m.is_primary);
-    document.getElementById('rf_measure2_name').value = secondary ? secondary.display_name : '';
-    document.getElementById('rf_measure2_unit').value = secondary ? (secondary.unit || '') : '';
-    document.getElementById('rf_measure2_target').value = secondary ? (secondary.target_numeric ?? '') : '';
-    // Populate the severity threshold table from the saved bands. Use a
-    // different identifier from the API-response `body` declared earlier
-    // in this function.
+    // Populate "What is measured". Prefer the new RFP-shape fields
+    // (d.measurement / d.secondary_measurement) when the friendly endpoint
+    // returns them; fall back to d.metrics[] for old data / the parsed view.
+    if(d.measurement){
+      document.getElementById('rf_measure_name').value = d.measurement.display_name || '';
+      document.getElementById('rf_measure_unit').value = d.measurement.unit || '';
+      document.getElementById('rf_measure_target').value = d.measurement.target ?? '';
+    } else {
+      const metrics = d.metrics || [];
+      const primary = metrics.find(m => m.is_primary) || metrics[0] || {};
+      document.getElementById('rf_measure_name').value = primary.display_name || '';
+      document.getElementById('rf_measure_unit').value = primary.unit || '';
+      document.getElementById('rf_measure_target').value = primary.target_numeric ?? '';
+    }
+    if(d.secondary_measurement){
+      document.getElementById('rf_measure2_name').value = d.secondary_measurement.display_name || '';
+      document.getElementById('rf_measure2_unit').value = d.secondary_measurement.unit || '';
+      document.getElementById('rf_measure2_target').value = d.secondary_measurement.target ?? '';
+    } else {
+      const metrics2 = d.metrics || [];
+      const secondary = metrics2.find(m => !m.is_primary);
+      document.getElementById('rf_measure2_name').value = secondary ? secondary.display_name : '';
+      document.getElementById('rf_measure2_unit').value = secondary ? (secondary.unit || '') : '';
+      document.getElementById('rf_measure2_target').value = secondary ? (secondary.target_numeric ?? '') : '';
+    }
+    // Populate the severity threshold table. Prefer the friendly
+    // target_rows shape when present; otherwise translate from the
+    // legacy condition_bands sub-table.
     const targetBodyEl = document.getElementById('rfpTargetBody');
     targetBodyEl.innerHTML = '';
-    (d.condition_bands || d.bands || [])
-      .slice()
-      .sort((a,b) => (a.sort_order||0)-(b.sort_order||0))
-      .forEach(b => addRfpTargetRow({
-        severity: b.severity_level ?? 0,
-        threshold_label: b.band_label || '',
-        from_value: b.range_min,
-        to_value: b.range_max,
+    if(Array.isArray(d.target_rows) && d.target_rows.length){
+      d.target_rows.forEach(r => addRfpTargetRow({
+        severity: r.severity ?? 0,
+        threshold_label: r.threshold_label || '',
+        from_value: r.from_value,
+        to_value: r.to_value,
       }));
-    // Linear escalation can't be cleanly reversed from a verbose lookup, so
-    // leave those fields blank on edit. The Advanced section keeps the raw
-    // rows visible for round-trip safety on PATCH (we don't send them back —
-    // PATCH only updates basics — but they're shown for inspection).
-    document.getElementById('rf_lin_rate').value = '';
-    document.getElementById('rf_lin_grace').value = '0';
+    } else {
+      (d.condition_bands || d.bands || [])
+        .slice()
+        .sort((a,b) => (a.sort_order||0)-(b.sort_order||0))
+        .forEach(b => addRfpTargetRow({
+          severity: b.severity_level ?? 0,
+          threshold_label: b.band_label || '',
+          from_value: b.range_min,
+          to_value: b.range_max,
+        }));
+    }
+    // Linear escalation — the friendly endpoint returns the original
+    // rate / unit / grace; the parsed endpoint returns just the expanded
+    // lookup_table. Prefer the friendly shape.
+    if(d.linear_escalation){
+      document.getElementById('rf_lin_rate').value = d.linear_escalation.rate_percent ?? '';
+      const u = document.getElementById('rf_lin_unit');
+      if(u && d.linear_escalation.unit) u.value = d.linear_escalation.unit;
+      document.getElementById('rf_lin_grace').value = d.linear_escalation.grace_units ?? '0';
+    } else {
+      document.getElementById('rf_lin_rate').value = '';
+      document.getElementById('rf_lin_grace').value = '0';
+    }
     // Show the Advanced section with the original data the FE didn't model
     // in the simple form (full metrics list, bands, lookup, parameters, guards).
     document.getElementById('advancedSection').style.display = '';
