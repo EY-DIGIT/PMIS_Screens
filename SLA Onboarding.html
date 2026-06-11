@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Onboard New SLA · UIDAI PMIS</title>
+<style>
+:root{
+  --navy:#1e3a8a;--bg:#f4f6fb;--bg-card:#ffffff;
+  --text-soft:#475569;--text-muted:#64748b;
+  --border-soft:#d4dbe6;--border-medium:#c7d2e6;
+  --red:#dc2626;--green:#16a34a;--amber:#d97706;--cyan:#0891b2;
+  --uidai-stripe:linear-gradient(90deg,#ff9933 0%,#ffffff 50%,#138808 100%);
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+     background:var(--bg);color:#0f172a;font-size:13px;}
+
+/* ── Page header ── */
+.page-header{background:#fff;border-bottom:2px solid var(--navy);
+             padding:14px 28px;position:sticky;top:0;z-index:10;
+             box-shadow:0 2px 6px rgba(0,0,0,.04);}
+.page-header::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--uidai-stripe);}
+.breadcrumb{font-size:12px;color:var(--text-soft);margin-bottom:4px;}
+.breadcrumb a{color:var(--navy);font-weight:600;text-decoration:none;}
+.breadcrumb a:hover{text-decoration:underline;}
+.page-title{font-size:18px;font-weight:800;color:var(--navy);margin:0;}
+.page-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+
+/* ── Main canvas ── */
+main{max-width:1180px;margin:0 auto;padding:24px 28px 96px 28px;}
+
+/* ── Mode chooser (initial state) ── */
+.mode-chooser{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+.mode-card{background:#fff;border:1.5px solid var(--border-medium);border-radius:10px;
+           padding:18px;cursor:pointer;transition:all .15s;}
+.mode-card:hover{border-color:var(--navy);box-shadow:0 4px 12px rgba(30,58,138,.08);}
+.mode-card .mc-icon{font-size:28px;margin-bottom:8px;}
+.mode-card .mc-title{font-weight:700;color:var(--navy);font-size:14px;margin-bottom:4px;}
+.mode-card .mc-desc{font-size:12px;color:var(--text-soft);line-height:1.5;}
+.mode-card.active{border-color:var(--navy);background:#f1f6fd;}
+
+/* ── Dynamic row table ── */
+.dyn-table-wrap{background:#fff;border:1.5px solid var(--border-medium);border-radius:10px;
+                overflow:hidden;box-shadow:0 1px 2px rgba(15,23,42,.04);}
+.dyn-table-head{display:grid;grid-template-columns:340px 1fr auto;gap:0;align-items:center;
+                background:linear-gradient(90deg,#f1f6fd 0%,#fff7e6 100%);
+                padding:11px 16px;border-bottom:1.5px solid var(--border-medium);
+                font-size:12px;font-weight:800;color:var(--navy);
+                text-transform:uppercase;letter-spacing:.3px;}
+.dyn-row{display:grid;grid-template-columns:340px 1fr auto;gap:0;align-items:stretch;
+         border-bottom:1px solid var(--border-soft);}
+.dyn-row:hover{background:#fdfdff;}
+.dyn-row > .dyn-cell-label{background:#fafbfd;padding:11px 14px;
+                           border-right:1px solid var(--border-soft);}
+.dyn-row > .dyn-cell-value{padding:9px 14px;}
+.dyn-row > .dyn-cell-delete{padding:9px 12px 9px 6px;display:flex;align-items:flex-start;}
+
+.dyn-cell-label select{width:100%;padding:8px 10px;font-size:13px;font-weight:600;
+                       color:var(--navy);border:1px solid var(--border-soft);border-radius:6px;
+                       background:#fff;cursor:pointer;}
+.dyn-cell-label select:focus{outline:none;border-color:var(--navy);
+                             box-shadow:0 0 0 3px rgba(30,58,138,.1);}
+.dyn-cell-label .field-help{font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.4;}
+
+.dyn-cell-value input[type=text],
+.dyn-cell-value input[type=number],
+.dyn-cell-value input[type=date],
+.dyn-cell-value textarea,
+.dyn-cell-value select{
+  width:100%;box-sizing:border-box;font-size:13px;padding:8px 10px;
+  border:1px solid var(--border-soft);border-radius:6px;background:#fff;font-family:inherit;
+}
+.dyn-cell-value input:focus,
+.dyn-cell-value textarea:focus,
+.dyn-cell-value select:focus{
+  outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(30,58,138,.1);
+}
+.dyn-cell-value textarea{min-height:60px;resize:vertical;}
+
+.dyn-cell-empty{color:var(--text-muted);font-style:italic;font-size:12px;}
+
+.dyn-delete-btn{width:28px;height:28px;border-radius:6px;background:#fff;color:var(--red);
+                border:1px solid var(--red);cursor:pointer;font-size:14px;font-weight:700;}
+.dyn-delete-btn:hover{background:var(--red);color:#fff;}
+
+/* ── Add row button ── */
+.add-row{padding:14px 16px;background:#fafbfd;text-align:center;}
+.add-row-btn{background:var(--navy);color:#fff;border:none;border-radius:6px;
+             padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;
+             transition:background .15s;}
+.add-row-btn:hover{background:#152b6c;}
+.add-row-btn:disabled{background:#cbd5e1;cursor:not-allowed;}
+
+/* ── Sticky action bar ── */
+.action-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;
+            border-top:1px solid var(--border-soft);padding:12px 28px;
+            display:flex;justify-content:flex-end;gap:10px;z-index:10;
+            box-shadow:0 -2px 6px rgba(0,0,0,.04);}
+.btn{padding:9px 18px;border-radius:6px;font-size:13px;font-weight:700;
+     border:none;cursor:pointer;font-family:inherit;}
+.btn.primary{background:var(--navy);color:#fff;}
+.btn.primary:hover{background:#152b6c;}
+.btn.cancel{background:#fff;color:var(--navy);border:1px solid var(--border-soft);}
+.btn.cancel:hover{background:#f1f6fd;}
+
+/* ── Sub-form blocks (severity table, linear form, etc.) ── */
+.sub-form{padding:8px 0;}
+.sub-form .sub-grid{display:grid;gap:8px;}
+.sub-form label{font-size:11px;color:var(--text-muted);margin-bottom:2px;display:block;}
+
+/* Severity sub-table */
+.sev-header{display:grid;grid-template-columns:auto 0.9fr 1.6fr 1.6fr 0.8fr 0.8fr auto;
+            gap:8px;align-items:center;padding:6px 8px;background:#f1f6fd;border-radius:6px;
+            font-size:11px;font-weight:700;color:var(--navy);
+            text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;}
+.sev-row{display:grid;grid-template-columns:auto 0.9fr 1.6fr 1.6fr 0.8fr 0.8fr auto;
+         gap:8px;align-items:center;margin-bottom:6px;}
+.sev-pill{display:inline-flex;align-items:center;justify-content:center;
+          min-width:34px;height:26px;padding:0 8px;border-radius:99px;
+          color:#fff;font-size:11px;font-weight:700;letter-spacing:.3px;}
+.sub-form .small-btn{padding:4px 10px;font-size:11px;border:1px solid var(--border-soft);
+                     background:#fff;color:var(--navy);border-radius:5px;cursor:pointer;
+                     font-weight:600;}
+.sub-form .small-btn:hover{background:#f1f6fd;}
+
+/* ── Toast ── */
+.toast{position:fixed;top:20px;right:20px;background:#fff;border-left:4px solid var(--cyan);
+       padding:12px 16px;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);
+       z-index:2000;min-width:280px;max-width:420px;display:none;}
+.toast.open{display:block;}
+.toast.success{border-left-color:var(--green);}
+.toast.error{border-left-color:var(--red);}
+.toast-title{font-weight:800;font-size:13px;margin-bottom:3px;color:var(--navy);}
+.toast-msg{font-size:12px;color:var(--text-soft);}
+
+.required{color:var(--red);}
+.hint{font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.4;}
+
+/* Linear LD statement preview */
+.lin-preview{margin-top:10px;padding:10px 12px;border-radius:8px;
+             border:1px dashed #fcd34d;background:#fffbeb;font-size:13px;color:var(--navy);}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="breadcrumb">
+    <a href="SLA Master.html">SLA Masters</a>
+    <span style="color:var(--text-muted);">&nbsp;›&nbsp;</span>
+    <span id="bcCurrent">Onboard new SLA</span>
+  </div>
+  <h1 class="page-title" id="pageTitle">Onboard New SLA</h1>
+  <div class="page-sub">Pick which RFP row you want to add, fill in the value. Add as many rows as your SLA needs.</div>
+</div>
+
+<main>
+
+  <!-- Initial mode chooser — Use RFP template (pre-populates standard rows)
+       or Build from scratch (one empty row, pick everything manually). -->
+  <div class="mode-chooser" id="modeChooser">
+    <div class="mode-card" onclick="startWithTemplate()">
+      <div class="mc-icon">📋</div>
+      <div class="mc-title">Use RFP template</div>
+      <div class="mc-desc">Pre-loads all standard RFP §5.28 rows (SLA Number, Definition, Scope, Cadence, Measurement, Target). You just fill the values.</div>
+    </div>
+    <div class="mode-card" onclick="startFromScratch()">
+      <div class="mc-icon">✏️</div>
+      <div class="mc-title">Build from scratch</div>
+      <div class="mc-desc">Start with one empty row. Pick the field-type dropdown to add each row you need. Use this for non-standard SLAs.</div>
+    </div>
+  </div>
+
+  <!-- Dynamic row builder. Hidden until a mode is picked. -->
+  <div class="dyn-table-wrap" id="dynTable" style="display:none;">
+    <div class="dyn-table-head">
+      <div>RFP Row Type</div>
+      <div>Value</div>
+      <div style="width:36px;"></div>
+    </div>
+    <div id="dynBody"></div>
+    <div class="add-row">
+      <button class="add-row-btn" id="addRowBtn" onclick="addRow()">+ Add row</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- Sticky action bar — only visible once builder is active. -->
+<div class="action-bar" id="actionBar" style="display:none;">
+  <button class="btn cancel" onclick="cancelOnboarding()">Cancel</button>
+  <button class="btn primary" id="submitBtn" onclick="submitSla()">Onboard SLA</button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-title" id="toastTitle"></div>
+  <div class="toast-msg" id="toastMsg"></div>
+</div>
+
+<script>
+/* ===================================================================
+ * SLA Onboarding — dynamic-row builder
+ *
+ * Every row is added by the operator: pick the RFP field type from
+ * the left-column dropdown, the right-column renders the right input.
+ *
+ * Field-type catalog comes from GET /api/v3/sla-rfp-fields. Once a
+ * row picks a field-type, that type disappears from other rows'
+ * dropdowns. Removing the row releases the type back into the catalog.
+ *
+ * Special types render sub-forms inside the value cell:
+ *   severity_table   → severity threshold rows with input-variable
+ *                       dropdown (sourced from sla-input-variables)
+ *   linear_form      → rate + unit + grace + live "If delayed by N…"
+ *                       preview
+ *   measurement_set  → name + unit + target
+ *   placeholder_table→ rows of (key, label, type, required, autofill)
+ *   project_picker   → loaded from project-management
+ *   category_picker  → loaded from /api/v3/sla-categories
+ *   file_picker      → <input type="file"> for image attachments
+ *
+ * On submit, every row's value is collected into the /from-rfp
+ * payload shape and POSTed.
+ * =================================================================== */
+
+const CONTRACT_API = 'http://localhost:9000/contracts';
+const PROJECT_API  = 'http://localhost:9000/projects';
+
+let RFP_FIELDS = [];        // catalog of every possible row type
+let CATEGORIES = [];         // sla-categories list
+let PROJECTS = [];           // project list (fallback included)
+let INPUT_VARIABLES = [];    // for severity-table's input-variable dropdown
+let editingId = null;        // when ?id=<sla_id>, edit-mode for existing SLA
+
+const _SEV_COLOUR = {0:'#16a34a',1:'#f59e0b',2:'#f97316',3:'#ef4444',4:'#991b1b'};
+
+const _FALLBACK_PROJECTS = [
+  {id:'31eefb48-c2d3-4a4a-8fc7-a23b84d08e45',
+   name:'UIDAI - PMC for Selection & On-boarding of MSP(s)',
+   projectCode:'UIDAI-PR260529040804139'},
+];
+const _FALLBACK_CATEGORIES = [
+  {code:'DELIVERABLE_SUBMISSION', display_name:'Deliverable Submission', formula_type:'fixed_escalation'},
+  {code:'QUERY_RESOLUTION',       display_name:'Query Resolution',       formula_type:'fixed_escalation'},
+  {code:'RECOMMENDATION_QUALITY', display_name:'Recommendation Quality', formula_type:'point_accumulation'},
+  {code:'RESOURCE_MANAGEMENT',    display_name:'Resource Management',    formula_type:'point_accumulation'},
+  {code:'GOVERNANCE_TOOL',        display_name:'Governance Tool',        formula_type:'point_accumulation'},
+];
+
+/* ── Boot ── */
+async function boot(){
+  await Promise.all([loadRfpFields(), loadCategories(), loadProjects(), loadInputVariables()]);
+  // ?id=<sla_id> deep-links to edit mode
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('id')){
+    editingId = params.get('id');
+    document.getElementById('pageTitle').textContent = 'Edit SLA';
+    document.getElementById('bcCurrent').textContent = 'Edit SLA';
+    document.getElementById('submitBtn').textContent = 'Save Changes';
+    await loadSlaForEdit(editingId);
+  }
+}
+window.addEventListener('load', boot);
+
+async function loadRfpFields(){
+  try{
+    const r = await fetch(CONTRACT_API + '/api/v3/sla-rfp-fields');
+    if(r.ok){
+      const body = await r.json();
+      RFP_FIELDS = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+    }
+  }catch(e){}
+}
+
+async function loadCategories(){
+  try{
+    const r = await fetch(CONTRACT_API + '/api/v3/sla-categories');
+    if(r.ok){
+      const body = await r.json();
+      CATEGORIES = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+    }
+  }catch(e){}
+  if(!CATEGORIES.length) CATEGORIES = _FALLBACK_CATEGORIES;
+}
+
+async function loadProjects(){
+  try{
+    const r = await fetch(PROJECT_API + '/api/v3/projects?pageSize=200');
+    if(r.ok){
+      const body = await r.json();
+      PROJECTS = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+    }
+  }catch(e){}
+  if(!PROJECTS.length) PROJECTS = _FALLBACK_PROJECTS;
+}
+
+async function loadInputVariables(){
+  try{
+    const r = await fetch(CONTRACT_API + '/api/v3/sla-input-variables');
+    if(r.ok){
+      const body = await r.json();
+      INPUT_VARIABLES = (body?.data?._embedded?.elements || []).map(el => el.data || el);
+    }
+  }catch(e){}
+}
+
+/* ── Mode entry: template vs scratch ── */
+const _TEMPLATE_KEYS = [
+  'sla_ref','title','project_id','category_code',
+  'description','scope_text',
+  'data_source','calculation_method','reports_submitted_to',
+  'measurement_interval','reporting_interval','ld_computation_base',
+  'effective_from',
+  'measurement',
+  'target_rows',
+];
+
+function startWithTemplate(){
+  document.getElementById('modeChooser').style.display = 'none';
+  document.getElementById('dynTable').style.display = '';
+  document.getElementById('actionBar').style.display = 'flex';
+  document.getElementById('dynBody').innerHTML = '';
+  // Pre-add one row per template key (in catalog order so sections
+  // group together).
+  const ordered = RFP_FIELDS.filter(f => _TEMPLATE_KEYS.includes(f.key))
+                            .sort((a,b) => _TEMPLATE_KEYS.indexOf(a.key) - _TEMPLATE_KEYS.indexOf(b.key));
+  ordered.forEach(f => addRow(f.key));
+}
+
+function startFromScratch(){
+  document.getElementById('modeChooser').style.display = 'none';
+  document.getElementById('dynTable').style.display = '';
+  document.getElementById('actionBar').style.display = 'flex';
+  document.getElementById('dynBody').innerHTML = '';
+  addRow();  // one empty row to start
+}
+
+function cancelOnboarding(){
+  if(_dirty() && !confirm('Discard your changes and go back?')) return;
+  window.location.href = 'SLA Master.html';
+}
+
+function _dirty(){
+  // Naïve: any input in the table has a non-empty value
+  return Array.from(document.querySelectorAll('#dynBody input, #dynBody textarea, #dynBody select'))
+    .some(el => (el.value||'').trim() !== '' && el.value !== el.defaultValue);
+}
+
+/* ── Row management ── */
+
+function _usedKeysExcept(excludeRow){
+  const used = new Set();
+  document.querySelectorAll('#dynBody .dyn-row').forEach(r => {
+    if(r === excludeRow) return;
+    const k = r.dataset.fieldKey;
+    if(k) used.add(k);
+  });
+  return used;
+}
+
+function _fieldTypeOptions(selectedKey, excludeRow){
+  const used = _usedKeysExcept(excludeRow);
+  const opts = [`<option value="">— Pick a field type —</option>`];
+  // Group by section.
+  const sections = {};
+  for(const f of RFP_FIELDS){
+    if(used.has(f.key) && f.key !== selectedKey) continue;
+    (sections[f.section || 'Other'] = sections[f.section || 'Other'] || []).push(f);
+  }
+  for(const [section, fields] of Object.entries(sections)){
+    opts.push(`<optgroup label="${esc(section)}">`);
+    for(const f of fields){
+      const sel = f.key === selectedKey ? ' selected' : '';
+      const req = f.required ? ' ★' : '';
+      opts.push(`<option value="${esc(f.key)}"${sel}>${esc(f.label)}${req}</option>`);
+    }
+    opts.push(`</optgroup>`);
+  }
+  return opts.join('');
+}
+
+function _refreshAllRowDropdowns(){
+  document.querySelectorAll('#dynBody .dyn-row').forEach(row => {
+    const sel = row.querySelector('.field-type-select');
+    if(!sel) return;
+    const current = sel.value;
+    sel.innerHTML = _fieldTypeOptions(current, row);
+    sel.value = current;
+  });
+}
+
+function addRow(prefilledKey){
+  const body = document.getElementById('dynBody');
+  const row = document.createElement('div');
+  row.className = 'dyn-row';
+  row.dataset.fieldKey = prefilledKey || '';
+  row.innerHTML = `
+    <div class="dyn-cell-label">
+      <select class="field-type-select" onchange="_onFieldTypeChange(this)">
+        ${_fieldTypeOptions(prefilledKey || '', row)}
+      </select>
+      <div class="field-help"></div>
+    </div>
+    <div class="dyn-cell-value">
+      <div class="dyn-cell-empty">Pick a field type on the left to render the input here.</div>
+    </div>
+    <div class="dyn-cell-delete">
+      <button class="dyn-delete-btn" title="Remove this row" onclick="_deleteRow(this)">✕</button>
+    </div>
+  `;
+  body.appendChild(row);
+  // If a prefilled key was passed, render its widget immediately.
+  if(prefilledKey){
+    _renderValueWidget(row, prefilledKey);
+  }
+  _refreshAllRowDropdowns();
+  _refreshAddButton();
+}
+
+function _onFieldTypeChange(sel){
+  const row = sel.closest('.dyn-row');
+  const key = sel.value;
+  row.dataset.fieldKey = key;
+  if(!key){
+    row.querySelector('.dyn-cell-value').innerHTML =
+      `<div class="dyn-cell-empty">Pick a field type on the left to render the input here.</div>`;
+    row.querySelector('.field-help').textContent = '';
+  } else {
+    _renderValueWidget(row, key);
+  }
+  _refreshAllRowDropdowns();
+  _refreshAddButton();
+}
+
+function _deleteRow(btn){
+  const row = btn.closest('.dyn-row');
+  row.remove();
+  _refreshAllRowDropdowns();
+  _refreshAddButton();
+}
+
+function _refreshAddButton(){
+  // Disable "+ Add row" once every field type is on a row.
+  const used = _usedKeysExcept(null);
+  document.getElementById('addRowBtn').disabled = used.size >= RFP_FIELDS.length;
+}
+
+/* ── Value-cell widget renderers (one per input_type) ── */
+
+function _renderValueWidget(row, key){
+  const field = RFP_FIELDS.find(f => f.key === key);
+  if(!field) return;
+  const helpEl = row.querySelector('.field-help');
+  helpEl.textContent = field.help || '';
+  const cell = row.querySelector('.dyn-cell-value');
+  const t = field.input_type;
+  if(t === 'text')          return _widgetText(cell, field);
+  if(t === 'textarea')      return _widgetTextarea(cell, field);
+  if(t === 'date')          return _widgetDate(cell, field);
+  if(t === 'select')        return _widgetSelect(cell, field);
+  if(t === 'project_picker')   return _widgetProjectPicker(cell, field);
+  if(t === 'category_picker')  return _widgetCategoryPicker(cell, field);
+  if(t === 'measurement_set')  return _widgetMeasurementSet(cell, field);
+  if(t === 'severity_table')   return _widgetSeverityTable(cell, field);
+  if(t === 'linear_form')      return _widgetLinearForm(cell, field);
+  if(t === 'placeholder_table')return _widgetPlaceholderTable(cell, field);
+  if(t === 'file_picker')      return _widgetFilePicker(cell, field);
+  cell.innerHTML = `<div class="dyn-cell-empty">Unknown widget: ${esc(t)}</div>`;
+}
+
+function _widgetText(cell, f){
+  cell.innerHTML = `<input type="text" data-v="${esc(f.key)}" placeholder="${esc(f.placeholder||'')}">`;
+}
+function _widgetTextarea(cell, f){
+  cell.innerHTML = `<textarea data-v="${esc(f.key)}" placeholder="${esc(f.placeholder||'')}"></textarea>`;
+}
+function _widgetDate(cell, f){
+  cell.innerHTML = `<input type="date" data-v="${esc(f.key)}" value="${esc(f.default||'')}">`;
+}
+function _widgetSelect(cell, f){
+  const opts = (f.options||[]).map(o => {
+    const v = typeof o === 'string' ? o : o.value;
+    const l = typeof o === 'string' ? o : o.label;
+    const sel = v === (f.default||'') ? ' selected' : '';
+    return `<option value="${esc(v)}"${sel}>${esc(l)}</option>`;
+  }).join('');
+  cell.innerHTML = `<select data-v="${esc(f.key)}">${opts}</select>`;
+}
+function _widgetProjectPicker(cell, f){
+  const opts = PROJECTS.map(p =>
+    `<option value="${esc(p.id)}">${esc((p.projectCode||p.code||'')+' — '+(p.name||''))}</option>`
+  ).join('');
+  cell.innerHTML = `<select data-v="${esc(f.key)}"><option value="">— Select a project —</option>${opts}</select>`;
+}
+function _widgetCategoryPicker(cell, f){
+  const opts = CATEGORIES.map(c =>
+    `<option value="${esc(c.display_name)}" data-formula="${esc(c.formula_type||'')}">${esc(c.display_name)}</option>`
+  ).join('');
+  cell.innerHTML = `<select data-v="${esc(f.key)}">${opts}</select>
+    <div class="hint">Picks the calculation engine. Adds "Linear LD escalation" or "Target / Applied Severity" rows automatically if you don't have one.</div>`;
+}
+function _widgetMeasurementSet(cell, f){
+  cell.innerHTML = `
+    <div class="sub-form">
+      <div class="sub-grid" style="grid-template-columns:2fr 1fr 1fr;">
+        <div><label>Display name</label>
+          <input type="text" data-vm="display_name" data-v="${esc(f.key)}.display_name" placeholder="e.g. Days delayed"></div>
+        <div><label>Unit</label>
+          <input type="text" data-vm="unit" data-v="${esc(f.key)}.unit" placeholder="days"></div>
+        <div><label>Target value (optional)</label>
+          <input type="text" data-vm="target_value" data-v="${esc(f.key)}.target_value" placeholder="0"></div>
+      </div>
+    </div>`;
+}
+
+/* ── Severity-table widget ── */
+function _widgetSeverityTable(cell, f){
+  cell.innerHTML = `
+    <div class="sub-form" data-v="${esc(f.key)}">
+      <div class="sev-header">
+        <span></span>
+        <span>Severity</span>
+        <span>Input variable</span>
+        <span>Threshold (RFP wording)</span>
+        <span>From <span style="font-weight:400;text-transform:none;color:var(--text-muted);">excl.</span></span>
+        <span>To <span style="font-weight:400;text-transform:none;color:var(--text-muted);">incl.</span></span>
+        <span></span>
+      </div>
+      <div class="sev-body"></div>
+      <button type="button" class="small-btn" style="margin-top:6px;" onclick="_addSevRow(this)">+ Add severity row</button>
+      <div class="hint">Leave "From" or "To" blank for unbounded sides (e.g. <em>"≤ 7 days"</em> = leave From blank).</div>
+    </div>`;
+  _addSevRow(cell.querySelector('button'));
+  _addSevRow(cell.querySelector('button'));
+}
+
+function _sevInputVarOptions(selected, excludeSevRow){
+  // Uniqueness within ONE severity table: a variable picked on row A
+  // doesn't show on row B's dropdown.
+  const used = new Set();
+  if(excludeSevRow){
+    excludeSevRow.parentElement.querySelectorAll('.sev-row').forEach(r => {
+      if(r === excludeSevRow) return;
+      const sel = r.querySelector('[data-k="input_variable"]');
+      if(sel && sel.value && sel.value !== '__custom__') used.add(sel.value);
+    });
+  }
+  const opts = [`<option value="" ${!selected?'selected':''}>— Primary measurement —</option>`];
+  for(const v of INPUT_VARIABLES){
+    if(used.has(v.key) && v.key !== selected) continue;
+    const lbl = `${v.label}${v.unit ? ' ('+v.unit+')' : ''}`;
+    opts.push(`<option value="${esc(v.key)}" ${selected===v.key?'selected':''}>${esc(lbl)}</option>`);
+  }
+  opts.push(`<option value="__custom__">+ Type a new variable…</option>`);
+  if(selected && !INPUT_VARIABLES.find(v => v.key === selected) && !used.has(selected)){
+    opts.splice(1, 0, `<option value="${esc(selected)}" selected>${esc(selected)} (custom)</option>`);
+  }
+  return opts.join('');
+}
+
+function _refreshSevDropdowns(host){
+  host.querySelectorAll('.sev-row').forEach(row => {
+    const sel = row.querySelector('[data-k="input_variable"]');
+    if(!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = _sevInputVarOptions(cur === '__custom__' ? '' : cur, row);
+    if(cur && cur !== '__custom__') sel.value = cur;
+  });
+}
+
+function _addSevRow(btn){
+  const host = btn.closest('.sub-form');
+  const body = host.querySelector('.sev-body');
+  const sev = 0;
+  const r = document.createElement('div');
+  r.className = 'sev-row';
+  r.innerHTML = `
+    <span class="sev-pill" style="background:${_SEV_COLOUR[sev]};">L${sev}</span>
+    <select data-k="severity" onchange="_updateSevPill(this)">
+      ${[0,1,2,3,4].map(s => `<option value="${s}" ${sev===s?'selected':''}>Severity ${s}</option>`).join('')}
+    </select>
+    <select data-k="input_variable" onchange="_onSevInputVarChange(this)">
+      ${_sevInputVarOptions('', r)}
+    </select>
+    <input data-k="threshold_label" type="text" placeholder="e.g. ≤ 21 days">
+    <input data-k="from_value" type="number" step="any" placeholder="—">
+    <input data-k="to_value" type="number" step="any" placeholder="—">
+    <button type="button" class="dyn-delete-btn" onclick="_deleteSevRow(this)">✕</button>
+  `;
+  body.appendChild(r);
+  _refreshSevDropdowns(host);
+}
+
+function _updateSevPill(sel){
+  const row = sel.closest('.sev-row');
+  const pill = row.querySelector('.sev-pill');
+  const v = Number(sel.value);
+  pill.style.background = _SEV_COLOUR[v];
+  pill.textContent = 'L' + v;
+}
+
+function _onSevInputVarChange(sel){
+  if(sel.value === '__custom__'){
+    const key = (prompt('New input variable (snake_case):') || '').trim();
+    if(!key){ sel.value = ''; return _refreshSevDropdowns(sel.closest('.sub-form')); }
+    const safe = key.toLowerCase().replace(/[^a-z0-9_]+/g,'_').replace(/^_+|_+$/g,'');
+    if(!safe){ sel.value = ''; return _refreshSevDropdowns(sel.closest('.sub-form')); }
+    if(!INPUT_VARIABLES.find(v => v.key === safe)){
+      INPUT_VARIABLES.push({key:safe, label:safe, unit:null, source:'custom'});
+    }
+    sel.value = safe;
+  }
+  _refreshSevDropdowns(sel.closest('.sub-form'));
+}
+
+function _deleteSevRow(btn){
+  const host = btn.closest('.sub-form');
+  btn.parentElement.remove();
+  _refreshSevDropdowns(host);
+}
+
+/* ── Linear LD escalation widget ── */
+function _widgetLinearForm(cell, f){
+  cell.innerHTML = `
+    <div class="sub-form" data-v="${esc(f.key)}">
+      <div class="sub-grid" style="grid-template-columns:1fr 1fr 1fr;">
+        <div><label>Rate per unit (%) <span class="required">*</span></label>
+          <input type="number" step="0.01" data-k="rate_per_unit_percent" placeholder="0.5"
+                 oninput="_renderLinPreview(this)"></div>
+        <div><label>Unit</label>
+          <select data-k="unit" onchange="_renderLinPreview(this)">
+            <option value="week">week</option><option value="day">day</option><option value="month">month</option>
+          </select></div>
+        <div><label>Grace (units before LD starts)</label>
+          <input type="number" min="0" value="0" data-k="grace_units"
+                 oninput="_renderLinPreview(this)"></div>
+      </div>
+      <div class="lin-preview" data-k="preview">
+        <span style="color:var(--text-muted);font-style:italic;">Type a rate above to see the LD rule.</span>
+      </div>
+    </div>`;
+}
+
+function _renderLinPreview(el){
+  const host = el.closest('.sub-form');
+  const rate = (host.querySelector('[data-k="rate_per_unit_percent"]').value || '').trim();
+  const unit = host.querySelector('[data-k="unit"]').value;
+  const grace = parseInt(host.querySelector('[data-k="grace_units"]').value || '0', 10);
+  const prev = host.querySelector('[data-k="preview"]');
+  if(!rate){
+    prev.innerHTML = `<span style="color:var(--text-muted);font-style:italic;">Type a rate above to see the LD rule.</span>`;
+    return;
+  }
+  const graceLine = grace > 0
+    ? `<div style="color:var(--text-muted);font-size:11px;margin-top:4px;">First ${grace} ${unit}${grace===1?'':'s'} excluded as grace period.</div>`
+    : '';
+  prev.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span style="font-size:18px;">📐</span>
+      <span>If delayed by</span>
+      <code style="background:#fff7e6;padding:2px 6px;border-radius:5px;color:#b45309;">N</code>
+      <span>${esc(unit)}${unit==='week'?'s':'s'} →</span>
+      <span><strong style="color:var(--red);">LD = N × ${esc(rate)}% × base</strong></span>
+    </div>${graceLine}`;
+}
+
+/* ── Placeholder-table widget ── */
+function _widgetPlaceholderTable(cell, f){
+  cell.innerHTML = `
+    <div class="sub-form" data-v="${esc(f.key)}">
+      <div class="ph-body"></div>
+      <button type="button" class="small-btn" style="margin-top:6px;" onclick="_addPhRow(this)">+ Add mapping input</button>
+      <div class="hint">Most SLAs need <strong>nothing</strong> here. Add a row only for per-attachment variables (deliverable cost, T₀ date, etc.).</div>
+    </div>`;
+}
+
+function _addPhRow(btn){
+  const host = btn.closest('.sub-form');
+  const body = host.querySelector('.ph-body');
+  const r = document.createElement('div');
+  r.style.cssText = 'display:grid;grid-template-columns:1fr 1.6fr 0.8fr 0.6fr auto;gap:6px;align-items:center;margin-bottom:5px;';
+  r.innerHTML = `
+    <input data-k="key" placeholder="t_anchor_date">
+    <input data-k="label" placeholder="T₀ — project go-live">
+    <select data-k="type">
+      <option value="text">text</option><option value="number">number</option>
+      <option value="date">date</option><option value="money">money</option>
+    </select>
+    <select data-k="required"><option value="true">Yes</option><option value="false">No</option></select>
+    <button type="button" class="dyn-delete-btn" onclick="this.parentElement.remove()">✕</button>
+  `;
+  body.appendChild(r);
+}
+
+/* ── File-picker widget ── */
+function _widgetFilePicker(cell, f){
+  cell.innerHTML = `
+    <div class="sub-form" data-v="${esc(f.key)}">
+      <input type="file" data-k="files" accept="image/png,image/jpeg,image/webp,image/gif" multiple>
+      <div class="hint">Hold Shift/Ctrl to pick multiple. PNG/JPEG/WebP/GIF, 10 MB max each.</div>
+    </div>`;
+}
+
+/* ─── Submit ───
+ * Walk the DOM, collect every row's value into the /from-rfp payload
+ * shape, POST. Multipart when attachments are present. */
+
+async function submitSla(){
+  const payload = _collectPayload();
+  const validation = _validate(payload);
+  if(validation){
+    toast('Missing required fields', validation, 'error');
+    return;
+  }
+  // category_code might be sent as display_name from category_picker — backend accepts both.
+  const url = editingId
+    ? CONTRACT_API + '/api/v3/sla-masters/' + editingId
+    : CONTRACT_API + '/api/v3/sla-masters/from-rfp';
+  const method = editingId ? 'PATCH' : 'POST';
+  // Files extracted; payload itself goes as JSON
+  const files = payload.__files || [];
+  delete payload.__files;
+  try{
+    let resp;
+    if(files.length && !editingId){
+      const fd = new FormData();
+      fd.append('payload', JSON.stringify(payload));
+      for(const f of files) fd.append('files', f);
+      resp = await fetch(url, {method, body: fd});
+    } else {
+      resp = await fetch(url, {
+        method, headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload),
+      });
+    }
+    if(!resp.ok){
+      const t = await resp.text();
+      toast('Save failed', 'HTTP '+resp.status+' '+t.slice(0,200), 'error');
+      return;
+    }
+    toast('Saved', editingId ? 'SLA updated.' : 'SLA onboarded.', 'success');
+    setTimeout(() => window.location.href = 'SLA Master.html', 800);
+  }catch(e){
+    toast('Network error', e.message, 'error');
+  }
+}
+
+function _collectPayload(){
+  const payload = {};
+  document.querySelectorAll('#dynBody .dyn-row').forEach(row => {
+    const key = row.dataset.fieldKey;
+    if(!key) return;
+    const field = RFP_FIELDS.find(f => f.key === key);
+    if(!field) return;
+    const v = _collectRowValue(row, field);
+    if(v !== undefined) payload[key] = v;
+  });
+  return payload;
+}
+
+function _collectRowValue(row, field){
+  const t = field.input_type;
+  const cell = row.querySelector('.dyn-cell-value');
+
+  if(['text','textarea','date'].includes(t)){
+    const el = cell.querySelector('[data-v]');
+    return el ? (el.value || '').trim() || undefined : undefined;
+  }
+  if(t === 'select' || t === 'project_picker'){
+    const el = cell.querySelector('[data-v]');
+    return el ? (el.value || undefined) : undefined;
+  }
+  if(t === 'category_picker'){
+    // Backend accepts display_name as category_code lookup
+    const el = cell.querySelector('[data-v]');
+    return el ? (el.value || undefined) : undefined;
+  }
+  if(t === 'measurement_set'){
+    const obj = {};
+    cell.querySelectorAll('[data-vm]').forEach(el => {
+      const v = (el.value || '').trim();
+      if(v) obj[el.dataset.vm] = v;
+    });
+    return Object.keys(obj).length ? obj : undefined;
+  }
+  if(t === 'severity_table'){
+    const rows = [];
+    cell.querySelectorAll('.sev-row').forEach(r => {
+      const o = {};
+      r.querySelectorAll('[data-k]').forEach(el => {
+        const v = (el.value || '').trim();
+        const k = el.dataset.k;
+        if(k === 'severity') o.severity = Number(v);
+        else if(k === 'threshold_label') o.threshold_label = v || null;
+        else if(k === 'input_variable')  o.input_variable = (v && v !== '__custom__') ? v : null;
+        else o[k] = v === '' ? null : Number(v);
+      });
+      if(o.threshold_label || o.from_value != null || o.to_value != null) rows.push(o);
+    });
+    return rows.length ? rows : undefined;
+  }
+  if(t === 'linear_form'){
+    const obj = {};
+    cell.querySelectorAll('[data-k]').forEach(el => {
+      const v = (el.value || '').trim();
+      const k = el.dataset.k;
+      if(k === 'preview') return;
+      if(k === 'rate_per_unit_percent' && v) obj.rate_per_unit_percent = v;
+      else if(k === 'unit' && v) obj.unit = v;
+      else if(k === 'grace_units' && v !== '') obj.grace_units = Number(v);
+    });
+    if(obj.rate_per_unit_percent){
+      // Backend infers max_units from severity rows / lookup; default 20.
+      obj.max_units = 20;
+      return obj;
+    }
+    return undefined;
+  }
+  if(t === 'placeholder_table'){
+    const rows = [];
+    cell.querySelectorAll('.ph-body > div').forEach(r => {
+      const o = {};
+      r.querySelectorAll('[data-k]').forEach(el => {
+        const v = (el.value || '').trim();
+        if(el.dataset.k === 'required') o.required = (v === 'true');
+        else if(v) o[el.dataset.k] = v;
+      });
+      if(o.key) rows.push(o);
+    });
+    return rows.length ? rows : undefined;
+  }
+  if(t === 'file_picker'){
+    const el = cell.querySelector('[data-k="files"]');
+    const files = el && el.files ? Array.from(el.files) : [];
+    if(files.length){
+      // Stash on the payload so submitSla picks them up for multipart.
+      const p = (window.__currentPayload__ = window.__currentPayload__ || {});
+      p.__files = (p.__files || []).concat(files);
+    }
+    return undefined;  // attachments aren't a payload field
+  }
+}
+
+function _validate(payload){
+  const required = RFP_FIELDS.filter(f => f.required).map(f => f.key);
+  const missing = [];
+  for(const k of required){
+    const v = payload[k];
+    if(v == null || v === '' || (Array.isArray(v) && v.length === 0)) missing.push(_labelOf(k));
+  }
+  // Need either severity table OR linear escalation
+  if(!payload.target_rows && !payload.linear_escalation){
+    missing.push('Target / Applied Severity level (or Linear LD escalation)');
+  }
+  return missing.length ? missing.join(', ') : null;
+}
+
+function _labelOf(key){
+  const f = RFP_FIELDS.find(f => f.key === key);
+  return f ? f.label : key;
+}
+
+/* ── Edit-mode hydration ── */
+async function loadSlaForEdit(id){
+  try{
+    const r = await fetch(CONTRACT_API + '/api/v3/sla-masters/' + id);
+    if(!r.ok){ toast('Load failed', 'HTTP '+r.status, 'error'); return; }
+    const body = await r.json();
+    const d = body.data || body;
+    document.getElementById('modeChooser').style.display = 'none';
+    document.getElementById('dynTable').style.display = '';
+    document.getElementById('actionBar').style.display = 'flex';
+    document.getElementById('dynBody').innerHTML = '';
+
+    // Add rows for every known field present on the SLA
+    const stateFor = (k, v) => {
+      if(v == null) return;
+      addRow(k);
+      // Wait for the widget to render, then set its value
+      setTimeout(() => _hydrateRow(k, v, d), 0);
+    };
+    stateFor('sla_ref', d.sla_ref);
+    stateFor('title', d.title);
+    stateFor('project_id', d.project_id);
+    stateFor('category_code', d.category);
+    stateFor('description', d.description || d.definition);
+    stateFor('scope_text', d.scope_text || d.scope);
+    stateFor('data_source', d.data_source);
+    stateFor('calculation_method', d.calculation_method);
+    stateFor('reports_submitted_to', d.reports_submitted_to);
+    stateFor('measurement_interval', d.measurement_interval);
+    stateFor('reporting_interval', d.reporting_interval);
+    stateFor('ld_computation_base', d.ld_computation_base);
+    stateFor('effective_from', d.effective_from);
+    stateFor('effective_until', d.effective_until);
+    if(d.measurement) stateFor('measurement', d.measurement);
+    if(d.secondary_measurement) stateFor('secondary_measurement', d.secondary_measurement);
+    if(d.target_rows && d.target_rows.length) stateFor('target_rows', d.target_rows);
+    if(d.linear_escalation) stateFor('linear_escalation', d.linear_escalation);
+    if(d.placeholders && d.placeholders.length) stateFor('placeholders', d.placeholders);
+  }catch(e){
+    toast('Network error', e.message, 'error');
+  }
+}
+
+function _hydrateRow(key, value, fullSla){
+  const row = Array.from(document.querySelectorAll('#dynBody .dyn-row'))
+    .find(r => r.dataset.fieldKey === key);
+  if(!row) return;
+  const cell = row.querySelector('.dyn-cell-value');
+  const field = RFP_FIELDS.find(f => f.key === key);
+  if(!field) return;
+  const t = field.input_type;
+
+  if(['text','textarea','date'].includes(t)){
+    const el = cell.querySelector('[data-v]');
+    if(el) el.value = value || '';
+    return;
+  }
+  if(t === 'select' || t === 'project_picker' || t === 'category_picker'){
+    const el = cell.querySelector('[data-v]');
+    if(el) el.value = value || '';
+    return;
+  }
+  if(t === 'measurement_set'){
+    cell.querySelectorAll('[data-vm]').forEach(el => {
+      el.value = value[el.dataset.vm] || '';
+    });
+    return;
+  }
+  if(t === 'severity_table'){
+    cell.querySelector('.sev-body').innerHTML = '';
+    const addBtn = cell.querySelector('button');
+    value.forEach(r => {
+      _addSevRow(addBtn);
+      const sevRow = cell.querySelector('.sev-body').lastChild;
+      sevRow.querySelector('[data-k="severity"]').value = r.severity ?? 0;
+      _updateSevPill(sevRow.querySelector('[data-k="severity"]'));
+      if(r.input_variable){
+        const sel = sevRow.querySelector('[data-k="input_variable"]');
+        if(sel) sel.value = r.input_variable;
+      }
+      sevRow.querySelector('[data-k="threshold_label"]').value = r.threshold_label || '';
+      if(r.from_value != null) sevRow.querySelector('[data-k="from_value"]').value = r.from_value;
+      if(r.to_value != null)   sevRow.querySelector('[data-k="to_value"]').value = r.to_value;
+    });
+    return;
+  }
+  if(t === 'linear_form'){
+    if(value.rate_per_unit_percent != null) cell.querySelector('[data-k="rate_per_unit_percent"]').value = value.rate_per_unit_percent;
+    if(value.unit) cell.querySelector('[data-k="unit"]').value = value.unit;
+    if(value.grace_units != null) cell.querySelector('[data-k="grace_units"]').value = value.grace_units;
+    _renderLinPreview(cell.querySelector('[data-k="rate_per_unit_percent"]'));
+    return;
+  }
+  if(t === 'placeholder_table'){
+    cell.querySelector('.ph-body').innerHTML = '';
+    const addBtn = cell.querySelector('button');
+    value.forEach(p => {
+      _addPhRow(addBtn);
+      const phRow = cell.querySelector('.ph-body').lastChild;
+      phRow.querySelector('[data-k="key"]').value = p.key || '';
+      phRow.querySelector('[data-k="label"]').value = p.label || '';
+      phRow.querySelector('[data-k="type"]').value = p.type || 'text';
+      phRow.querySelector('[data-k="required"]').value = p.required ? 'true' : 'false';
+    });
+    return;
+  }
+}
+
+/* ─── Helpers ─── */
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function toast(title, msg, kind){
+  const el = document.getElementById('toast');
+  el.className = 'toast open ' + (kind || '');
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastMsg').textContent = msg || '';
+  setTimeout(() => el.className = 'toast', 4500);
+}
+</script>
+</body>
+</html>

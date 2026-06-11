@@ -333,7 +333,7 @@ body.onboard-page-mode .modal#onboardModal .rfp-table-wrap{margin:0 16px;}
       <div class="page-header-actions">
         <button class="btn cancel" onclick="loadSlas()">🔄 Refresh</button>
         <button class="btn cancel" onclick="seedDefaultSlas()" title="One-shot bulk seed of the 36 RFP-default SLAs">🌱 Seed Defaults</button>
-        <button class="btn" onclick="openOnboardModal()">+ Onboard New SLA</button>
+        <button class="btn" onclick="window.location.href='SLA Onboarding.html'">+ Onboard New SLA</button>
       </div>
     </div>
 
@@ -979,7 +979,7 @@ function renderTable(){
       <td>${esc((s.updated_at||s.created_at||'').slice(0,10))}</td>
       <td class="actions-cell">
         <button class="btn small-btn icon-btn cancel" onclick='viewSla("${s.id}")'>👁 View</button>
-        <button class="btn small-btn icon-btn cancel" onclick='editSla("${s.id}")'>✎ Edit</button>
+        <button class="btn small-btn icon-btn cancel" onclick='window.location.href="SLA Onboarding.html?id=${s.id}"'>✎ Edit</button>
         <button class="btn small-btn icon-btn delete-btn" onclick='askDelete("${s.id}","${esc(s.sla_ref||"")}")'>🗑 Delete</button>
       </td>
     </tr>`;
