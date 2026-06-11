@@ -305,7 +305,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
 
     <!-- 1. Identification -->
     <div class="subsection">
-      <div class="subsection-head"><div class="subsection-title">SLA Identification</div></div>
+      <div class="subsection-head">
+        <div class="subsection-title">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#fff7e6;color:#d97706;font-size:14px;margin-right:6px;">①</span>
+          SLA Identification
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);">Match the RFP table headers — every field here mirrors one row.</div>
+      </div>
       <div class="grid">
         <div class="field"><label>SLA Number <span class="required">*</span></label><input id="f_sla_ref" placeholder="PMU-SLA001"></div>
         <div class="field"><label>Title <span class="required">*</span></label><input id="f_name" placeholder="Non-submission of deliverable"></div>
@@ -318,9 +324,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
             The PMC contract this SLA belongs to. Lists every active project from project-management.
           </div>
         </div>
-        <!-- Contract Type was removed: SLAs are now scoped by Project. The
-             hidden input stays so legacy code paths that read f_ct don't
-             crash; the value is intentionally empty so the backend stores NULL. -->
+        <!-- Contract Type was removed: SLAs are now scoped by Project. -->
         <input type="hidden" id="f_ct" value="">
         <div class="field"><label>SLA Category <span class="required">*</span></label>
           <select id="f_category" onchange="onCategoryChange()">
@@ -331,11 +335,28 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
           </div>
         </div>
       </div>
+
+      <!-- Category hero card — repaints when the category changes,
+           giving the form an obvious "you picked X, here's what that means"
+           visual hook. -->
+      <div id="categoryHero" style="display:none;margin-top:14px;padding:14px 16px;border-radius:10px;border:1px solid transparent;">
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <div id="categoryHeroIcon" style="font-size:30px;line-height:1;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(255,255,255,.6);"></div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;color:var(--navy);font-size:14px;" id="categoryHeroTitle">—</div>
+            <div style="margin-top:4px;font-size:12px;color:var(--text-soft);line-height:1.45;" id="categoryHeroDesc">—</div>
+            <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;" id="categoryHeroTags"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 2. Definition + Scope (RFP table rows) -->
     <div class="subsection">
-      <div class="subsection-head"><div class="subsection-title">Definition &amp; Scope</div></div>
+      <div class="subsection-head"><div class="subsection-title">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#f5f3ff;color:#7c3aed;font-size:14px;margin-right:6px;">②</span>
+        Definition &amp; Scope
+      </div></div>
       <div class="grid">
         <div class="field full"><label>Definition of SLA</label><textarea id="f_desc" placeholder="One-sentence summary of what this SLA covers (RFP &quot;Definition of SLA&quot; row)."></textarea></div>
         <div class="field full"><label>Scope of SLA</label><textarea id="f_scope" placeholder="Who or what this SLA applies to (RFP &quot;Scope of SLA&quot; row)."></textarea></div>
@@ -344,7 +365,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
 
     <!-- 3. Source of Data + Calculation -->
     <div class="subsection">
-      <div class="subsection-head"><div class="subsection-title">Source &amp; Calculation</div></div>
+      <div class="subsection-head"><div class="subsection-title">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#ecfeff;color:#0891b2;font-size:14px;margin-right:6px;">③</span>
+        Source &amp; Calculation
+      </div></div>
       <div class="grid">
         <div class="field"><label>Source of Data</label><input id="f_dataSource" placeholder='e.g. Manual — UIDAI biometric attendance system'></div>
         <div class="field"><label>Reports submitted to</label><input id="f_reportsTo" placeholder="Technology Management Division, UIDAI HO"></div>
@@ -354,7 +378,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
 
     <!-- 4. Cadence + LD base -->
     <div class="subsection">
-      <div class="subsection-head"><div class="subsection-title">Cadence &amp; Applied On</div></div>
+      <div class="subsection-head"><div class="subsection-title">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#ecfdf5;color:#059669;font-size:14px;margin-right:6px;">④</span>
+        Cadence &amp; Applied On
+      </div></div>
       <div class="grid">
         <div class="field"><label>Measurement Interval</label>
           <select id="f_measInt"><option>DAILY</option><option>WEEKLY</option><option selected>MONTHLY</option><option>QUARTERLY</option><option>ONE_TIME</option></select>
@@ -383,7 +410,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
     <!-- 5. What is measured (RFP-friendly, technical bits auto-derived) -->
     <div class="subsection">
       <div class="subsection-head">
-        <div class="subsection-title">What is measured</div>
+        <div class="subsection-title">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#fef2f2;color:#dc2626;font-size:14px;margin-right:6px;">⑤</span>
+          What is measured
+        </div>
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">
         The value the system reads at evaluate time. Examples from PMU RFP: <em>"Days delayed"</em>, <em>"Resource business days"</em>, <em>"Failure count"</em>.
@@ -420,13 +450,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
     <!-- 6. Target — severity threshold table (RFP-style, one row per severity) -->
     <div class="subsection" id="secBands">
       <div class="subsection-head">
-        <div class="subsection-title">Target — severity threshold table</div>
+        <div class="subsection-title">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#fce7f3;color:#be185d;font-size:14px;margin-right:6px;">⑥</span>
+          Target — severity threshold table
+        </div>
         <button class="btn small-btn cancel" onclick="addRfpTargetRow()">+ Add row</button>
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
         Copy this directly from the RFP's <strong>"Target"</strong> sub-table. Each row maps one severity level to the threshold for the measurement above.
       </div>
-      <div id="rfpTargetHeader" style="display:grid;grid-template-columns:1fr 2fr 1fr 1fr auto;gap:8px;align-items:center;padding:6px 8px;background:#f1f6fd;border-radius:6px;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;">
+      <div id="rfpTargetHeader" style="display:grid;grid-template-columns:auto 1fr 2fr 1fr 1fr auto;gap:8px;align-items:center;padding:6px 8px;background:#f1f6fd;border-radius:6px;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;">
+        <span></span>
         <span>Severity</span>
         <span>Threshold (as written in RFP)</span>
         <span>From <span style="font-weight:400;text-transform:none;color:var(--text-muted);">(exclusive)</span></span>
@@ -442,28 +476,44 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
     <!-- 7. Linear LD escalation (Deliverable / Query categories only — concise summary form) -->
     <div class="subsection" id="secLookup">
       <div class="subsection-head">
-        <div class="subsection-title">Linear LD escalation</div>
+        <div class="subsection-title">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#fff7e6;color:#d97706;font-size:14px;margin-right:6px;">📐</span>
+          Linear LD escalation
+        </div>
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
         For deliverable / query SLAs the RFP states LD% as a per-unit rate (e.g. <em>"0.5% per week"</em>, <em>"0.1% per day after 3 working days"</em>). Just fill those three numbers — the system expands them behind the scenes.
       </div>
       <div class="grid-3">
         <div class="field"><label>Rate per unit (%) <span class="required">*</span></label>
-          <input id="rf_lin_rate" type="number" step="0.01" placeholder="0.5">
+          <input id="rf_lin_rate" type="number" step="0.01" placeholder="0.5"
+                 oninput="_renderLinearStatementPreview()">
         </div>
         <div class="field"><label>Unit</label>
-          <select id="rf_lin_unit"><option value="week">week</option><option value="day">day</option><option value="month">month</option></select>
+          <select id="rf_lin_unit" onchange="_renderLinearStatementPreview()">
+            <option value="week">week</option><option value="day">day</option><option value="month">month</option>
+          </select>
         </div>
         <div class="field"><label>Grace period (units before LD starts)</label>
-          <input id="rf_lin_grace" type="number" min="0" value="0" placeholder="0">
+          <input id="rf_lin_grace" type="number" min="0" value="0" placeholder="0"
+                 oninput="_renderLinearStatementPreview()">
         </div>
+      </div>
+      <!-- LIVE STATEMENT PREVIEW — the "wow factor" line that updates as
+           the user types the rate / unit / grace. -->
+      <div id="linearStatementPreview"
+           style="margin-top:12px;padding:12px 14px;border-radius:10px;border:1px dashed #fcd34d;background:#fffbeb;">
+        <span style="color:var(--text-muted);font-style:italic;">Type a rate above to see the LD rule.</span>
       </div>
     </div>
 
     <!-- 8. Mapping inputs — placeholders the operator fills at attach time -->
     <div class="subsection">
       <div class="subsection-head">
-        <div class="subsection-title">What does the operator fill in when attaching this SLA?</div>
+        <div class="subsection-title">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#eff6ff;color:#2563eb;font-size:14px;margin-right:6px;">⑧</span>
+          What does the operator fill in when attaching this SLA?
+        </div>
         <button class="btn small-btn cancel" onclick="addPlaceholderRow()">+ Add input</button>
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
@@ -486,7 +536,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);bo
     <!-- 9. Image attachments — uploaded straight to pmis-file-store via contract-mgmt -->
     <div class="subsection" id="secAttachments">
       <div class="subsection-head">
-        <div class="subsection-title">Image attachments</div>
+        <div class="subsection-title">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#f0fdf4;color:#16a34a;font-size:14px;margin-right:6px;">⑨</span>
+          Image attachments
+        </div>
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">
         Optional. Attach screenshots of the RFP section, contract page scans, or evidence pictures.
@@ -1239,6 +1292,78 @@ function openOnboardModal(){
   openModal('onboardModal');
 }
 
+// Visual metadata per category — drives the hero card + the section
+// reveal. One-stop-shop for "what does this category mean?" so the
+// form can react when the user picks one.
+const _CATEGORY_VISUAL = {
+  'Deliverable Submission': {
+    icon: '📦', bg: '#fff7e6', border: '#fcd34d', tagline: 'Linear LD per week/day past the agreed delivery date.',
+    tags: ['Linear escalation', 'RFP §5.28.2.b', 'Applied On: Deliverable Cost'],
+  },
+  'Query Resolution': {
+    icon: '⏱️', bg: '#fff7e6', border: '#fcd34d', tagline: 'Linear LD per day past the agreed query-response window.',
+    tags: ['Linear escalation', 'RFP §5.28.2.d', 'Applied On: NPQP'],
+  },
+  'Recommendation Quality': {
+    icon: '🎯', bg: '#f5f3ff', border: '#c4b5fd', tagline: 'Severity bands by occurrence count of incorrect recommendations.',
+    tags: ['Severity-banded', 'RFP §5.28.2.e', 'Applied On: NPQP'],
+  },
+  'Resource Management': {
+    icon: '👥', bg: '#ecfeff', border: '#a5f3fc', tagline: 'Severity bands by replacements / KT overlap / availability per period.',
+    tags: ['Severity-banded', 'RFP §5.28.3.c–g', 'Applied On: NPQP'],
+  },
+  'Governance Tool': {
+    icon: '🛠️', bg: '#ecfdf5', border: '#a7f3d0', tagline: 'Severity bands by deployment variance or failure count per quarter.',
+    tags: ['Severity-banded', 'RFP §5.28.4', 'Applied On: NPQP'],
+  },
+};
+
+function _renderCategoryHero(category){
+  const hero = document.getElementById('categoryHero');
+  if(!hero) return;
+  const meta = _CATEGORY_VISUAL[category];
+  if(!meta){ hero.style.display = 'none'; return; }
+  hero.style.display = '';
+  hero.style.background = meta.bg;
+  hero.style.borderColor = meta.border;
+  document.getElementById('categoryHeroIcon').textContent = meta.icon;
+  document.getElementById('categoryHeroTitle').textContent = category;
+  document.getElementById('categoryHeroDesc').textContent = meta.tagline;
+  document.getElementById('categoryHeroTags').innerHTML =
+    meta.tags.map(t => `<span style="font-size:10px;padding:3px 8px;border-radius:99px;background:rgba(255,255,255,.7);color:var(--navy);font-weight:600;letter-spacing:.2px;">${esc(t)}</span>`).join('');
+}
+
+function _renderLinearStatementPreview(){
+  // For fixed-escalation SLAs we build a one-sentence preview as the user
+  // types so the form feels alive: "If delayed by X weeks, LD = X × 0.5%
+  // × deliverable cost". Renders into #linearStatementPreview below the
+  // rate/unit inputs.
+  const host = document.getElementById('linearStatementPreview');
+  if(!host) return;
+  const rate = (document.getElementById('rf_lin_rate').value || '').trim();
+  const unit = document.getElementById('rf_lin_unit').value;
+  const grace = (document.getElementById('rf_lin_grace').value || '0').trim();
+  const applied = document.getElementById('f_ldBase').value;
+  const base = applied === 'FIXED_AMOUNT' ? 'deliverable cost'
+             : applied === 'ANNUAL_PAYMENT' ? 'annual contract value'
+             : 'NPQP (per quarter)';
+  if(!rate){
+    host.innerHTML = '<span style="color:var(--text-muted);font-style:italic;">Type a rate above to see the LD rule.</span>';
+    return;
+  }
+  const r = parseFloat(rate);
+  const g = parseInt(grace, 10) || 0;
+  const graceLine = g > 0 ? `<div style="color:var(--text-muted);font-size:11px;margin-top:4px;">First ${g} ${unit}${g===1?'':'s'} excluded as grace period.</div>` : '';
+  host.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;color:var(--navy);">
+      <span style="font-size:18px;">📐</span>
+      <span>If delayed by</span>
+      <code style="background:#fff7e6;padding:2px 6px;border-radius:5px;color:#b45309;">N</code>
+      <span>${esc(unit)}${unit==='week'?'s':'s'} →</span>
+      <span><strong style="color:#dc2626;">LD = N × ${esc(rate)}% × ${esc(base)}</strong></span>
+    </div>${graceLine}`;
+}
+
 function onCategoryChange(){
   // The user picks a Category; we derive the engine (formula_type) behind the
   // scenes, swap which Target section is shown, and pre-fill severity rows
@@ -1255,6 +1380,11 @@ function onCategoryChange(){
   document.getElementById('f_ldBase').value =
     (category === 'Deliverable Submission') ? 'FIXED_AMOUNT' : 'QUARTERLY_PAYMENT';
 
+  // ── Visual flair: repaint the hero card + (re)wire the live linear
+  // statement preview every time the category changes.
+  _renderCategoryHero(category);
+  if(isLinear) _renderLinearStatementPreview();
+
   // Only auto-populate template rows for NEW SLAs (editingId === null) and
   // only when the user hasn't manually edited the table yet.
   if(editingId !== null) return;
@@ -1268,20 +1398,42 @@ function onCategoryChange(){
 }
 
 /* ─── Target row builder for the simple RFP-shape form */
+// Colour map for severity pills (matches the evaluate modal's palette).
+const _SEV_COLOUR = {
+  0: '#16a34a', 1: '#f59e0b', 2: '#f97316', 3: '#ef4444', 4: '#991b1b',
+};
+
+function _updateSevPill(rowEl){
+  const sel = rowEl.querySelector('[data-k="severity"]');
+  const pill = rowEl.querySelector('.sev-pill-preview');
+  if(!sel || !pill) return;
+  const sev = Number(sel.value);
+  pill.style.background = _SEV_COLOUR[sev] || '#475569';
+  pill.textContent = 'L' + sev;
+}
+
 function addRfpTargetRow(prefill){
   prefill = prefill || {severity: 0, threshold_label: '', from_value: null, to_value: null};
   const body = document.getElementById('rfpTargetBody');
   const row = document.createElement('div');
   row.className = 'rfp-target-row';
-  row.style.cssText = 'display:grid;grid-template-columns:1fr 2fr 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:6px;';
+  // Wider grid so the severity-pill preview fits cleanly on the left.
+  row.style.cssText = 'display:grid;grid-template-columns:auto 1fr 2fr 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:6px;';
+  const sev = prefill.severity ?? 0;
   row.innerHTML = `
-    <select data-k="severity">
-      ${[0,1,2,3,4].map(s => `<option value="${s}" ${prefill.severity===s?'selected':''}>Severity ${s}</option>`).join('')}
+    <span class="sev-pill-preview"
+          style="display:inline-flex;align-items:center;justify-content:center;
+                 min-width:34px;height:26px;padding:0 8px;border-radius:99px;
+                 color:#fff;font-size:11px;font-weight:700;background:${_SEV_COLOUR[sev]};
+                 letter-spacing:.3px;">L${sev}</span>
+    <select data-k="severity" onchange="_updateSevPill(this.parentElement)">
+      ${[0,1,2,3,4].map(s => `<option value="${s}" ${sev===s?'selected':''}>Severity ${s}</option>`).join('')}
     </select>
     <input data-k="threshold_label" placeholder="e.g. ≤ 21 days" value="${esc(prefill.threshold_label||'')}">
     <input data-k="from_value" type="number" step="any" placeholder="—" value="${prefill.from_value==null?'':prefill.from_value}">
     <input data-k="to_value"   type="number" step="any" placeholder="—" value="${prefill.to_value==null?'':prefill.to_value}">
-    <button type="button" class="btn small-btn delete-btn" title="Remove this row" onclick="this.parentElement.remove()">✕</button>
+    <button type="button" class="btn small-btn delete-btn" title="Remove this row"
+            onclick="this.parentElement.remove()">✕</button>
   `;
   body.appendChild(row);
 }
