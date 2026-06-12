@@ -355,7 +355,29 @@ let PROJECTS = [];             // ditto
 let INPUT_VARIABLES = [];      // no fallback — empty is OK, the severity table allows custom keys
 let editingId = null;          // when ?id=<sla_id>, edit-mode for existing SLA
 
-const _SEV_COLOUR = {0:'#16a34a',1:'#f59e0b',2:'#f97316',3:'#ef4444',4:'#991b1b'};
+/* Severity is NOT fixed to 0-4. PMU / MSAP / BSP / MSIP all use 0-4
+ * today, but the schema accepts up to 10 so future contracts with
+ * finer-grained grids onboard cleanly. The colour function and the
+ * dropdown builder below handle any non-negative integer. */
+function _sevColour(sev){
+  // Hand-tuned palette for the common 0-4 range (RFP §5.28.1.a).
+  const palette = {0:'#16a34a', 1:'#f59e0b', 2:'#f97316', 3:'#ef4444', 4:'#991b1b'};
+  if(palette[sev] !== undefined) return palette[sev];
+  // Beyond 4: deepening red via HSL lightness so 5+ stay distinct.
+  if(sev >= 5) return `hsl(0, 60%, ${Math.max(15, 30 - (sev - 4) * 3)}%)`;
+  return '#64748b';  // unknown / negative — slate
+}
+// Legacy alias for any code that still reads the object form.
+const _SEV_COLOUR = new Proxy({}, { get: (_, s) => _sevColour(Number(s)) });
+
+function _severityOptions(currentSev){
+  // Default 0-9 covers every shipping RFP plus headroom. If a saved SLA
+  // carries a level above that (legacy / future), extend to fit.
+  const max = Math.max(9, currentSev || 0);
+  return Array.from({length: max + 1}, (_, s) =>
+    `<option value="${s}" ${currentSev===s?'selected':''}>Severity ${s}</option>`
+  ).join('');
+}
 
 const _FALLBACK_PROJECTS = [
   {id:'31eefb48-c2d3-4a4a-8fc7-a23b84d08e45',
@@ -1019,7 +1041,7 @@ function _addSevRow(btn){
   r.innerHTML = `
     <span class="sev-pill" style="background:${_SEV_COLOUR[sev]};">L${sev}</span>
     <select data-k="severity" onchange="_updateSevPill(this)">
-      ${[0,1,2,3,4].map(s => `<option value="${s}" ${sev===s?'selected':''}>Severity ${s}</option>`).join('')}
+      ${_severityOptions(sev)}
     </select>
     <select data-k="input_variable" onchange="_onSevInputVarChange(this)">
       ${_sevInputVarOptions('', r)}

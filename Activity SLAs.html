@@ -931,11 +931,13 @@ function _renderEvalInput(inp, idx, parentName){
 /* Render bands from the form schema (uniform shape regardless of formula type). */
 function _renderEvalBandsFromSchema(bands){
   if(!bands.length) return '';
-  const sevColour = s => s === 0 ? '#16a34a'
-                       : s === 1 ? '#f59e0b'
-                       : s === 2 ? '#f97316'
-                       : s === 3 ? '#ef4444'
-                                 : '#991b1b';
+  // Severity not capped at 4 — function handles any non-negative integer.
+  const sevColour = s => {
+    const p = {0:'#16a34a', 1:'#f59e0b', 2:'#f97316', 3:'#ef4444', 4:'#991b1b'};
+    if(p[s] !== undefined) return p[s];
+    if(s >= 5) return `hsl(0, 60%, ${Math.max(15, 30 - (s - 4) * 3)}%)`;
+    return '#475569';
+  };
   const rows = bands.map((b, i) => {
     const range = b.severity == null && b.rate_percent != null
       ? `<span style="color:var(--text-muted);">tier "${esc(b.label)}"</span>`
@@ -1089,11 +1091,13 @@ function _UNUSED_renderEvalBandsReference(sla){
 
   // Sort by severity ascending so L0 (best) is on top.
   rows.sort((a, b) => (a.sev ?? 99) - (b.sev ?? 99));
-  const sevColour = sev => sev === 0 ? '#16a34a'
-                         : sev === 1 ? '#f59e0b'
-                         : sev === 2 ? '#f97316'
-                         : sev === 3 ? '#ef4444'
-                                     : '#991b1b';
+  // Severity not capped at 4.
+  const sevColour = sev => {
+    const p = {0:'#16a34a', 1:'#f59e0b', 2:'#f97316', 3:'#ef4444', 4:'#991b1b'};
+    if(p[sev] !== undefined) return p[sev];
+    if(sev >= 5) return `hsl(0, 60%, ${Math.max(15, 30 - (sev - 4) * 3)}%)`;
+    return '#475569';
+  };
   const tbody = rows.map((r, i) => {
     const range = _formatRange(r.lo, r.hi, r.unit);
     return `

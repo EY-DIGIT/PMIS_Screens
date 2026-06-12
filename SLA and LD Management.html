@@ -1231,7 +1231,13 @@ function renderSeverityPointsConfig(rule, ro){
     rule.severityToPoints = { ...SEVERITY_TO_POINTS };
   }
 
-  const cells = [0,1,2,3,4].map(sev => `
+  // Severity not fixed to 0-4 — derive the full set from whatever
+  // the project has plus the default seed range so new levels show up
+  // automatically when the rule is extended.
+  const _baseLevels = Object.keys(SEVERITY_TO_POINTS).map(Number);
+  const _ruleLevels = Object.keys(map || {}).map(Number);
+  const _levels = Array.from(new Set([..._baseLevels, ..._ruleLevels])).sort((a,b) => a-b);
+  const cells = _levels.map(sev => `
     <div class="sev-points-cell">
       <label><span class="sev-num">Severity ${sev}</span></label>
       <input type="number" step="1" value="${map[sev] ?? SEVERITY_TO_POINTS[sev]}" ${ro?'disabled':''}
@@ -1382,7 +1388,7 @@ function renderRuleEditor(){
       resultCol = `
         <select ${ro?'disabled':''}
           onchange="editingRule.tiers[${idx}].severity = Number(this.value); renderRuleEditor();">
-          ${[0,1,2,3,4].map(s => `<option value="${s}" ${sev===s?'selected':''}>Severity ${s}</option>`).join('')}
+          ${Array.from({length: Math.max(10, (sev||0)+1)}, (_, s) => `<option value="${s}" ${sev===s?'selected':''}>Severity ${s}</option>`).join('')}
         </select>
         <span class="tier-derived" title="Single-measurement LD %. With multiple measurements, points accumulate.">→ ${pts} pts → ${ld}% LD</span>
       `;

@@ -1626,18 +1626,33 @@ function onCategoryChange(){
   }
 }
 
-/* ─── Target row builder for the simple RFP-shape form */
-// Colour map for severity pills (matches the evaluate modal's palette).
-const _SEV_COLOUR = {
-  0: '#16a34a', 1: '#f59e0b', 2: '#f97316', 3: '#ef4444', 4: '#991b1b',
-};
+/* ─── Target row builder for the simple RFP-shape form
+ * Severity is NOT capped at 4 — the four shipped RFPs all use 0-4 but
+ * future contracts with finer-grained grids onboard without changes.
+ * The colour function below picks a hand-tuned shade for 0-4 and
+ * a deepening red via HSL for 5+. */
+function _sevColour(sev){
+  const palette = {0:'#16a34a', 1:'#f59e0b', 2:'#f97316', 3:'#ef4444', 4:'#991b1b'};
+  if(palette[sev] !== undefined) return palette[sev];
+  if(sev >= 5) return `hsl(0, 60%, ${Math.max(15, 30 - (sev - 4) * 3)}%)`;
+  return '#475569';
+}
+// Legacy alias for code that reads the object form.
+const _SEV_COLOUR = new Proxy({}, { get: (_, s) => _sevColour(Number(s)) });
+
+function _severityOptions(currentSev){
+  const max = Math.max(9, currentSev || 0);
+  return Array.from({length: max + 1}, (_, s) =>
+    `<option value="${s}" ${currentSev===s?'selected':''}>Severity ${s}</option>`
+  ).join('');
+}
 
 function _updateSevPill(rowEl){
   const sel = rowEl.querySelector('[data-k="severity"]');
   const pill = rowEl.querySelector('.sev-pill-preview');
   if(!sel || !pill) return;
   const sev = Number(sel.value);
-  pill.style.background = _SEV_COLOUR[sev] || '#475569';
+  pill.style.background = _sevColour(sev);
   pill.textContent = 'L' + sev;
 }
 
@@ -1748,7 +1763,7 @@ function addRfpTargetRow(prefill){
                  color:#fff;font-size:11px;font-weight:700;background:${_SEV_COLOUR[sev]};
                  letter-spacing:.3px;">L${sev}</span>
     <select data-k="severity" onchange="_updateSevPill(this.parentElement)">
-      ${[0,1,2,3,4].map(s => `<option value="${s}" ${sev===s?'selected':''}>Severity ${s}</option>`).join('')}
+      ${_severityOptions(sev)}
     </select>
     <select data-k="input_variable" onchange="_onInputVariableChange(this)">
       ${_inputVariableOptions(prefill.input_variable || '', row)}
@@ -1817,7 +1832,7 @@ function addRow(containerId, tpl){
       <div class="field"><label>Metric key</label><input data-k="metric_key" placeholder="days_delayed"></div>
       <div class="field"><label>From (exclusive)</label><input data-k="range_min" placeholder="0"></div>
       <div class="field"><label>To (inclusive)</label><input data-k="range_max" placeholder="7"></div>
-      <div class="field"><label>Severity (0-4)</label><input data-k="severity_level" type="number" min="0" max="4" placeholder="1"></div>
+      <div class="field"><label>Severity (≥ 0)</label><input data-k="severity_level" type="number" min="0" placeholder="1"></div>
     `;
   } else if(containerId==='lookupBody'){
     html = `
