@@ -885,6 +885,33 @@ function _onMeasurementPick(sel){
   host.querySelector('.mv-label').value      = (v && v.label) || key;
   host.querySelector('.mv-unit').value       = (v && v.unit) || '';
   host.querySelector('.mv-metric-key').value = key;
+  // Pre-fill target with the catalog's example_value when present and
+  // the field is empty — gives the operator a sane default they can override.
+  const tgt = host.querySelector('.mv-target');
+  if(tgt && !tgt.value && v && v.example_value){
+    tgt.value = v.example_value;
+  }
+  // Render the metadata strip (direction badge + description) so the
+  // operator understands the picked variable's semantics.
+  let meta = host.querySelector('.mv-meta');
+  if(!meta){
+    meta = document.createElement('div');
+    meta.className = 'mv-meta';
+    meta.style.cssText = 'margin-top:8px;font-size:11px;color:var(--text-soft);line-height:1.5;';
+    detail.appendChild(meta);
+  }
+  const dir = v && v.direction;
+  const dirBadge = dir === 'HIGHER_BETTER'
+    ? '<span style="background:#d1fae5;color:#065f46;padding:2px 7px;border-radius:99px;font-weight:600;">↑ Higher is better</span>'
+    : dir === 'LOWER_BETTER'
+    ? '<span style="background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:99px;font-weight:600;">↓ Lower is better</span>'
+    : '';
+  const contracts = (v && v.applicable_to || []).map(c =>
+    `<span style="background:#e0e7ff;color:#3730a3;padding:2px 7px;border-radius:99px;font-weight:600;margin-left:4px;">${esc(c)}</span>`
+  ).join('');
+  meta.innerHTML = `
+    <div>${dirBadge}${contracts}</div>
+    ${v && v.description ? `<div style="margin-top:5px;">${esc(v.description)}</div>` : ''}`;
 }
 
 function _confirmNewMeasurement(btn){
