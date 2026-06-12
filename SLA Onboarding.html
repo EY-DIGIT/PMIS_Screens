@@ -788,18 +788,139 @@ function _widgetCategoryPicker(cell, f){
   cell.innerHTML = `<select data-v="${esc(f.key)}">${opts}</select>
     <div class="hint">Picks the calculation engine. Adds "Linear LD escalation" or "Target / Applied Severity" rows automatically if you don't have one.</div>`;
 }
+/* ── Measurement-set widget — catalog picker (no free-text variable name) ──
+ *
+ * Operator picks a measurement from the catalog (sourced from
+ * /api/v3/sla-input-variables). The picker auto-fills label + unit as
+ * read-only display; the operator only enters the target value.
+ *
+ * To create a brand-new measurement, the operator clicks
+ * "+ Define new measurement variable", which opens an inline structured
+ * form (key / label / unit). The new entry is added to
+ * SLA_INPUT_VARIABLES so subsequent rows see it too.
+ */
 function _widgetMeasurementSet(cell, f){
   cell.innerHTML = `
-    <div class="sub-form">
-      <div class="sub-grid" style="grid-template-columns:2fr 1fr 1fr;">
-        <div><label>Display name</label>
-          <input type="text" data-vm="display_name" data-v="${esc(f.key)}.display_name" placeholder="e.g. Days delayed"></div>
-        <div><label>Unit</label>
-          <input type="text" data-vm="unit" data-v="${esc(f.key)}.unit" placeholder="days"></div>
-        <div><label>Target value (optional)</label>
-          <input type="text" data-vm="target_value" data-v="${esc(f.key)}.target_value" placeholder="0"></div>
+    <div class="sub-form" data-mv-host data-mv-key="${esc(f.key)}">
+      <div style="display:grid;grid-template-columns:1fr;gap:8px;">
+        <div>
+          <label>Measurement variable <span class="required">*</span></label>
+          <select class="mv-picker" onchange="_onMeasurementPick(this)">
+            ${_measurementOptions('')}
+          </select>
+          <div class="hint">Picked from the DSL catalog. To add a new one, choose "+ Define new measurement variable" below.</div>
+        </div>
+        <div class="mv-detail" style="display:none;background:#f8fafc;padding:10px 12px;border-radius:6px;border:1px solid var(--border-soft);">
+          <div style="display:grid;grid-template-columns:1.4fr 0.6fr 0.7fr;gap:10px;align-items:end;">
+            <div>
+              <label>Display name <span style="font-size:10px;color:var(--text-muted);">(read-only — from catalog)</span></label>
+              <input type="text" class="mv-label" readonly style="background:#fff;color:var(--navy);font-weight:600;">
+            </div>
+            <div>
+              <label>Unit <span style="font-size:10px;color:var(--text-muted);">(read-only)</span></label>
+              <input type="text" class="mv-unit" readonly style="background:#fff;color:var(--navy);font-weight:600;">
+            </div>
+            <div>
+              <label>Target value (optional)</label>
+              <input type="text" class="mv-target" placeholder="0">
+            </div>
+          </div>
+          <input type="hidden" class="mv-metric-key">
+        </div>
+        <div class="mv-create" style="display:none;background:#fffbeb;padding:10px 12px;border-radius:6px;border:1px dashed #fcd34d;">
+          <div style="font-size:11px;color:#92400e;font-weight:600;margin-bottom:6px;">Define a new measurement variable</div>
+          <div style="display:grid;grid-template-columns:1fr 1.4fr 0.6fr auto auto;gap:8px;align-items:end;">
+            <div>
+              <label>Key (snake_case)</label>
+              <input type="text" class="mv-new-key" placeholder="e.g. uptime_percent">
+            </div>
+            <div>
+              <label>Display name</label>
+              <input type="text" class="mv-new-label" placeholder="e.g. System uptime">
+            </div>
+            <div>
+              <label>Unit</label>
+              <input type="text" class="mv-new-unit" placeholder="e.g. %">
+            </div>
+            <button type="button" class="small-btn" onclick="_confirmNewMeasurement(this)" style="background:var(--navy);color:#fff;border:none;">Add to catalog</button>
+            <button type="button" class="small-btn" onclick="_cancelNewMeasurement(this)">Cancel</button>
+          </div>
+        </div>
       </div>
     </div>`;
+}
+
+/* Build the picker options. "" = none picked, "__new__" = sentinel
+ * that opens the inline create form. All catalog entries listed in
+ * alphabetical order of label. */
+function _measurementOptions(selectedKey){
+  const opts = [`<option value="" ${!selectedKey ? 'selected' : ''}>— Pick a measurement variable —</option>`];
+  for(const v of SLA_INPUT_VARIABLES){
+    const lbl = `${v.label}${v.unit ? ' ('+v.unit+')' : ''}`;
+    const sel = v.key === selectedKey ? ' selected' : '';
+    opts.push(`<option value="${esc(v.key)}"${sel}>${esc(lbl)}</option>`);
+  }
+  opts.push(`<option value="__new__">+ Define new measurement variable…</option>`);
+  // Custom key not in the catalog — surface it so edit-mode hydrates correctly.
+  if(selectedKey && !SLA_INPUT_VARIABLES.find(v => v.key === selectedKey)){
+    opts.splice(1, 0, `<option value="${esc(selectedKey)}" selected>${esc(selectedKey)} (custom)</option>`);
+  }
+  return opts.join('');
+}
+
+function _onMeasurementPick(sel){
+  const host = sel.closest('[data-mv-host]');
+  const detail = host.querySelector('.mv-detail');
+  const create = host.querySelector('.mv-create');
+  const key = sel.value;
+  if(key === '__new__'){
+    detail.style.display = 'none';
+    create.style.display = '';
+    return;
+  }
+  create.style.display = 'none';
+  if(!key){ detail.style.display = 'none'; return; }
+  const v = SLA_INPUT_VARIABLES.find(x => x.key === key);
+  detail.style.display = '';
+  host.querySelector('.mv-label').value      = (v && v.label) || key;
+  host.querySelector('.mv-unit').value       = (v && v.unit) || '';
+  host.querySelector('.mv-metric-key').value = key;
+}
+
+function _confirmNewMeasurement(btn){
+  const host = btn.closest('[data-mv-host]');
+  const rawKey   = (host.querySelector('.mv-new-key').value   || '').trim();
+  const rawLabel = (host.querySelector('.mv-new-label').value || '').trim();
+  const rawUnit  = (host.querySelector('.mv-new-unit').value  || '').trim();
+  if(!rawKey || !rawLabel){
+    toast('Missing fields', 'Key and Display name are required to define a new measurement.', 'error');
+    return;
+  }
+  const safeKey = rawKey.toLowerCase().replace(/[^a-z0-9_]+/g,'_').replace(/^_+|_+$/g,'');
+  if(!safeKey){ toast('Invalid key', 'Use snake_case letters / digits / underscores.', 'error'); return; }
+  // Refuse duplicates so the dropdown stays clean.
+  if(SLA_INPUT_VARIABLES.find(v => v.key === safeKey)){
+    toast('Already exists', `"${safeKey}" is already in the catalog.`, 'error');
+    return;
+  }
+  SLA_INPUT_VARIABLES.push({
+    key: safeKey, label: rawLabel, unit: rawUnit || null,
+    source: 'custom', used_by: [], categories: [],
+  });
+  // Refresh this row's dropdown + pick the new entry.
+  const sel = host.querySelector('.mv-picker');
+  sel.innerHTML = _measurementOptions(safeKey);
+  sel.value = safeKey;
+  _onMeasurementPick(sel);
+  toast('Added', `"${rawLabel}" is now in the catalog and selected.`, 'success');
+}
+
+function _cancelNewMeasurement(btn){
+  const host = btn.closest('[data-mv-host]');
+  host.querySelector('.mv-create').style.display = 'none';
+  const sel = host.querySelector('.mv-picker');
+  sel.value = '';
+  _onMeasurementPick(sel);
 }
 
 /* ── Severity-table widget ── */
@@ -1133,12 +1254,22 @@ function _collectRowValue(row, field){
     return el ? (el.value || undefined) : undefined;
   }
   if(t === 'measurement_set'){
-    const obj = {};
-    cell.querySelectorAll('[data-vm]').forEach(el => {
-      const v = (el.value || '').trim();
-      if(v) obj[el.dataset.vm] = v;
-    });
-    return Object.keys(obj).length ? obj : undefined;
+    // New shape: read from the picker. metric_key carries the catalog
+    // key; display_name + unit come from the (read-only) display
+    // fields auto-filled by _onMeasurementPick; target_value is the
+    // operator's only writable input.
+    const host = cell.querySelector('[data-mv-host]');
+    if(!host) return undefined;
+    const metricKey = (host.querySelector('.mv-metric-key').value || '').trim();
+    if(!metricKey) return undefined;  // nothing picked → omit
+    const obj = {
+      metric_key:   metricKey,
+      display_name: (host.querySelector('.mv-label').value || '').trim(),
+      unit:         (host.querySelector('.mv-unit').value  || '').trim(),
+    };
+    const tgt = (host.querySelector('.mv-target').value || '').trim();
+    if(tgt) obj.target_value = tgt;
+    return obj;
   }
   if(t === 'severity_table'){
     const rows = [];
@@ -1315,9 +1446,24 @@ function _hydrateRow(key, value, fullSla){
     return;
   }
   if(t === 'measurement_set'){
-    cell.querySelectorAll('[data-vm]').forEach(el => {
-      el.value = value[el.dataset.vm] || '';
-    });
+    // Edit-mode: pick the matching catalog entry. value carries
+    // metric_key (preferred) or just display_name (legacy). When the
+    // key isn't in the catalog, _measurementOptions surfaces it with a
+    // "(custom)" tag so the round-trip stays lossless.
+    const host = cell.querySelector('[data-mv-host]');
+    if(!host) return;
+    const wantKey = value.metric_key
+      || (SLA_INPUT_VARIABLES.find(v => v.label === value.display_name) || {}).key
+      || (value.display_name || '').toLowerCase().replace(/[^a-z0-9_]+/g,'_').replace(/^_+|_+$/g,'');
+    const sel = host.querySelector('.mv-picker');
+    sel.innerHTML = _measurementOptions(wantKey);
+    sel.value = wantKey;
+    _onMeasurementPick(sel);
+    // Restore display_name + unit from the SLA in case they differ from
+    // the catalog (e.g. catalog has updated labels).
+    if(value.display_name) host.querySelector('.mv-label').value = value.display_name;
+    if(value.unit)         host.querySelector('.mv-unit').value = value.unit;
+    if(value.target_value != null) host.querySelector('.mv-target').value = value.target_value;
     return;
   }
   if(t === 'severity_table'){
