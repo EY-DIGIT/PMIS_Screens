@@ -797,7 +797,7 @@ function _widgetCategoryPicker(cell, f){
  * To create a brand-new measurement, the operator clicks
  * "+ Define new measurement variable", which opens an inline structured
  * form (key / label / unit). The new entry is added to
- * SLA_INPUT_VARIABLES so subsequent rows see it too.
+ * INPUT_VARIABLES so subsequent rows see it too.
  */
 function _widgetMeasurementSet(cell, f){
   cell.innerHTML = `
@@ -855,14 +855,14 @@ function _widgetMeasurementSet(cell, f){
  * alphabetical order of label. */
 function _measurementOptions(selectedKey){
   const opts = [`<option value="" ${!selectedKey ? 'selected' : ''}>— Pick a measurement variable —</option>`];
-  for(const v of SLA_INPUT_VARIABLES){
+  for(const v of INPUT_VARIABLES){
     const lbl = `${v.label}${v.unit ? ' ('+v.unit+')' : ''}`;
     const sel = v.key === selectedKey ? ' selected' : '';
     opts.push(`<option value="${esc(v.key)}"${sel}>${esc(lbl)}</option>`);
   }
   opts.push(`<option value="__new__">+ Define new measurement variable…</option>`);
   // Custom key not in the catalog — surface it so edit-mode hydrates correctly.
-  if(selectedKey && !SLA_INPUT_VARIABLES.find(v => v.key === selectedKey)){
+  if(selectedKey && !INPUT_VARIABLES.find(v => v.key === selectedKey)){
     opts.splice(1, 0, `<option value="${esc(selectedKey)}" selected>${esc(selectedKey)} (custom)</option>`);
   }
   return opts.join('');
@@ -880,7 +880,7 @@ function _onMeasurementPick(sel){
   }
   create.style.display = 'none';
   if(!key){ detail.style.display = 'none'; return; }
-  const v = SLA_INPUT_VARIABLES.find(x => x.key === key);
+  const v = INPUT_VARIABLES.find(x => x.key === key);
   detail.style.display = '';
   host.querySelector('.mv-label').value      = (v && v.label) || key;
   host.querySelector('.mv-unit').value       = (v && v.unit) || '';
@@ -926,11 +926,11 @@ function _confirmNewMeasurement(btn){
   const safeKey = rawKey.toLowerCase().replace(/[^a-z0-9_]+/g,'_').replace(/^_+|_+$/g,'');
   if(!safeKey){ toast('Invalid key', 'Use snake_case letters / digits / underscores.', 'error'); return; }
   // Refuse duplicates so the dropdown stays clean.
-  if(SLA_INPUT_VARIABLES.find(v => v.key === safeKey)){
+  if(INPUT_VARIABLES.find(v => v.key === safeKey)){
     toast('Already exists', `"${safeKey}" is already in the catalog.`, 'error');
     return;
   }
-  SLA_INPUT_VARIABLES.push({
+  INPUT_VARIABLES.push({
     key: safeKey, label: rawLabel, unit: rawUnit || null,
     source: 'custom', used_by: [], categories: [],
   });
@@ -973,10 +973,15 @@ function _widgetSeverityTable(cell, f){
 
 function _sevInputVarOptions(selected, excludeSevRow){
   // Uniqueness within ONE severity table: a variable picked on row A
-  // doesn't show on row B's dropdown.
+  // doesn't show on row B's dropdown. When the new row hasn't been
+  // appended to its host yet (the orphan-div path through _addSevRow),
+  // parentElement is null and there are no siblings to dedupe against —
+  // skip the loop and return the full option list. _refreshSevDropdowns
+  // fixes everything up after the append.
   const used = new Set();
-  if(excludeSevRow){
-    excludeSevRow.parentElement.querySelectorAll('.sev-row').forEach(r => {
+  const parent = excludeSevRow && excludeSevRow.parentElement;
+  if(parent){
+    parent.querySelectorAll('.sev-row').forEach(r => {
       if(r === excludeSevRow) return;
       const sel = r.querySelector('[data-k="input_variable"]');
       if(sel && sel.value && sel.value !== '__custom__') used.add(sel.value);
@@ -1480,7 +1485,7 @@ function _hydrateRow(key, value, fullSla){
     const host = cell.querySelector('[data-mv-host]');
     if(!host) return;
     const wantKey = value.metric_key
-      || (SLA_INPUT_VARIABLES.find(v => v.label === value.display_name) || {}).key
+      || (INPUT_VARIABLES.find(v => v.label === value.display_name) || {}).key
       || (value.display_name || '').toLowerCase().replace(/[^a-z0-9_]+/g,'_').replace(/^_+|_+$/g,'');
     const sel = host.querySelector('.mv-picker');
     sel.innerHTML = _measurementOptions(wantKey);
