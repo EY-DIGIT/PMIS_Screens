@@ -993,30 +993,30 @@ function _widgetSeverityTable(cell, f){
   _addSevRow(cell.querySelector('button'));
 }
 
-function _sevInputVarOptions(selected, excludeSevRow){
-  // Uniqueness within ONE severity table: a variable picked on row A
-  // doesn't show on row B's dropdown. When the new row hasn't been
-  // appended to its host yet (the orphan-div path through _addSevRow),
-  // parentElement is null and there are no siblings to dedupe against —
-  // skip the loop and return the full option list. _refreshSevDropdowns
-  // fixes everything up after the append.
-  const used = new Set();
-  const parent = excludeSevRow && excludeSevRow.parentElement;
-  if(parent){
-    parent.querySelectorAll('.sev-row').forEach(r => {
-      if(r === excludeSevRow) return;
-      const sel = r.querySelector('[data-k="input_variable"]');
-      if(sel && sel.value && sel.value !== '__custom__') used.add(sel.value);
-    });
-  }
+function _sevInputVarOptions(selected, _excludeSevRow){
+  // Every severity row shows the FULL catalog — no uniqueness.
+  //
+  // Rationale: the standard RFP pattern is "one variable measured
+  // against N severity bands", so PMU-SLA004 has 4 rows all on
+  // ``incorrect_recommendations_count`` and PMU-SLA005 has 2 rows on
+  // ``resource_replacements_count``. Even the multi-metric case
+  // (PMU-SLA007) repeats each variable across 3 severity rows
+  // (L0/L2/L4 for BD, then 3 more rows for hours). Applying uniqueness
+  // here — as the row-type dropdown does — hides the variable the
+  // operator needs for the very next band.
+  //
+  // The excludeSevRow parameter is kept for signature compatibility
+  // with the earlier call sites (_addSevRow, _refreshSevDropdowns)
+  // but it's ignored — no filtering.
   const opts = [`<option value="" ${!selected?'selected':''}>— Primary measurement —</option>`];
   for(const v of INPUT_VARIABLES){
-    if(used.has(v.key) && v.key !== selected) continue;
     const lbl = `${v.label}${v.unit ? ' ('+v.unit+')' : ''}`;
     opts.push(`<option value="${esc(v.key)}" ${selected===v.key?'selected':''}>${esc(lbl)}</option>`);
   }
   opts.push(`<option value="__custom__">+ Type a new variable…</option>`);
-  if(selected && !INPUT_VARIABLES.find(v => v.key === selected) && !used.has(selected)){
+  // Custom keys that came from a prior save aren't in the catalog —
+  // surface them so the round-trip stays lossless.
+  if(selected && !INPUT_VARIABLES.find(v => v.key === selected)){
     opts.splice(1, 0, `<option value="${esc(selected)}" selected>${esc(selected)} (custom)</option>`);
   }
   return opts.join('');

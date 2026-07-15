@@ -1680,26 +1680,26 @@ function _selectedVariablesElsewhere(excludeRow){
   return used;
 }
 
-function _inputVariableOptions(selected, excludeRow){
-  // Build the <option> list for one row's "Input variable" dropdown.
-  // Empty value = "use the SLA's primary measurement" (common case).
-  // The sentinel '__custom__' lets the user type a brand new key.
-  // Variables selected in OTHER rows (passed via excludeRow) are hidden
-  // so each variable can only appear once across the table.
-  const used = _selectedVariablesElsewhere(excludeRow || null);
+function _inputVariableOptions(selected, _excludeRow){
+  // Every severity row shows the FULL catalog — no uniqueness.
+  //
+  // Rationale (see paired SLA Onboarding.html fix): the standard RFP
+  // pattern is "one variable measured against N severity bands" —
+  // PMU-SLA004 has 4 rows on incorrect_recommendations_count,
+  // PMU-SLA005 has 2 rows on resource_replacements_count, PMU-SLA007
+  // even in its compound case has 3 rows per variable. Applying
+  // uniqueness here hid the very variable the operator needed for
+  // the next band. _excludeRow is kept for callsite compat but is
+  // ignored — no filtering.
   const opts = [
     `<option value="" ${!selected ? 'selected' : ''}>— Primary measurement (default) —</option>`,
   ];
   for(const v of SLA_INPUT_VARIABLES){
-    if(used.has(v.key)) continue;  // already taken by another row
     const lbl = `${v.label}${v.unit ? ' ('+v.unit+')' : ''}`;
     opts.push(`<option value="${esc(v.key)}" ${selected===v.key?'selected':''}>${esc(lbl)}</option>`);
   }
-  // Allow the user to type a brand-new metric_key directly.
   opts.push(`<option value="__custom__">+ Type a new variable…</option>`);
-  // If the row's saved value isn't in the catalog (custom one used
-  // previously), surface it so the dropdown shows the right selection.
-  if(selected && !SLA_INPUT_VARIABLES.find(v => v.key === selected) && !used.has(selected)){
+  if(selected && !SLA_INPUT_VARIABLES.find(v => v.key === selected)){
     opts.splice(1, 0,
       `<option value="${esc(selected)}" selected>${esc(selected)} (custom)</option>`);
   }
